@@ -1,6 +1,16 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, X, FileText, Image, ArrowLeft, Zap } from "lucide-react";
+import {
+  Upload,
+  X,
+  FileText,
+  Image,
+  ArrowLeft,
+  Zap,
+  User,
+  Calendar,
+  Award,
+} from "lucide-react";
 
 interface ResumeUploadProps {
   onBack: () => void;
@@ -10,7 +20,44 @@ interface ResumeUploadProps {
 const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<{
+    [key: string]: string;
+  }>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Create image preview URLs when files are added
+  useEffect(() => {
+    const newPreviewUrls: { [key: string]: string } = {};
+
+    files.forEach((file, index) => {
+      if (file.type.includes("image")) {
+        const key = `${file.name}-${index}`;
+        if (!imagePreviewUrls[key]) {
+          newPreviewUrls[key] = URL.createObjectURL(file);
+        }
+      }
+    });
+
+    if (Object.keys(newPreviewUrls).length > 0) {
+      setImagePreviewUrls((prev) => ({ ...prev, ...newPreviewUrls }));
+    }
+
+    // Cleanup function to revoke URLs when component unmounts or files change
+    return () => {
+      Object.values(newPreviewUrls).forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+    };
+  }, [files]);
+
+  // Cleanup URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      Object.values(imagePreviewUrls).forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+    };
+  }, []);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -36,14 +83,49 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
   };
 
   const removeFile = (index: number) => {
+    const fileToRemove = files[index];
+    const key = `${fileToRemove.name}-${index}`;
+
+    // Revoke the URL for the removed file
+    if (imagePreviewUrls[key]) {
+      URL.revokeObjectURL(imagePreviewUrls[key]);
+      setImagePreviewUrls((prev) => {
+        const updated = { ...prev };
+        delete updated[key];
+        return updated;
+      });
+    }
+
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const getFileIcon = (file: File) => {
+  const getResumeIcon = (file: File) => {
     if (file.type.includes("image")) {
-      return <Image className="w-4 h-4 text-text-muted" />;
+      return <Image className="w-6 h-6 text-primary" />;
     }
-    return <FileText className="w-4 h-4 text-text-muted" />;
+    return <FileText className="w-6 h-6 text-primary" />;
+  };
+
+  const extractCandidateName = (filename: string) => {
+    // Remove file extension and common resume keywords
+    const nameWithoutExt = filename.replace(
+      /\.(pdf|jpg|jpeg|png|doc|docx)$/i,
+      ""
+    );
+    const cleanName = nameWithoutExt
+      .replace(/resume|cv|curriculum/gi, "")
+      .replace(/[-_]/g, " ")
+      .trim();
+
+    // Capitalize first letters
+    return (
+      cleanName
+        .split(" ")
+        .map(
+          (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        )
+        .join(" ") || "Unknown Candidate"
+    );
   };
 
   const handleRankResumes = () => {
@@ -62,7 +144,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
             Upload Resumes
           </h3>
           <span className="bg-bg-light text-primary px-3 py-1 rounded-full text-xs font-medium border border-border-custom">
-            {files.length}/10
+            {files.length}/10 candidates
           </span>
         </div>
         <Button
@@ -92,50 +174,112 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
             isDragging ? "text-primary" : "text-text-muted"
           }`}
         />
-        <p className="font-aoenik text-lg mb-2 text-text">
+        <p className="font-aoenik text-sm mb-2 text-text">
           Drop your resumes here or click to browse
         </p>
-        <p className="font-aoenik text-sm text-text-subtle">
-          Supports PDF, JPG, PNG (Max 10 files)
+        <p className="font-aoenik text-xs text-text-subtle">
+          Supports PDF, JPG, PNG, GIF, TIFF, BMP, WEBP (Max 10 files)
         </p>
         <input
           ref={fileInputRef}
           type="file"
           multiple
-          accept=".pdf,.jpg,.jpeg,.png"
+          accept=".pdf,.gif,.tiff,.tif,.jpg,.jpeg,.png,.bmp,.webp"
           onChange={handleFileSelect}
           className="hidden"
         />
       </div>
 
       {files.length > 0 && (
-        <div className="mt-6 space-y-3 max-h-60 overflow-y-auto">
-          {files.map((file, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between bg-bg-light rounded-lg p-3 border border-border-custom hover:bg-border-custom transition-colors duration-200"
-            >
-              <div className="flex items-center space-x-3">
-                {getFileIcon(file)}
-                <div>
-                  <p className="font-aoenik text-sm font-medium truncate max-w-48 text-text">
-                    {file.name}
-                  </p>
-                  <p className="font-aoenik text-xs text-text-subtle">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
+        <div className="mt-8">
+          <div className="flex items-center space-x-2 mb-4">
+            <User className="w-4 h-4 text-text-muted" />
+            <h4 className="font-aoenik text-sm font-medium text-text-muted">
+              Candidate Pool
+            </h4>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-80 overflow-y-auto">
+            {files.map((file, index) => {
+              const previewKey = `${file.name}-${index}`;
+              const isImage = file.type.includes("image");
+              const previewUrl = imagePreviewUrls[previewKey];
+
+              return (
+                <div
+                  key={index}
+                  className="bg-bg-light border border-border-custom rounded-xl p-4 hover:bg-border-custom transition-all duration-200 group relative"
+                >
+                  {/* Remove button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeFile(index)}
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-text-subtle hover:text-destructive hover:bg-bg-dark p-1 h-auto w-auto z-10"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+
+                  {/* Resume preview card */}
+                  <div className="flex items-start space-x-3">
+                    {/* Image preview or icon */}
+                    <div className="flex-shrink-0">
+                      {isImage && previewUrl ? (
+                        <div className="w-16 h-20 rounded-lg border border-border-custom overflow-hidden bg-bg">
+                          <img
+                            src={previewUrl}
+                            alt={`Preview of ${extractCandidateName(
+                              file.name
+                            )}'s resume`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="p-2 bg-bg rounded-lg border border-border-custom">
+                          {getResumeIcon(file)}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      {/* Candidate name */}
+                      <h5 className="font-aoenik text-sm font-semibold text-text truncate">
+                        {extractCandidateName(file.name)}
+                      </h5>
+
+                      {/* Resume details */}
+                      <div className="mt-1 space-y-1">
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="w-3 h-3 text-text-subtle" />
+                          <span className="font-aoenik text-xs text-text-subtle">
+                            Uploaded now
+                          </span>
+                        </div>
+
+                        <div className="flex items-center space-x-1">
+                          <FileText className="w-3 h-3 text-text-subtle" />
+                          <span className="font-aoenik text-xs text-text-subtle">
+                            {file.type.includes("pdf")
+                              ? "PDF Resume"
+                              : "Image Resume"}{" "}
+                            • {(file.size / 1024 / 1024).toFixed(1)} MB
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Status indicator */}
+                      <div className="mt-3 flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                        <span className="font-aoenik text-xs text-primary font-medium">
+                          Ready to rank
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => removeFile(index)}
-                className="text-text-muted hover:text-destructive hover:bg-bg-dark transition-colors duration-200"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          ))}
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -146,7 +290,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
             className="font-aoenik bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg transition-all duration-300 hover:scale-105 shadow-lg"
           >
             <Zap className="w-5 h-5 mr-2" />
-            Rank Them
+            Rank {files.length} Candidate{files.length !== 1 ? "s" : ""}
           </Button>
         </div>
       )}

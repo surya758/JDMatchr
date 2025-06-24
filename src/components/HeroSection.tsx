@@ -1,17 +1,26 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, FileText, Zap, File } from "lucide-react";
+import { LoaderOverlay, LoaderInline } from "@/components/ui/loader";
+import { Upload, FileText, File } from "lucide-react";
 import ResumeUpload from "./ResumeUpload";
 
 const HeroSection = () => {
   const [step, setStep] = useState<"jd" | "upload">("jd");
   const [jobDescription, setJobDescription] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [isProcessingJD, setIsProcessingJD] = useState(false);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUploadResumes = () => {
+  const handleUploadResumes = async () => {
     if (jobDescription.trim()) {
+      setIsProcessingJD(true);
+
+      // Simulate JD processing/validation
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      setIsProcessingJD(false);
       setStep("upload");
     }
   };
@@ -44,11 +53,17 @@ const HeroSection = () => {
     }
   };
 
-  const handleFileUpload = (file: File) => {
+  const handleFileUpload = async (file: File) => {
+    setIsUploadingFile(true);
+
+    // Simulate file processing
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const content = e.target?.result as string;
       setJobDescription(content);
+      setIsUploadingFile(false);
     };
     reader.readAsText(file);
   };
@@ -71,7 +86,14 @@ const HeroSection = () => {
           <div className="relative">
             {step === "jd" && (
               <div className="animate-fade-in">
-                <div className="bg-bg border border-border-custom rounded-2xl p-8 shadow-2xl">
+                <div className="bg-bg border border-border-custom rounded-2xl p-8 shadow-2xl relative">
+                  {/* Loading overlay for file upload */}
+                  <LoaderOverlay
+                    isLoading={isUploadingFile}
+                    text="Processing file..."
+                    size="md"
+                  />
+
                   <div className="flex items-center space-x-3 mb-6">
                     <div className="p-2 bg-bg-light rounded-lg border border-border-custom">
                       <FileText className="w-5 h-5 text-text-muted" />
@@ -101,12 +123,12 @@ const HeroSection = () => {
                       Drop your JD file here or click to browse
                     </p>
                     <p className="font-aoenik text-xs text-text-subtle">
-                      Supports TXT, PDF, DOC files
+                      Supports PDF, JPG, PNG, GIF, TIFF, BMP, WEBP
                     </p>
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept=".txt,.pdf,.doc,.docx"
+                      accept=".pdf,.gif,.tiff,.tif,.jpg,.jpeg,.png,.bmp,.webp,.txt,.doc,.docx"
                       onChange={handleFileSelect}
                       className="hidden"
                     />
@@ -123,16 +145,29 @@ const HeroSection = () => {
                     value={jobDescription}
                     onChange={(e) => setJobDescription(e.target.value)}
                     className="min-h-32 bg-bg-light border-border-custom text-text placeholder:text-text-subtle font-aoenik resize-none focus:border-text-muted focus:ring-0 focus:outline-none transition-colors duration-200"
+                    disabled={isUploadingFile}
                   />
 
                   <div className="mt-6 flex justify-center">
                     <Button
                       onClick={handleUploadResumes}
-                      disabled={!jobDescription.trim()}
+                      disabled={
+                        !jobDescription.trim() ||
+                        isProcessingJD ||
+                        isUploadingFile
+                      }
                       className="font-aoenik bg-bg-light hover:bg-border-custom border border-border-light px-8 py-3 text-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-lg text-text"
                     >
-                      <Upload className="w-5 h-5 mr-2" />
-                      Upload Resumes
+                      {isProcessingJD ? (
+                        <LoaderInline
+                          isLoading={true}
+                          size="sm"
+                          className="mr-2"
+                        />
+                      ) : (
+                        <Upload className="w-5 h-5 mr-2" />
+                      )}
+                      {isProcessingJD ? "Processing..." : "Upload Resumes"}
                     </Button>
                   </div>
                 </div>
