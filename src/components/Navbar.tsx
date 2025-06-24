@@ -9,6 +9,17 @@ const Navbar = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const scrollToSection = (sectionIndex: number) => {
+    const sections = document.querySelectorAll("section[data-section]");
+    if (sections[sectionIndex]) {
+      sections[sectionIndex].scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-dark/80 backdrop-blur-md border-b border-border-custom">
       <div className="max-w-7xl mx-auto">
@@ -27,18 +38,18 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
-            <a
-              href="#pricing"
+            <button
+              onClick={() => scrollToSection(1)}
               className="font-aoenik text-text-muted hover:text-text transition-colors duration-200 text-sm"
             >
               Pricing
-            </a>
-            <a
-              href="#how-it-works"
+            </button>
+            <button
+              onClick={() => scrollToSection(2)}
               className="font-aoenik text-text-muted hover:text-text transition-colors duration-200 text-sm"
             >
-              How it works
-            </a>
+              Why?
+            </button>
           </div>
 
           {/* Desktop Buttons */}
@@ -88,20 +99,18 @@ const Navbar = () => {
         >
           <div className="border-t border-border-custom bg-bg/95 backdrop-blur-sm">
             <div className="px-4 py-4 space-y-1">
-              <a
-                href="#pricing"
-                className="block font-aoenik text-text-muted hover:text-text hover:bg-bg-light transition-colors duration-200 py-3 px-3 rounded-lg text-sm"
-                onClick={() => setIsMobileMenuOpen(false)}
+              <button
+                onClick={() => scrollToSection(1)}
+                className="block w-full text-left font-aoenik text-text-muted hover:text-text hover:bg-bg-light transition-colors duration-200 py-3 px-3 rounded-lg text-sm"
               >
                 Pricing
-              </a>
-              <a
-                href="#how-it-works"
-                className="block font-aoenik text-text-muted hover:text-text hover:bg-bg-light transition-colors duration-200 py-3 px-3 rounded-lg text-sm"
-                onClick={() => setIsMobileMenuOpen(false)}
+              </button>
+              <button
+                onClick={() => scrollToSection(2)}
+                className="block w-full text-left font-aoenik text-text-muted hover:text-text hover:bg-bg-light transition-colors duration-200 py-3 px-3 rounded-lg text-sm"
               >
-                How it works
-              </a>
+                Why?
+              </button>
               <div className="pt-2 border-t border-border-custom mt-3">
                 <Button
                   variant="ghost"

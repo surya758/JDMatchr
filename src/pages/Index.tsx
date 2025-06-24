@@ -94,6 +94,7 @@ const Index = () => {
           {/* Hero Section */}
           <section
             ref={setSectionRef(0)}
+            data-section="hero"
             className={`h-screen snap-start snap-always flex items-center justify-center transition-opacity duration-500 ease-out ${
               visibleSections.has(0) ? "opacity-100" : "opacity-30"
             }`}
@@ -106,6 +107,7 @@ const Index = () => {
           {/* Pricing Section */}
           <section
             ref={setSectionRef(1)}
+            data-section="pricing"
             className={`h-screen snap-start snap-always flex items-center justify-center transition-opacity duration-500 ease-out ${
               visibleSections.has(1) ? "opacity-100" : "opacity-30"
             }`}
@@ -118,6 +120,7 @@ const Index = () => {
           {/* Comparison Section */}
           <section
             ref={setSectionRef(2)}
+            data-section="comparison"
             className={`h-screen snap-start snap-always flex items-center justify-center transition-opacity duration-500 ease-out ${
               visibleSections.has(2) ? "opacity-100" : "opacity-30"
             }`}
@@ -130,6 +133,7 @@ const Index = () => {
           {/* FAQ Section */}
           <section
             ref={setSectionRef(3)}
+            data-section="faq"
             className={`h-screen snap-start snap-always flex items-center justify-center transition-opacity duration-500 ease-out ${
               visibleSections.has(3) ? "opacity-100" : "opacity-30"
             }`}
