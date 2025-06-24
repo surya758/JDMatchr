@@ -86,7 +86,10 @@ const HeroSection = () => {
           <div className="relative">
             {step === "jd" && (
               <div className="animate-fade-in">
-                <div className="bg-bg border border-border-custom rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-2xl relative">
+                <div className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
+                  {/* Background gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-bg-light/10 to-transparent pointer-events-none"></div>
+
                   {/* Loading overlay for file upload */}
                   <LoaderOverlay
                     isLoading={isUploadingFile}
@@ -94,81 +97,107 @@ const HeroSection = () => {
                     size="md"
                   />
 
-                  <div className="flex items-center space-x-3 mb-4 sm:mb-6">
-                    <div className="p-1.5 sm:p-2 bg-bg-light rounded-lg border border-border-custom">
-                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-text-muted" />
+                  <div className="relative z-10 flex items-center space-x-3 mb-4">
+                    <div className="p-1.5 bg-bg-light rounded-lg border border-border-custom">
+                      <FileText className="w-4 h-4 text-primary" />
                     </div>
-                    <h3 className="font-aoenik text-base sm:text-lg font-semibold text-text">
+                    <h3 className="font-aoenik text-base font-semibold text-text">
                       Job Description
                     </h3>
                   </div>
 
-                  <div
-                    className={`border-2 border-dashed rounded-xl p-4 sm:p-6 mb-4 text-center transition-all duration-300 ${
-                      isDragging
-                        ? "border-text-subtle bg-bg-light"
-                        : "border-border-light hover:border-text-subtle bg-bg-light"
-                    }`}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <File
-                      className={`w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 sm:mb-3 transition-colors duration-300 ${
-                        isDragging ? "text-text-muted" : "text-text-subtle"
+                  <div className="relative z-10">
+                    <div
+                      className={`group border-2 border-dashed rounded-xl p-4 mb-3 text-center transition-all duration-300 cursor-pointer ${
+                        isDragging
+                          ? "border-primary bg-primary/5 scale-[1.01]"
+                          : "border-border-light hover:border-primary/50 hover:bg-primary/5"
                       }`}
-                    />
-                    <p className="font-aoenik text-xs sm:text-sm text-text-muted mb-1 sm:mb-2">
-                      Drop your JD file here or click to browse
-                    </p>
-                    <p className="font-aoenik text-xs text-text-subtle">
-                      Supports PDF, JPG, PNG, GIF, TIFF, BMP, WEBP
-                    </p>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".pdf,.gif,.tiff,.tif,.jpg,.jpeg,.png,.bmp,.webp,.txt,.doc,.docx"
-                      onChange={handleFileSelect}
-                      className="hidden"
-                    />
-                  </div>
-
-                  <div className="text-center mb-4">
-                    <span className="font-aoenik text-sm text-text-subtle">
-                      or
-                    </span>
-                  </div>
-
-                  <Textarea
-                    placeholder="Paste your job description here..."
-                    value={jobDescription}
-                    onChange={(e) => setJobDescription(e.target.value)}
-                    className="min-h-24 sm:min-h-32 bg-bg-light border-border-custom text-text placeholder:text-text-subtle font-aoenik resize-none focus:border-text-muted focus:ring-0 focus:outline-none transition-colors duration-200 text-sm sm:text-base"
-                    disabled={isUploadingFile}
-                  />
-
-                  <div className="mt-4 sm:mt-6 flex justify-center">
-                    <Button
-                      onClick={handleUploadResumes}
-                      disabled={
-                        !jobDescription.trim() ||
-                        isProcessingJD ||
-                        isUploadingFile
-                      }
-                      className="font-aoenik bg-bg-light hover:bg-border-custom border border-border-light px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-lg text-text w-full sm:w-auto"
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      onClick={() => fileInputRef.current?.click()}
                     >
-                      {isProcessingJD ? (
-                        <LoaderInline
-                          isLoading={true}
-                          size="sm"
-                          className="mr-2"
-                        />
-                      ) : (
-                        <Upload className="w-5 h-5 mr-2" />
+                      <div className="relative inline-block mb-2">
+                        <div className="bg-bg-light rounded-full p-2">
+                          <File
+                            className={`w-5 h-5 transition-colors duration-300 ${
+                              isDragging
+                                ? "text-primary"
+                                : "text-text-muted group-hover:text-primary"
+                            }`}
+                          />
+                        </div>
+                      </div>
+                      <p className="font-aoenik text-sm text-text-muted mb-1">
+                        {isDragging
+                          ? "Drop file here"
+                          : "Drop file or click to browse"}
+                      </p>
+                      <p className="font-aoenik text-xs text-text-subtle">
+                        PDF, JPG, PNG, GIF, TIFF, BMP, WEBP
+                      </p>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf,.gif,.tiff,.tif,.jpg,.jpeg,.png,.bmp,.webp,.txt,.doc,.docx"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                      />
+                    </div>
+
+                    <div className="flex items-center my-4">
+                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border-custom to-transparent"></div>
+                      <span className="px-3 font-aoenik text-xs text-text-subtle bg-bg rounded-full border border-border-custom">
+                        or write
+                      </span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border-custom to-transparent"></div>
+                    </div>
+
+                    <div className="relative">
+                      <Textarea
+                        placeholder="Looking for a Frontend Developer with 3+ years of experience in React, TypeScript..."
+                        value={jobDescription}
+                        onChange={(e) => setJobDescription(e.target.value)}
+                        className="min-h-20 sm:min-h-24 bg-bg-light/50 backdrop-blur-sm border-border-custom text-text placeholder:text-text-subtle font-aoenik resize-none focus:border-primary/50 focus:ring-0 focus:outline-none transition-border-colors duration-300 text-sm rounded-xl"
+                        disabled={isUploadingFile}
+                      />
+                      {jobDescription.trim() && (
+                        <div className="absolute bottom-2 right-2 bg-bg-light rounded-full px-2 py-0.5">
+                          <span className="text-xs text-text-muted">
+                            {jobDescription.trim().split(" ").length} words
+                          </span>
+                        </div>
                       )}
-                      {isProcessingJD ? "Processing..." : "Upload Resumes"}
-                    </Button>
+                    </div>
+
+                    <div className="mt-4 flex justify-center">
+                      <Button
+                        onClick={handleUploadResumes}
+                        disabled={
+                          !jobDescription.trim() ||
+                          isProcessingJD ||
+                          isUploadingFile
+                        }
+                        className="group font-aoenik bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 text-sm font-medium transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-lg w-full sm:w-auto rounded-xl"
+                      >
+                        {isProcessingJD ? (
+                          <>
+                            <LoaderInline
+                              isLoading={true}
+                              size="sm"
+                              className="mr-2"
+                            />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:scale-110" />
+                            Upload Resumes
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

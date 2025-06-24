@@ -1,0 +1,195 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# JDMatchr Project Rules
+
+## Project Overview
+
+JDMatchr is an AI-powered resume screening tool with a minimal, modern design focused on user experience and professional aesthetics.
+
+## Design System & Visual Language
+
+### Color Palette (HSL-based)
+
+- **Backgrounds**: bg-dark (0%), bg (5%), bg-light (10%)
+- **Text**: text (95%), text-muted (70%), text-subtle (50%)
+- **Borders**: border-custom (15%), border-light (20%)
+- **Primary**: Blue (210 100% 50%) with foreground white
+- **Always use HSL color variables** - never hardcode colors
+
+### Typography
+
+- **Font Family**: Space Grotesk (fallback: system fonts)
+- **Class**: Always use `font-aoenik` for consistency
+- **Hierarchy**: Clear size progression with proper line heights
+- **Weight**: Use semantic weights (font-medium, font-semibold, font-bold)
+
+### Visual Effects
+
+- **Glass morphism**: `bg-bg/50 backdrop-blur-sm` for modern depth
+- **Gradients**: Subtle `bg-gradient-to-br from-bg-light/10 to-transparent`
+- **Shadows**: `shadow-2xl` for cards, `shadow-lg` for buttons
+- **Borders**: Rounded corners with `rounded-xl` or `rounded-2xl`
+- **Transitions**: Smooth `transition-all duration-200` or `duration-300`
+
+### Interactive States
+
+- **Hover**: Scale effects `hover:scale-105`, color transitions
+- **Focus**: Primary color accents `focus:border-primary/50`
+- **Active**: Subtle scale `scale-[1.01]` for feedback
+- **Disabled**: `opacity-50` with `disabled:hover:scale-100`
+
+## Component Patterns
+
+### Cards & Containers
+
+```tsx
+// Standard card pattern
+<div className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
+  <div className="absolute inset-0 bg-gradient-to-br from-bg-light/10 to-transparent pointer-events-none"></div>
+  <div className="relative z-10">{/* Content */}</div>
+</div>
+```
+
+### Buttons
+
+- **Primary**: `bg-primary hover:bg-primary/90 text-primary-foreground`
+- **Ghost**: `hover:bg-bg-light/50 border border-border-custom`
+- **Consistent sizing**: `px-6 py-2.5 text-sm` or `px-8 py-3 text-base`
+- **Icons**: Always include hover animations `group-hover:scale-110`
+
+### Form Elements
+
+- **Inputs/Textareas**: Semi-transparent backgrounds with blur
+- **Focus states**: `focus:border-primary/50 focus:ring-0 focus:outline-none`
+- **Transitions**: `transition-border-colors duration-300`
+- **Placeholders**: Use `text-text-subtle` color
+
+### Loading States
+
+- **Spinners**: `border-bg-light border-t-primary` (never gray)
+- **Overlay**: `LoaderOverlay` for full container loading
+- **Inline**: `LoaderInline` for buttons and small components
+- **Text**: Include loading text for better UX
+
+## Code Standards
+
+### React/TypeScript
+
+- **Functional components** with hooks
+- **TypeScript interfaces** for all props
+- **Proper error handling** and loading states
+- **Accessibility**: Include proper ARIA labels and alt text
+
+### Styling
+
+- **Tailwind CSS** - no custom CSS unless absolutely necessary
+- **Responsive design**: Mobile-first with `sm:`, `md:`, `lg:` breakpoints
+- **Consistent spacing**: Use Tailwind's spacing scale
+- **No hardcoded values** - use design system variables
+
+### File Organization
+
+- **Components**: Organized by feature/section
+- **UI Components**: Reusable components in `/ui` folder
+- **Consistent naming**: PascalCase for components, camelCase for functions
+- **Single responsibility**: Each component should have one clear purpose
+
+## UX Principles
+
+### Navigation & Flow
+
+- **Smooth transitions** between sections
+- **Clear visual hierarchy** with proper headings
+- **Minimal cognitive load** - simple, intuitive interfaces
+- **Progressive disclosure** - show information when needed
+
+### Feedback & States
+
+- **Immediate feedback** for user actions
+- **Loading states** for async operations
+- **Error handling** with user-friendly messages
+- **Success states** with clear confirmation
+
+### Accessibility
+
+- **Keyboard navigation** support
+- **Screen reader** compatibility
+- **Color contrast** meeting WCAG standards
+- **Focus indicators** visible and consistent
+
+## Performance
+
+### Optimization
+
+- **Lazy loading** for images and heavy components
+- **Minimize re-renders** with proper React patterns
+- **Bundle size** awareness - avoid unnecessary dependencies
+- **Image optimization** with proper formats and sizes
+
+### Code Quality
+
+- **ESLint** compliance
+- **TypeScript** strict mode
+- **Clean code** principles - readable, maintainable
+- **Component reusability** - DRY principle
+
+## Specific Patterns
+
+### Full-Screen Sections
+
+- Use `h-screen` with snap scrolling
+- Proper padding to account for fixed navbar
+- Smooth transitions between sections
+
+### File Upload Areas
+
+- Drag and drop support with visual feedback
+- Multiple file type support with clear messaging
+- Preview functionality for images
+- Progress indicators for uploads
+
+### Data Display
+
+- Card-based layouts for collections
+- Proper spacing and visual grouping
+- Status indicators with color coding
+- Responsive grid layouts
+
+## Development Workflow
+
+### Git Practices
+
+- **Meaningful commits** with clear messages
+- **Feature branches** for new functionality
+- **Code reviews** before merging
+- **Clean history** with proper rebasing
+
+### Testing
+
+- **Component testing** for critical functionality
+- **User interaction** testing
+- **Responsive design** testing across devices
+- **Performance** monitoring
+
+## Common Pitfalls to Avoid
+
+1. **Don't use hardcoded colors** - always use design system variables
+2. **Don't skip loading states** - always provide user feedback
+3. **Don't ignore responsive design** - test on all screen sizes
+4. **Don't use generic gray loaders** - use primary color theme
+5. **Don't create jarring transitions** - use smooth, consistent animations
+6. **Don't skip accessibility** - include proper ARIA labels
+7. **Don't break the glass morphism pattern** - maintain visual consistency
+8. **Don't use overly complex animations** - keep it subtle and professional
+
+## File Naming Conventions
+
+- **Components**: PascalCase (e.g., `HeroSection.tsx`)
+- **Utilities**: camelCase (e.g., `utils.ts`)
+- **Types**: PascalCase with descriptive names
+- **Constants**: UPPER_SNAKE_CASE
+
+Remember: JDMatchr is about simplicity, professionalism, and user experience. Every design decision should reduce friction and provide clear value to HR professionals screening candidates.

@@ -26,7 +26,7 @@ const Loader = ({ size = "md", className, text }: LoaderProps) => {
     >
       <div
         className={cn(
-          "animate-spin rounded-full border-2 border-text-subtle border-t-primary",
+          "animate-spin rounded-full border-2 border-bg-light border-t-primary",
           sizeClasses[size]
         )}
       />
@@ -89,7 +89,7 @@ const LoaderInline = ({
   return (
     <div
       className={cn(
-        "animate-spin rounded-full border-2 border-text-subtle border-t-primary",
+        "animate-spin rounded-full border-2 border-white/75 border-t-primary",
         size === "sm" ? "w-4 h-4" : size === "md" ? "w-6 h-6" : "w-8 h-8",
         className
       )}

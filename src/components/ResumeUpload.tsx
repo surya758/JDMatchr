@@ -134,72 +134,117 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
   };
 
   return (
-    <div className="bg-bg border border-border-custom rounded-2xl p-8 shadow-2xl">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-bg-light rounded-lg border border-border-custom">
-            <Upload className="w-5 h-5 text-text-muted" />
+    <div className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-bg-light/10 to-transparent pointer-events-none"></div>
+
+      <div className="relative z-10 mb-4 sm:mb-6">
+        {/* Mobile layout */}
+        <div className="flex items-center justify-between mb-3 sm:hidden">
+          <div className="flex items-center space-x-2">
+            <div className="p-1.5 bg-bg-light rounded-lg border border-border-custom">
+              <Upload className="w-4 h-4 text-primary" />
+            </div>
+            <h3 className="font-aoenik text-sm font-semibold text-text">
+              Upload Resumes
+            </h3>
           </div>
-          <h3 className="font-aoenik text-lg font-semibold text-text">
-            Upload Resumes
-          </h3>
-          <span className="bg-bg-light text-primary px-3 py-1 rounded-full text-xs font-medium border border-border-custom">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="text-text-muted hover:text-text hover:bg-bg-light/50 border border-border-custom transition-all duration-200 rounded-xl px-3 py-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Mobile candidate counter */}
+        <div className="flex justify-center mb-3 sm:hidden">
+          <span className="bg-bg-light/50 backdrop-blur-sm text-primary px-3 py-1.5 rounded-full text-xs font-medium border border-border-custom">
             {files.length}/10 candidates
           </span>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onBack}
-          className="text-text-muted hover:text-text hover:bg-bg-light border border-border-custom transition-colors duration-200"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          Back
-        </Button>
+
+        {/* Desktop layout */}
+        <div className="hidden sm:flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-1.5 bg-bg-light rounded-lg border border-border-custom">
+              <Upload className="w-4 h-4 text-primary" />
+            </div>
+            <h3 className="font-aoenik text-base font-semibold text-text">
+              Upload Resumes
+            </h3>
+            <span className="bg-bg-light/50 backdrop-blur-sm text-primary px-3 py-1 rounded-full text-xs font-medium border border-border-custom">
+              {files.length}/10 candidates
+            </span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="text-text-muted hover:text-text hover:bg-bg-light/50 border border-border-custom transition-all duration-200 rounded-xl"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Back
+          </Button>
+        </div>
       </div>
 
-      <div
-        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer duration-300 ${
-          isDragging
-            ? "border-primary bg-bg-light"
-            : "border-border-light hover:border-text-subtle bg-bg-light"
-        }`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <Upload
-          className={`w-12 h-12 mx-auto mb-4 transition-colors duration-300 ${
-            isDragging ? "text-primary" : "text-text-muted"
+      <div className="relative z-10">
+        <div
+          className={`group border-2 border-dashed rounded-xl p-4 sm:p-6 text-center transition-all cursor-pointer duration-300 ${
+            isDragging
+              ? "border-primary bg-primary/5 scale-[1.01]"
+              : "border-border-light hover:border-primary/50 hover:bg-primary/5"
           }`}
-        />
-        <p className="font-aoenik text-sm mb-2 text-text">
-          Drop your resumes here or click to browse
-        </p>
-        <p className="font-aoenik text-xs text-text-subtle">
-          Supports PDF, JPG, PNG, GIF, TIFF, BMP, WEBP (Max 10 files)
-        </p>
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept=".pdf,.gif,.tiff,.tif,.jpg,.jpeg,.png,.bmp,.webp"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <div className="relative inline-block mb-3">
+            <div className="bg-bg-light rounded-full p-3">
+              <Upload
+                className={`w-8 h-8 transition-colors duration-300 ${
+                  isDragging
+                    ? "text-primary"
+                    : "text-text-muted group-hover:text-primary"
+                }`}
+              />
+            </div>
+          </div>
+          <p className="font-aoenik text-sm font-medium text-text mb-2">
+            {isDragging
+              ? "Drop resumes here"
+              : "Drop resumes or click to browse"}
+          </p>
+          <p className="font-aoenik text-xs text-text-subtle">
+            PDF, JPG, PNG, GIF, TIFF, BMP, WEBP (Max 10 files)
+          </p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept=".pdf,.gif,.tiff,.tif,.jpg,.jpeg,.png,.bmp,.webp"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+        </div>
       </div>
 
       {files.length > 0 && (
-        <div className="mt-8">
+        <div className="relative z-10 mt-6">
           <div className="flex items-center space-x-2 mb-4">
-            <User className="w-4 h-4 text-text-muted" />
-            <h4 className="font-aoenik text-sm font-medium text-text-muted">
+            <div className="bg-bg-light rounded-full p-1">
+              <User className="w-3 h-3 text-primary" />
+            </div>
+            <h4 className="font-aoenik text-sm font-medium text-text">
               Candidate Pool
             </h4>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-80 overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-72 overflow-y-auto">
             {files.map((file, index) => {
               const previewKey = `${file.name}-${index}`;
               const isImage = file.type.includes("image");
@@ -208,14 +253,14 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
               return (
                 <div
                   key={index}
-                  className="bg-bg-light border border-border-custom rounded-xl p-4 hover:bg-border-custom transition-all duration-200 group relative"
+                  className="bg-bg-light/50 backdrop-blur-sm border border-border-custom rounded-xl p-3 hover:bg-bg-light/70 hover:border-primary/30 transition-all duration-200 group relative"
                 >
                   {/* Remove button */}
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => removeFile(index)}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-text-subtle hover:text-destructive hover:bg-bg-dark p-1 h-auto w-auto z-10"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-text-subtle hover:text-destructive hover:bg-bg/50 p-1 h-auto w-auto z-10 rounded-lg"
                   >
                     <X className="w-3 h-3" />
                   </Button>
@@ -225,7 +270,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
                     {/* Image preview or icon */}
                     <div className="flex-shrink-0">
                       {isImage && previewUrl ? (
-                        <div className="w-16 h-20 rounded-lg border border-border-custom overflow-hidden bg-bg">
+                        <div className="w-12 h-16 rounded-lg border border-border-custom overflow-hidden bg-bg">
                           <img
                             src={previewUrl}
                             alt={`Preview of ${extractCandidateName(
@@ -235,7 +280,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
                           />
                         </div>
                       ) : (
-                        <div className="p-2 bg-bg rounded-lg border border-border-custom">
+                        <div className="p-2 bg-bg-light rounded-lg border border-border-custom">
                           {getResumeIcon(file)}
                         </div>
                       )}
@@ -243,7 +288,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
 
                     <div className="flex-1 min-w-0">
                       {/* Candidate name */}
-                      <h5 className="font-aoenik text-sm font-semibold text-text truncate">
+                      <h5 className="font-aoenik text-sm font-semibold text-text truncate mr-6">
                         {extractCandidateName(file.name)}
                       </h5>
 
@@ -252,24 +297,22 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
                         <div className="flex items-center space-x-1">
                           <Calendar className="w-3 h-3 text-text-subtle" />
                           <span className="font-aoenik text-xs text-text-subtle">
-                            Uploaded now
+                            Just uploaded
                           </span>
                         </div>
 
                         <div className="flex items-center space-x-1">
                           <FileText className="w-3 h-3 text-text-subtle" />
                           <span className="font-aoenik text-xs text-text-subtle">
-                            {file.type.includes("pdf")
-                              ? "PDF Resume"
-                              : "Image Resume"}{" "}
-                            • {(file.size / 1024 / 1024).toFixed(1)} MB
+                            {file.type.includes("pdf") ? "PDF" : "Image"} •{" "}
+                            {(file.size / 1024 / 1024).toFixed(1)} MB
                           </span>
                         </div>
                       </div>
 
                       {/* Status indicator */}
-                      <div className="mt-3 flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                      <div className="mt-2 flex items-center space-x-2">
+                        <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></div>
                         <span className="font-aoenik text-xs text-primary font-medium">
                           Ready to rank
                         </span>
@@ -284,12 +327,12 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
       )}
 
       {files.length > 0 && (
-        <div className="mt-8 flex justify-center">
+        <div className="relative z-10 mt-6 flex justify-center">
           <Button
             onClick={handleRankResumes}
-            className="font-aoenik bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg transition-all duration-300 hover:scale-105 shadow-lg"
+            className="group font-aoenik bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 text-sm font-medium transition-all duration-200 hover:scale-105 shadow-lg rounded-xl"
           >
-            <Zap className="w-5 h-5 mr-2" />
+            <Zap className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:scale-110" />
             Rank {files.length} Candidate{files.length !== 1 ? "s" : ""}
           </Button>
         </div>

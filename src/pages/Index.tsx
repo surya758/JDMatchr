@@ -4,6 +4,7 @@ import HeroSection from "@/components/HeroSection";
 import PricingPlans from "@/components/PricingPlans";
 import ComparisonSection from "@/components/ComparisonSection";
 import FAQSection from "@/components/FAQSection";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   const [visibleSections, setVisibleSections] = useState<Set<number>>(
@@ -134,12 +135,17 @@ const Index = () => {
           <section
             ref={setSectionRef(3)}
             data-section="faq"
-            className={`h-screen snap-start snap-always flex items-center justify-center transition-opacity duration-500 ease-out ${
+            className={`min-h-screen snap-start snap-always flex flex-col justify-center transition-opacity duration-500 ease-out ${
               visibleSections.has(3) ? "opacity-100" : "opacity-30"
             }`}
           >
-            <div className="w-full overflow-y-auto max-h-screen">
+            <div className="w-full overflow-y-auto">
               <FAQSection />
+            </div>
+
+            {/* Footer at bottom of last section */}
+            <div className="mt-auto">
+              <Footer />
             </div>
           </section>
         </div>
