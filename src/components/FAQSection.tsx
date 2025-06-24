@@ -8,52 +8,32 @@ const FAQSection = () => {
     {
       question: "What exactly does this tool do?",
       answer:
-        "We analyze multiple resumes against a job description you provide. Within seconds, you'll receive a ranked list of candidates along with skill matches, gaps, and overall fit scores.",
+        "We analyze multiple resumes against a job description you provide. Within seconds, you'll receive a ranked list of candidates with skill matches and fit scores.",
     },
     {
       question: "What file formats are supported?",
       answer:
-        "You can upload resumes in PDF, JPG, PNG, GIF, TIFF, BMP, or WEBP formats. The job description can be pasted directly into the text area.",
-    },
-    {
-      question: "How is the candidate score calculated?",
-      answer:
-        "We use an AI-powered engine that compares resume content with the requirements in your job description. It identifies skills, experience, and keywords, then assigns each candidate a comprehensive fit score.",
+        "You can upload resumes in PDF, JPG, PNG, and other image formats. The job description can be pasted directly into the text area.",
     },
     {
       question: "Is this tool accurate?",
       answer:
-        "Yes — but like any AI system, it's not perfect. Our goal is to speed up your initial screening, not replace your judgment. Use it to shortlist candidates, not to make final hiring decisions.",
-    },
-    {
-      question: "Can I trust this with sensitive data?",
-      answer:
-        "Yes. All resumes and job descriptions are processed securely. We follow industry-standard security practices to protect your candidate data and company information.",
+        "Yes — but like any AI system, it's not perfect. Our goal is to speed up your initial screening, not replace your judgment. Use it to shortlist, not make final decisions.",
     },
     {
       question: "Do I need to write prompts or train anything?",
       answer:
-        'No prompts, no setup, no learning curve. Just paste your job description, upload resumes, and hit "Analyze." The tool is designed to work out of the box.',
+        'No prompts, no setup, no learning curve. Just paste your job description, upload resumes, and hit "Analyze." The tool works out of the box.',
     },
     {
       question: "What are the usage limits?",
       answer:
-        "Free users can analyze 1 job per month. Pro plan users get 30 jobs per month with advanced features like detailed breakdowns and team collaboration.",
-    },
-    {
-      question: "Can I export the results?",
-      answer:
-        "Yes! On the Pro plan, you can download clean PDF reports showing all candidates, scores, and key highlights — perfect for sharing with hiring managers and team members.",
-    },
-    {
-      question: "Do you offer an enterprise version?",
-      answer:
-        'Coming soon! We\'re building enterprise features like team access, unlimited usage, and API integration. Click "Notify Me" on our pricing page to be first in line.',
+        "Free users can analyze 1 job per month. Pro plan users get 30 jobs per month with advanced features like PDF reports and detailed breakdowns.",
     },
     {
       question: "Who is this tool for?",
       answer:
-        "It's built for HR professionals, recruiters, startup founders, and hiring managers who need a fast and reliable way to screen candidates — without spending hours manually reviewing resumes.",
+        "It's built for HR professionals, recruiters, and hiring managers who need a fast way to screen candidates without spending hours manually reviewing resumes.",
     },
   ];
 
@@ -62,8 +42,8 @@ const FAQSection = () => {
   };
 
   return (
-    <section className="py-20 px-6">
-      <div className="max-w-4xl mx-auto">
+    <section className="py-12 px-6 flex items-center justify-center min-h-[calc(100vh-6rem)]">
+      <div className="max-w-4xl mx-auto w-full pt-20">
         {/* Header */}
         <div className="text-center mb-16">
           <div className="flex items-center justify-center space-x-2 mb-4">
@@ -85,10 +65,10 @@ const FAQSection = () => {
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="bg-bg border border-border-custom rounded-xl overflow-hidden hover:bg-bg-light transition-all duration-300 ease-in-out hover:shadow-sm hover:scale-[1.01]"
+              className="bg-bg border border-border-custom rounded-xl overflow-hidden hover:bg-bg-light transition-colors duration-200"
             >
               <button
-                className="w-full px-6 py-5 text-left flex items-center justify-between focus:outline-none focus:ring-0 transition-all duration-200 ease-in-out hover:px-7"
+                className="w-full px-6 py-5 text-left flex items-center justify-between focus:outline-none focus:ring-0"
                 onClick={() => toggleFAQ(index)}
               >
                 <span className="font-aoenik text-sm font-medium text-text pr-4">

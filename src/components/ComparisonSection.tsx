@@ -78,8 +78,8 @@ const ComparisonSection = () => {
   ];
 
   return (
-    <section className="py-16 px-6">
-      <div className="max-w-5xl mx-auto">
+    <section className="py-12 px-6 flex items-center justify-center min-h-[calc(100vh-6rem)]">
+      <div className="max-w-5xl mx-auto w-full pt-20">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center space-x-2 mb-3">

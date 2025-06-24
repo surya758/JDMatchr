@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
 
 @layer base {
@@ -21,8 +23,9 @@
     --border-light: 0 0% 20%;     /* Lighter border */
     
     /* Primary colors */
-    --primary: 217 91% 60%;       /* Blue */
+    --primary: 210 100% 50%;       /* Blue */
     --primary-foreground: 0 0% 100%;
+    --primary-hover: 210 100% 45%;
     
     /* Component colors */
     --background: var(--bg-dark);
@@ -85,9 +88,9 @@
   
   .light {
     /* Light theme with inverted relationships */
-    --bg-dark: 0 0% 90%;          /* Light gray */
-    --bg: 0 0% 95%;               /* Very light gray */  
-    --bg-light: 0 0% 100%;        /* Pure white */
+    --bg-dark: 0 0% 98%;          /* Light gray */
+    --bg: 0 0% 100%;               /* Very light gray */  
+    --bg-light: 0 0% 96%;        /* Pure white */
     --text: 0 0% 5%;              /* Very dark */
     --text-muted: 0 0% 30%;       /* Dark gray */
     --text-subtle: 0 0% 50%;      /* Medium gray */
@@ -125,10 +128,134 @@
 @layer base {
   * {
     @apply border-border;
+    border-color: hsl(var(--border));
   }
 
   body {
     @apply bg-background text-foreground font-sans;
-    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+    color: hsl(var(--text));
+    background: hsl(var(--bg-dark));
+    font-family: 'Space Grotesk', sans-serif;
+    overflow-x: hidden;
   }
+}
+
+.font-aoenik {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Smooth snap scrolling */
+.snap-container {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.snap-container::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+/* Enhanced section transitions */
+.section-transition {
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(0);
+}
+
+.section-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.section-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered animations for section content */
+.animate-section-content > * {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: section-content-fade-in 0.8s ease-out forwards;
+}
+
+.animate-section-content > *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.animate-section-content > *:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.animate-section-content > *:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.animate-section-content > *:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.animate-section-content > *:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+/* Smooth fade animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes section-content-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Parallax-like effect for background elements */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.6s ease-out forwards;
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition-property: opacity, transform, background-color, border-color, color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }

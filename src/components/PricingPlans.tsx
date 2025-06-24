@@ -60,8 +60,8 @@ const PricingPlans = () => {
   ];
 
   return (
-    <section className="py-20 px-6" id="pricing">
-      <div className="max-w-6xl mx-auto">
+    <section className="py-12 px-6 flex items-center justify-center min-h-[calc(100vh-6rem)]">
+      <div className="max-w-6xl mx-auto w-full pt-20">
         {/* Header */}
         <div className="text-center mb-16">
           <div className="flex items-center justify-center space-x-2 mb-4">
