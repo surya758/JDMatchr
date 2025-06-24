@@ -73,19 +73,19 @@ const HeroSection = () => {
           <div className="relative">
             {step === 'jd' && (
               <div className="animate-fade-in">
-                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 shadow-2xl">
+                <div className="bg-gray-900/80 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 shadow-2xl">
                   <div className="flex items-center space-x-3 mb-6">
-                    <div className="p-2 bg-primary/20 rounded-lg">
-                      <FileText className="w-5 h-5 text-primary" />
+                    <div className="p-2 bg-slate-800 rounded-lg border border-gray-600">
+                      <FileText className="w-5 h-5 text-gray-300" />
                     </div>
-                    <h3 className="font-aoenik text-lg font-semibold">Job Description</h3>
+                    <h3 className="font-aoenik text-lg font-semibold text-gray-100">Job Description</h3>
                   </div>
                   
                   <div
                     className={`border-2 border-dashed rounded-xl p-6 mb-4 text-center transition-all duration-300 ${
                       isDragging 
-                        ? 'border-primary bg-primary/10' 
-                        : 'border-white/20 hover:border-white/30'
+                        ? 'border-blue-500 bg-blue-500/10' 
+                        : 'border-gray-600 hover:border-gray-500 bg-gray-800/50'
                     }`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -93,9 +93,9 @@ const HeroSection = () => {
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <File className={`w-8 h-8 mx-auto mb-3 transition-colors duration-300 ${
-                      isDragging ? 'text-primary' : 'text-gray-400'
+                      isDragging ? 'text-blue-500' : 'text-gray-400'
                     }`} />
-                    <p className="font-aoenik text-sm text-gray-400 mb-2">
+                    <p className="font-aoenik text-sm text-gray-300 mb-2">
                       Drop your JD file here or click to browse
                     </p>
                     <p className="font-aoenik text-xs text-gray-500">
@@ -118,14 +118,14 @@ const HeroSection = () => {
                     placeholder="Paste your job description here..."
                     value={jobDescription}
                     onChange={(e) => setJobDescription(e.target.value)}
-                    className="min-h-32 bg-white/5 border-white/20 text-white placeholder:text-gray-500 font-aoenik resize-none focus:border-primary/50 transition-colors duration-200"
+                    className="min-h-32 bg-gray-800 border-gray-600 text-gray-100 placeholder:text-gray-500 font-aoenik resize-none focus:border-blue-500/50 focus:ring-blue-500/20 transition-colors duration-200"
                   />
                   
                   <div className="mt-6 flex justify-center">
                     <Button
                       onClick={handleUploadResumes}
                       disabled={!jobDescription.trim()}
-                      className="font-aoenik bg-primary hover:bg-blue-600 px-8 py-3 text-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                      className="font-aoenik bg-blue-600 hover:bg-blue-700 border border-blue-500 px-8 py-3 text-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-lg"
                     >
                       <Upload className="w-5 h-5 mr-2" />
                       Upload Resumes
