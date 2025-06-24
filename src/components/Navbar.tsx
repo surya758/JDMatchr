@@ -23,60 +23,49 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-dark/80 backdrop-blur-md border-b border-border-custom">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
-          {/* Logo */}
-          <div className="flex items-center space-x-2 flex-shrink-0">
+        <div className="flex items-center px-4 sm:px-6 py-3 sm:py-4">
+          {/* Logo - Left Side */}
+          <div className="flex items-center space-x-2 flex-1">
             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-md flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-xs sm:text-sm">
                 JD
               </span>
             </div>
-            <span className="font-aoenik font-semibold text-base sm:text-lg lg:text-xl text-text">
+            <span className="font-grotesk font-semibold text-base sm:text-lg lg:text-xl text-text">
               JDmatcher
             </span>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-8">
+          {/* Desktop Navigation - Centered */}
+          <div className="hidden lg:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
             <button
               onClick={() => scrollToSection(1)}
-              className="font-aoenik text-text-muted hover:text-text transition-colors duration-200 text-sm"
+              className="font-grotesk text-text-muted hover:text-text transition-colors duration-200 text-sm"
             >
               Pricing
             </button>
             <button
               onClick={() => scrollToSection(2)}
-              className="font-aoenik text-text-muted hover:text-text transition-colors duration-200 text-sm"
+              className="font-grotesk text-text-muted hover:text-text transition-colors duration-200 text-sm"
             >
               Why?
             </button>
           </div>
 
-          {/* Desktop Buttons */}
-          <div className="hidden lg:flex items-center space-x-3">
+          {/* Desktop Buttons - Right Side */}
+          <div className="hidden lg:flex items-center justify-end flex-1">
             <Button
               variant="ghost"
               size="sm"
-              className="font-aoenik text-text-muted hover:text-text hover:bg-bg-light text-sm"
+              className="font-grotesk text-text-muted hover:text-text hover:bg-bg-light text-sm"
+              onClick={() => (window.location.href = "/login")}
             >
               Login
             </Button>
-            <Button
-              size="sm"
-              className="font-aoenik bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200 text-sm"
-            >
-              Get Started
-            </Button>
           </div>
 
-          {/* Mobile CTA Button + Menu */}
-          <div className="flex items-center space-x-2 lg:hidden">
-            <Button
-              size="sm"
-              className="font-aoenik bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200 text-xs px-3 py-1.5"
-            >
-              Get Started
-            </Button>
+          {/* Mobile Menu Button */}
+          <div className="flex items-center lg:hidden">
             <button
               onClick={toggleMobileMenu}
               className="p-2 text-text-muted hover:text-text transition-colors duration-200 hover:bg-bg-light rounded-md"
@@ -101,20 +90,21 @@ const Navbar = () => {
             <div className="px-4 py-4 space-y-1">
               <button
                 onClick={() => scrollToSection(1)}
-                className="block w-full text-left font-aoenik text-text-muted hover:text-text hover:bg-bg-light transition-colors duration-200 py-3 px-3 rounded-lg text-sm"
+                className="block w-full text-left font-grotesk text-text-muted hover:text-text hover:bg-bg-light transition-colors duration-200 py-3 px-3 rounded-lg text-sm"
               >
                 Pricing
               </button>
               <button
                 onClick={() => scrollToSection(2)}
-                className="block w-full text-left font-aoenik text-text-muted hover:text-text hover:bg-bg-light transition-colors duration-200 py-3 px-3 rounded-lg text-sm"
+                className="block w-full text-left font-grotesk text-text-muted hover:text-text hover:bg-bg-light transition-colors duration-200 py-3 px-3 rounded-lg text-sm"
               >
                 Why?
               </button>
               <div className="pt-2 border-t border-border-custom mt-3">
                 <Button
                   variant="ghost"
-                  className="w-full font-aoenik text-text-muted hover:text-text hover:bg-bg-light justify-start text-sm py-3"
+                  className="w-full font-grotesk text-text-muted hover:text-text hover:bg-bg-light justify-start text-sm py-3"
+                  onClick={() => (window.location.href = "/login")}
                 >
                   Login
                 </Button>

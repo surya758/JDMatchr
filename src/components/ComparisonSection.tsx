@@ -84,14 +84,14 @@ const ComparisonSection = () => {
         <div className="text-center mb-12">
           <div className="flex items-center justify-center space-x-2 mb-3">
             <Key className="w-4 h-4 text-text-muted" />
-            <span className="font-aoenik text-xs text-text-muted uppercase tracking-wider">
+            <span className="font-grotesk text-xs text-text-muted uppercase tracking-wider">
               Why JDMatchr
             </span>
           </div>
-          <h2 className="font-aoenik text-2xl md:text-3xl font-bold text-text mb-3">
+          <h2 className="font-grotesk text-2xl md:text-3xl font-bold text-text mb-3">
             JDMatchr vs Popular LLMs
           </h2>
-          <p className="font-aoenik text-base text-text-muted max-w-2xl mx-auto">
+          <p className="font-grotesk text-base text-text-muted max-w-2xl mx-auto">
             Purpose-built beats general-purpose for hiring workflows
           </p>
         </div>
@@ -106,7 +106,7 @@ const ComparisonSection = () => {
               {/* Feature Header */}
               <div className="flex items-center space-x-2 mb-4">
                 <comparison.icon className="w-4 h-4 text-text-muted" />
-                <span className="font-aoenik text-sm font-medium text-text">
+                <span className="font-grotesk text-sm font-medium text-text">
                   {comparison.feature}
                 </span>
               </div>
@@ -115,11 +115,11 @@ const ComparisonSection = () => {
               <div className="mb-3">
                 <div className="flex items-center space-x-2 mb-1">
                   <X className="w-3 h-3 text-text-subtle" />
-                  <span className="font-aoenik text-xs font-medium text-text-subtle">
+                  <span className="font-grotesk text-xs font-medium text-text-subtle">
                     LLMs
                   </span>
                 </div>
-                <p className="font-aoenik text-xs text-text-subtle pl-5">
+                <p className="font-grotesk text-xs text-text-subtle pl-5">
                   {comparison.chatgpt.description}
                 </p>
               </div>
@@ -128,11 +128,11 @@ const ComparisonSection = () => {
               <div>
                 <div className="flex items-center space-x-2 mb-1">
                   <Check className="w-3 h-3 text-text-muted" />
-                  <span className="font-aoenik text-xs font-medium text-text">
+                  <span className="font-grotesk text-xs font-medium text-text">
                     JDMatchr
                   </span>
                 </div>
-                <p className="font-aoenik text-xs text-text pl-5">
+                <p className="font-grotesk text-xs text-text pl-5">
                   {comparison.jdmatchr.description}
                 </p>
               </div>
@@ -143,7 +143,7 @@ const ComparisonSection = () => {
         {/* Bottom Note */}
         <div className="text-center mt-8">
           <div className="bg-bg-light border border-border-custom rounded-lg px-4 py-3 inline-block">
-            <span className="font-aoenik text-xs text-text-muted">
+            <span className="font-grotesk text-xs text-text-muted">
               <span className="font-medium">Reality check:</span> LLMs works,
               but JDMatchr is built specifically for this
             </span>

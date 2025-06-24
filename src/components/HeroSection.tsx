@@ -72,11 +72,11 @@ const HeroSection = () => {
     <section className="text-text overflow-hidden flex items-center justify-center min-h-[calc(100vh-6rem)]">
       <div className="px-6 py-0 w-full">
         <div className="max-w-4xl mx-auto text-center mb-8 sm:mb-12 lg:mb-16 animate-fade-in">
-          <h1 className="font-aoenik text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 mt-8 sm:mt-12 leading-tight px-2">
-            Upload resumes. Paste the JD.{" "}
+          <h1 className="font-grotesk text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 mt-8 sm:mt-12 leading-tight px-2">
+            Paste the JD. Upload resumes.{" "}
             <span className="text-primary">Get scores.</span> That's it.
           </h1>
-          <p className="font-aoenik text-base sm:text-lg md:text-xl text-text-muted max-w-3xl mx-auto leading-relaxed px-4">
+          <p className="font-grotesk text-base sm:text-lg md:text-xl text-text-muted max-w-3xl mx-auto leading-relaxed px-4">
             A minimal AI tool for HRs to instantly rank candidates against any
             job requirement. No onboarding. No manual scoring. Just results.
           </p>
@@ -101,7 +101,7 @@ const HeroSection = () => {
                     <div className="p-1.5 bg-bg-light rounded-lg border border-border-custom">
                       <FileText className="w-4 h-4 text-primary" />
                     </div>
-                    <h3 className="font-aoenik text-base font-semibold text-text">
+                    <h3 className="font-grotesk text-base font-semibold text-text">
                       Job Description
                     </h3>
                   </div>
@@ -129,12 +129,12 @@ const HeroSection = () => {
                           />
                         </div>
                       </div>
-                      <p className="font-aoenik text-sm text-text-muted mb-1">
+                      <p className="font-grotesk text-sm text-text-muted mb-1">
                         {isDragging
                           ? "Drop file here"
                           : "Drop file or click to browse"}
                       </p>
-                      <p className="font-aoenik text-xs text-text-subtle">
+                      <p className="font-grotesk text-xs text-text-subtle">
                         PDF, JPG, PNG, GIF, TIFF, BMP, WEBP
                       </p>
                       <input
@@ -148,7 +148,7 @@ const HeroSection = () => {
 
                     <div className="flex items-center my-4">
                       <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border-custom to-transparent"></div>
-                      <span className="px-3 font-aoenik text-xs text-text-subtle bg-bg rounded-full border border-border-custom">
+                      <span className="px-3 font-grotesk text-xs text-text-subtle bg-bg rounded-full border border-border-custom">
                         or write
                       </span>
                       <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border-custom to-transparent"></div>
@@ -159,13 +159,16 @@ const HeroSection = () => {
                         placeholder="Looking for a Frontend Developer with 3+ years of experience in React, TypeScript..."
                         value={jobDescription}
                         onChange={(e) => setJobDescription(e.target.value)}
-                        className="min-h-20 sm:min-h-24 bg-bg-light/50 backdrop-blur-sm border-border-custom text-text placeholder:text-text-subtle font-aoenik resize-none focus:border-primary/50 focus:ring-0 focus:outline-none transition-border-colors duration-300 text-sm rounded-xl"
+                        className="min-h-20 sm:min-h-24 bg-bg-light/50 backdrop-blur-sm border-border-custom text-text placeholder:text-text-subtle font-grotesk resize-none focus:border-primary/50 focus:ring-0 focus:outline-none transition-border-colors duration-300 text-sm rounded-xl"
                         disabled={isUploadingFile}
                       />
                       {jobDescription.trim() && (
-                        <div className="absolute bottom-2 right-2 bg-bg-light rounded-full px-2 py-0.5">
+                        <div className="absolute bottom-2 flex items-center right-2 bg-bg-light rounded-full px-2 py-0.5">
                           <span className="text-xs text-text-muted">
-                            {jobDescription.trim().split(" ").length} words
+                            {jobDescription.trim().split(" ").length}{" "}
+                            {jobDescription.trim().split(" ").length > 1
+                              ? "words"
+                              : "word"}
                           </span>
                         </div>
                       )}
@@ -179,7 +182,7 @@ const HeroSection = () => {
                           isProcessingJD ||
                           isUploadingFile
                         }
-                        className="group font-aoenik bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 text-sm font-medium transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-lg w-full sm:w-auto rounded-xl"
+                        className="group font-grotesk bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100 shadow-lg w-full sm:w-auto"
                       >
                         {isProcessingJD ? (
                           <>
@@ -217,7 +220,7 @@ const HeroSection = () => {
         <div className="flex flex-col sm:flex-row justify-center items-center mt-8 sm:mt-12 lg:mt-16 space-y-4 sm:space-y-0 sm:space-x-8 lg:space-x-12 opacity-70 px-4">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-            <span className="font-aoenik text-xs sm:text-sm text-text-subtle">
+            <span className="font-grotesk text-xs sm:text-sm text-text-subtle">
               PDF Support
             </span>
           </div>
@@ -226,7 +229,7 @@ const HeroSection = () => {
               className="w-2 h-2 bg-primary rounded-full animate-pulse"
               style={{ animationDelay: "0.5s" }}
             ></div>
-            <span className="font-aoenik text-xs sm:text-sm text-text-subtle">
+            <span className="font-grotesk text-xs sm:text-sm text-text-subtle">
               Image Support
             </span>
           </div>
@@ -235,7 +238,7 @@ const HeroSection = () => {
               className="w-2 h-2 bg-primary rounded-full animate-pulse"
               style={{ animationDelay: "1s" }}
             ></div>
-            <span className="font-aoenik text-xs sm:text-sm text-text-subtle">
+            <span className="font-grotesk text-xs sm:text-sm text-text-subtle">
               Instant Results
             </span>
           </div>

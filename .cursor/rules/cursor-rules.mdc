@@ -22,7 +22,7 @@ JDMatchr is an AI-powered resume screening tool with a minimal, modern design fo
 ### Typography
 
 - **Font Family**: Space Grotesk (fallback: system fonts)
-- **Class**: Always use `font-aoenik` for consistency
+- **Class**: Always use `font-grotesk` for consistency
 - **Hierarchy**: Clear size progression with proper line heights
 - **Weight**: Use semantic weights (font-medium, font-semibold, font-bold)
 

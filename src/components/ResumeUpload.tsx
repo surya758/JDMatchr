@@ -145,7 +145,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
             <div className="p-1.5 bg-bg-light rounded-lg border border-border-custom">
               <Upload className="w-4 h-4 text-primary" />
             </div>
-            <h3 className="font-aoenik text-sm font-semibold text-text">
+            <h3 className="font-grotesk text-sm font-semibold text-text">
               Upload Resumes
             </h3>
           </div>
@@ -172,7 +172,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
             <div className="p-1.5 bg-bg-light rounded-lg border border-border-custom">
               <Upload className="w-4 h-4 text-primary" />
             </div>
-            <h3 className="font-aoenik text-base font-semibold text-text">
+            <h3 className="font-grotesk text-base font-semibold text-text">
               Upload Resumes
             </h3>
             <span className="bg-bg-light/50 backdrop-blur-sm text-primary px-3 py-1 rounded-full text-xs font-medium border border-border-custom">
@@ -214,12 +214,12 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
               />
             </div>
           </div>
-          <p className="font-aoenik text-sm font-medium text-text mb-2">
+          <p className="font-grotesk text-sm text-text-muted mb-1">
             {isDragging
               ? "Drop resumes here"
               : "Drop resumes or click to browse"}
           </p>
-          <p className="font-aoenik text-xs text-text-subtle">
+          <p className="font-grotesk text-xs text-text-subtle">
             PDF, JPG, PNG, GIF, TIFF, BMP, WEBP (Max 10 files)
           </p>
           <input
@@ -239,7 +239,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
             <div className="bg-bg-light rounded-full p-1">
               <User className="w-3 h-3 text-primary" />
             </div>
-            <h4 className="font-aoenik text-sm font-medium text-text">
+            <h4 className="font-grotesk text-sm font-medium text-text">
               Candidate Pool
             </h4>
           </div>
@@ -288,7 +288,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
 
                     <div className="flex-1 min-w-0">
                       {/* Candidate name */}
-                      <h5 className="font-aoenik text-sm font-semibold text-text truncate mr-6">
+                      <h5 className="font-grotesk text-sm font-semibold text-text truncate mr-6">
                         {extractCandidateName(file.name)}
                       </h5>
 
@@ -296,14 +296,14 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
                       <div className="mt-1 space-y-1">
                         <div className="flex items-center space-x-1">
                           <Calendar className="w-3 h-3 text-text-subtle" />
-                          <span className="font-aoenik text-xs text-text-subtle">
+                          <span className="font-grotesk text-xs text-text-subtle">
                             Just uploaded
                           </span>
                         </div>
 
                         <div className="flex items-center space-x-1">
                           <FileText className="w-3 h-3 text-text-subtle" />
-                          <span className="font-aoenik text-xs text-text-subtle">
+                          <span className="font-grotesk text-xs text-text-subtle">
                             {file.type.includes("pdf") ? "PDF" : "Image"} •{" "}
                             {(file.size / 1024 / 1024).toFixed(1)} MB
                           </span>
@@ -313,7 +313,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
                       {/* Status indicator */}
                       <div className="mt-2 flex items-center space-x-2">
                         <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></div>
-                        <span className="font-aoenik text-xs text-primary font-medium">
+                        <span className="font-grotesk text-xs text-primary font-medium">
                           Ready to rank
                         </span>
                       </div>
@@ -330,7 +330,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
         <div className="relative z-10 mt-6 flex justify-center">
           <Button
             onClick={handleRankResumes}
-            className="group font-aoenik bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 text-sm font-medium transition-all duration-200 hover:scale-105 shadow-lg rounded-xl"
+            className="group font-grotesk bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 text-sm font-medium transition-all duration-200 shadow-lg"
           >
             <Zap className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:scale-110" />
             Rank {files.length} Candidate{files.length !== 1 ? "s" : ""}

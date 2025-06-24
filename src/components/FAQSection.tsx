@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
+import { ChevronDown, HelpCircle } from "lucide-react";
 
 const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -48,14 +48,14 @@ const FAQSection = () => {
         <div className="text-center mb-16">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <HelpCircle className="w-5 h-5 text-text-muted" />
-            <span className="font-aoenik text-sm text-text-muted uppercase tracking-wider">
+            <span className="font-grotesk text-sm text-text-muted uppercase tracking-wider">
               FAQ
             </span>
           </div>
-          <h2 className="font-aoenik text-3xl md:text-4xl font-bold text-text mb-4">
+          <h2 className="font-grotesk text-3xl md:text-4xl font-bold text-text mb-4">
             Frequently Asked Questions
           </h2>
-          <p className="font-aoenik text-lg text-text-muted max-w-2xl mx-auto">
+          <p className="font-grotesk text-lg text-text-muted max-w-2xl mx-auto">
             Everything you need to know about JDMatchr
           </p>
         </div>
@@ -71,7 +71,7 @@ const FAQSection = () => {
                 className="w-full px-6 py-5 text-left flex items-center justify-between focus:outline-none focus:ring-0"
                 onClick={() => toggleFAQ(index)}
               >
-                <span className="font-aoenik text-sm font-medium text-text pr-4">
+                <span className="font-grotesk text-sm font-medium text-text pr-4">
                   {faq.question}
                 </span>
                 <div className="flex-shrink-0">
@@ -93,26 +93,13 @@ const FAQSection = () => {
                 }`}
               >
                 <div className="px-6 pb-5 border-t border-border-custom bg-bg-light">
-                  <p className="font-aoenik text-sm text-text-muted pt-4 leading-relaxed transform transition-transform duration-300 ease-in-out">
+                  <p className="font-grotesk text-sm text-text-muted pt-4 leading-relaxed transform transition-transform duration-300 ease-in-out">
                     {faq.answer}
                   </p>
                 </div>
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Bottom CTA */}
-        <div className="text-center mt-12">
-          <p className="font-aoenik text-sm text-text-muted mb-4">
-            Still have questions?
-          </p>
-          <div className="bg-bg-light border border-border-custom rounded-xl px-6 py-4 inline-block">
-            <span className="font-aoenik text-sm text-text">
-              💬 <span className="font-medium">Get in touch:</span> We're here
-              to help you streamline your hiring process
-            </span>
-          </div>
         </div>
       </div>
     </section>

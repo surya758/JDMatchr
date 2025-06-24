@@ -33,7 +33,7 @@ const Loader = ({ size = "md", className, text }: LoaderProps) => {
       {text && (
         <span
           className={cn(
-            "font-aoenik text-text-muted animate-pulse",
+            "font-grotesk text-text-muted animate-pulse",
             textSizeClasses[size]
           )}
         >

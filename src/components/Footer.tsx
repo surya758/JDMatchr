@@ -1,5 +1,5 @@
 import React from "react";
-import { ExternalLink, Linkedin, Twitter } from "lucide-react";
+import { Linkedin, Twitter } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -12,7 +12,7 @@ const Footer = () => {
         <div className="hidden sm:flex items-center justify-between">
           {/* Left: Brand */}
           <div className="flex items-center">
-            <h3 className="font-aoenik text-sm font-bold text-text">
+            <h3 className="font-grotesk text-sm font-bold text-text">
               JDMatchr
             </h3>
           </div>
@@ -45,26 +45,26 @@ const Footer = () => {
             <div className="flex items-center gap-2 text-xs">
               <a
                 href="/privacy"
-                className="font-aoenik text-text-subtle hover:text-text-muted transition-colors duration-200"
+                className="font-grotesk text-text-subtle hover:text-text-muted transition-colors duration-200"
               >
                 Privacy
               </a>
               <span className="text-text-subtle">•</span>
               <a
                 href="/terms"
-                className="font-aoenik text-text-subtle hover:text-text-muted transition-colors duration-200"
+                className="font-grotesk text-text-subtle hover:text-text-muted transition-colors duration-200"
               >
                 Terms
               </a>
               <span className="text-text-subtle">•</span>
               <a
                 href="mailto:hello@jdmatchr.com"
-                className="font-aoenik text-text-subtle hover:text-text-muted transition-colors duration-200"
+                className="font-grotesk text-text-subtle hover:text-text-muted transition-colors duration-200"
               >
                 Contact
               </a>
               <span className="text-text-subtle">•</span>
-              <span className="font-aoenik text-text-subtle">
+              <span className="font-grotesk text-text-subtle">
                 © {new Date().getFullYear()}
               </span>
             </div>
@@ -75,10 +75,10 @@ const Footer = () => {
         <div className="sm:hidden text-center space-y-4 py-2">
           {/* Brand */}
           <div>
-            <h3 className="font-aoenik text-lg font-bold text-text mb-2">
+            <h3 className="font-grotesk text-lg font-bold text-text mb-2">
               JDMatchr
             </h3>
-            <p className="font-aoenik text-sm text-text-muted">
+            <p className="font-grotesk text-sm text-text-muted">
               AI-powered resume screening made simple
             </p>
           </div>
@@ -110,26 +110,26 @@ const Footer = () => {
             <div className="flex flex-wrap justify-center items-center gap-2 text-xs mb-2">
               <a
                 href="/privacy"
-                className="font-aoenik text-text-subtle hover:text-text-muted transition-colors duration-200"
+                className="font-grotesk text-text-subtle hover:text-text-muted transition-colors duration-200"
               >
                 Privacy Policy
               </a>
               <span className="text-text-subtle">•</span>
               <a
                 href="/terms"
-                className="font-aoenik text-text-subtle hover:text-text-muted transition-colors duration-200"
+                className="font-grotesk text-text-subtle hover:text-text-muted transition-colors duration-200"
               >
                 Terms of Service
               </a>
               <span className="text-text-subtle">•</span>
               <a
                 href="mailto:hello@jdmatchr.com"
-                className="font-aoenik text-text-subtle hover:text-text-muted transition-colors duration-200"
+                className="font-grotesk text-text-subtle hover:text-text-muted transition-colors duration-200"
               >
                 Contact
               </a>
             </div>
-            <p className="font-aoenik text-xs text-text-subtle">
+            <p className="font-grotesk text-xs text-text-subtle">
               © {new Date().getFullYear()} JDMatchr. All rights reserved.
             </p>
           </div>

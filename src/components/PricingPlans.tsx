@@ -66,14 +66,14 @@ const PricingPlans = () => {
         <div className="text-center mb-16">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <CreditCard className="w-5 h-5 text-text-muted" />
-            <span className="font-aoenik text-sm text-text-muted uppercase tracking-wider">
+            <span className="font-grotesk text-sm text-text-muted uppercase tracking-wider">
               Pricing Plans
             </span>
           </div>
-          <h2 className="font-aoenik text-3xl md:text-4xl font-bold text-text mb-4">
+          <h2 className="font-grotesk text-3xl md:text-4xl font-bold text-text mb-4">
             Simple, Honest
           </h2>
-          <p className="font-aoenik text-lg text-text-muted max-w-2xl mx-auto">
+          <p className="font-grotesk text-lg text-text-muted max-w-2xl mx-auto">
             Choose the plan that fits your hiring needs. No hidden fees, no
             surprises.
           </p>
@@ -104,7 +104,7 @@ const PricingPlans = () => {
 
               {/* Plan Header */}
               <div className="text-center mb-8">
-                <h3 className="font-aoenik text-xl font-semibold text-text mb-2">
+                <h3 className="font-grotesk text-xl font-semibold text-text mb-2">
                   {plan.name}
                 </h3>
 
@@ -125,7 +125,7 @@ const PricingPlans = () => {
                   )}
                 </div>
 
-                <p className="font-aoenik text-sm text-text-subtle">
+                <p className="font-grotesk text-sm text-text-subtle">
                   {plan.description}
                 </p>
               </div>
@@ -145,7 +145,7 @@ const PricingPlans = () => {
                       )}
                     </div>
                     <span
-                      className={`font-aoenik text-sm ${
+                      className={`font-grotesk text-sm ${
                         feature.included
                           ? "text-text"
                           : "text-text-subtle line-through"
@@ -160,7 +160,12 @@ const PricingPlans = () => {
               {/* CTA Button */}
               <Button
                 disabled={plan.comingSoon}
-                className={`w-full font-aoenik transition-all duration-200 ${
+                onClick={
+                  plan.comingSoon
+                    ? undefined
+                    : () => (window.location.href = "/login")
+                }
+                className={`w-full font-grotesk transition-all duration-200 ${
                   plan.comingSoon
                     ? "bg-bg-light text-text-subtle border border-border-custom cursor-not-allowed"
                     : plan.popular
@@ -176,7 +181,7 @@ const PricingPlans = () => {
 
         {/* Bottom Note */}
         <div className="text-center mt-12">
-          <p className="font-aoenik text-sm text-text-subtle">
+          <p className="font-grotesk text-sm text-text-subtle">
             All plans include SSL security and data encryption. Cancel anytime.
           </p>
         </div>

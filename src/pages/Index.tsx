@@ -5,8 +5,11 @@ import PricingPlans from "@/components/PricingPlans";
 import ComparisonSection from "@/components/ComparisonSection";
 import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [visibleSections, setVisibleSections] = useState<Set<number>>(
     new Set([0])
   );
@@ -57,11 +60,11 @@ const Index = () => {
     sectionRefs.current[index] = el;
   };
 
-  const totalSections = 4;
+  const totalSections = 5;
   const progressPercentage = ((currentSection + 1) / totalSections) * 100;
 
   return (
-    <div className="font-aoenik bg-bg-dark">
+    <div className="font-grotesk bg-bg-dark">
       {/* Fixed width container that contains everything */}
       <div className="max-w-7xl mx-auto relative border-l border-r border-border-custom">
         {/* Vertical line decorations */}
@@ -135,12 +138,63 @@ const Index = () => {
           <section
             ref={setSectionRef(3)}
             data-section="faq"
-            className={`min-h-screen snap-start snap-always flex flex-col justify-center transition-opacity duration-500 ease-out ${
+            className={`h-screen snap-start snap-always flex items-center justify-center transition-opacity duration-500 ease-out ${
               visibleSections.has(3) ? "opacity-100" : "opacity-30"
             }`}
           >
-            <div className="w-full overflow-y-auto">
+            <div className="w-full overflow-y-auto max-h-screen">
               <FAQSection />
+            </div>
+          </section>
+
+          {/* Contact Section */}
+          <section
+            ref={setSectionRef(4)}
+            data-section="contact"
+            className={`h-screen snap-start snap-always flex flex-col transition-opacity duration-500 ease-out ${
+              visibleSections.has(4) ? "opacity-100" : "opacity-30"
+            }`}
+          >
+            <div className="flex-1 flex items-center justify-center py-12">
+              <div className="max-w-4xl mx-auto px-6 text-center">
+                <p className="font-aoenik text-sm text-text-muted mb-6">
+                  Still have questions?
+                </p>
+                <div className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-6 sm:p-8 relative overflow-hidden group transition-colors duration-200 inline-block">
+                  <div className="absolute inset-0 bg-gradient-to-br from-bg-light/10 to-transparent pointer-events-none"></div>
+                  <div className="relative z-10 text-center">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                      <svg
+                        className="w-6 h-6 text-primary"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="font-aoenik text-lg font-semibold text-text mb-2">
+                      Need More Help?
+                    </h3>
+                    <p className="font-aoenik text-sm text-text-muted mb-6 max-w-md">
+                      Have specific questions about your use case? Want to see a
+                      demo? We're here to help you make the most of JDMatchr.
+                    </p>
+                    <Button
+                      size="sm"
+                      onClick={() => navigate("/contact")}
+                      className="font-grotesk bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200 text-sm"
+                    >
+                      Get in Touch
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Footer at bottom of last section */}
