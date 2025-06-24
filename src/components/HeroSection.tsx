@@ -73,9 +73,9 @@ const HeroSection = () => {
           <div className="relative">
             {step === 'jd' && (
               <div className="animate-fade-in">
-                <div className="bg-gray-900/80 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 shadow-2xl">
+                <div className="bg-black border border-gray-800 rounded-2xl p-8 shadow-2xl">
                   <div className="flex items-center space-x-3 mb-6">
-                    <div className="p-2 bg-slate-800 rounded-lg border border-gray-600">
+                    <div className="p-2 bg-gray-900 rounded-lg border border-gray-800">
                       <FileText className="w-5 h-5 text-gray-300" />
                     </div>
                     <h3 className="font-aoenik text-lg font-semibold text-gray-100">Job Description</h3>
@@ -84,8 +84,8 @@ const HeroSection = () => {
                   <div
                     className={`border-2 border-dashed rounded-xl p-6 mb-4 text-center transition-all duration-300 ${
                       isDragging 
-                        ? 'border-blue-500 bg-blue-500/10' 
-                        : 'border-gray-600 hover:border-gray-500 bg-gray-800/50'
+                        ? 'border-gray-500 bg-gray-900' 
+                        : 'border-gray-700 hover:border-gray-600 bg-gray-950'
                     }`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -93,7 +93,7 @@ const HeroSection = () => {
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <File className={`w-8 h-8 mx-auto mb-3 transition-colors duration-300 ${
-                      isDragging ? 'text-blue-500' : 'text-gray-400'
+                      isDragging ? 'text-gray-400' : 'text-gray-500'
                     }`} />
                     <p className="font-aoenik text-sm text-gray-300 mb-2">
                       Drop your JD file here or click to browse
@@ -118,14 +118,14 @@ const HeroSection = () => {
                     placeholder="Paste your job description here..."
                     value={jobDescription}
                     onChange={(e) => setJobDescription(e.target.value)}
-                    className="min-h-32 bg-gray-800 border-gray-600 text-gray-100 placeholder:text-gray-500 font-aoenik resize-none focus:border-blue-500/50 focus:ring-blue-500/20 transition-colors duration-200"
+                    className="min-h-32 bg-gray-950 border-gray-800 text-gray-100 placeholder:text-gray-500 font-aoenik resize-none focus:border-gray-600 focus:ring-gray-600/20 transition-colors duration-200"
                   />
                   
                   <div className="mt-6 flex justify-center">
                     <Button
                       onClick={handleUploadResumes}
                       disabled={!jobDescription.trim()}
-                      className="font-aoenik bg-blue-600 hover:bg-blue-700 border border-blue-500 px-8 py-3 text-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-lg"
+                      className="font-aoenik bg-gray-800 hover:bg-gray-700 border border-gray-700 px-8 py-3 text-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-lg text-white"
                     >
                       <Upload className="w-5 h-5 mr-2" />
                       Upload Resumes
