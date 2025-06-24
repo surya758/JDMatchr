@@ -68,9 +68,7 @@ const Index = () => {
         <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-text-subtle to-transparent opacity-50 z-10"></div>
 
         {/* Fixed Navbar */}
-        <div className="fixed top-0 left-1/2 transform -translate-x-1/2 w-full max-w-7xl z-20">
-          <Navbar />
-        </div>
+        <Navbar />
 
         {/* Section Indicators */}
         <div className="fixed right-8 top-1/2 transform -translate-y-1/2 z-30 hidden md:flex flex-col space-y-3">
