@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   CreditCard,
   Download,
@@ -17,6 +17,7 @@ import {
   confirmationConfigs,
 } from "../../hooks/useConfirmation";
 import ConfirmationModal from "../ui/confirmation-modal";
+import { generateBillingPDF, generateBillingReport } from "../../lib/billing";
 
 const SettingsBilling = () => {
   const { profile } = useUserProfile();
@@ -45,6 +46,8 @@ const SettingsBilling = () => {
   } = useConfirmation();
 
   const isUpdating = isSubscriptionUpdating || isConfirmationLoading;
+  const [downloadingPDF, setDownloadingPDF] = useState<string | null>(null);
+  const [downloadingReport, setDownloadingReport] = useState(false);
 
   const plans = [
     {
@@ -139,6 +142,38 @@ const SettingsBilling = () => {
   // Function to determine if a plan is an upgrade
   const isUpgrade = (planTier: number) => planTier > currentPlanTier;
   const isDowngrade = (planTier: number) => planTier < currentPlanTier;
+
+  // Handle PDF download
+  const handleDownloadPDF = async (subscriptionId: string) => {
+    setDownloadingPDF(subscriptionId);
+    try {
+      const result = await generateBillingPDF(subscriptionId);
+      if (!result.success) {
+        alert(result.error || "Failed to generate PDF");
+      }
+    } catch (error) {
+      console.error("PDF download error:", error);
+      alert("Failed to download invoice. Please try again.");
+    } finally {
+      setDownloadingPDF(null);
+    }
+  };
+
+  // Handle comprehensive billing report download
+  const handleDownloadReport = async () => {
+    setDownloadingReport(true);
+    try {
+      const result = await generateBillingReport();
+      if (!result.success) {
+        alert(result.error || "Failed to generate billing report");
+      }
+    } catch (error) {
+      console.error("Billing report download error:", error);
+      alert("Failed to download billing report. Please try again.");
+    } finally {
+      setDownloadingReport(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -399,7 +434,7 @@ const SettingsBilling = () => {
                 Billing History
               </h2>
               <p className="text-text-muted text-sm">
-                Download your past invoices
+                Download individual invoices or a comprehensive report
               </p>
             </div>
           </div>
@@ -408,9 +443,24 @@ const SettingsBilling = () => {
             variant="outline"
             size="sm"
             className="border-border-custom hover:bg-bg-light"
+            onClick={handleDownloadReport}
+            disabled={
+              downloadingReport ||
+              !billingHistory ||
+              billingHistory.length === 0
+            }
           >
-            <Download className="w-4 h-4 mr-2" />
-            Download All
+            {downloadingReport ? (
+              <>
+                <div className="w-4 h-4 border-2 border-text-muted border-t-transparent rounded-full animate-spin mr-2" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4 mr-2" />
+                Download All
+              </>
+            )}
           </Button>
         </div>
 
@@ -497,9 +547,17 @@ const SettingsBilling = () => {
                       variant="outline"
                       size="sm"
                       className="border-border-custom hover:bg-bg-light"
-                      disabled={subscription.plan_name === "free"}
+                      disabled={
+                        subscription.plan_name === "free" ||
+                        downloadingPDF === subscription.id
+                      }
+                      onClick={() => handleDownloadPDF(subscription.id)}
                     >
-                      <Download className="w-4 h-4" />
+                      {downloadingPDF === subscription.id ? (
+                        <div className="w-4 h-4 border-2 border-text-muted border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Download className="w-4 h-4" />
+                      )}
                     </Button>
                   </div>
                 </div>
