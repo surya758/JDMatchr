@@ -53,7 +53,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
   };
 
   return (
-    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 shadow-2xl">
+    <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 shadow-2xl">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-primary/20 rounded-lg">
@@ -68,7 +68,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
           variant="ghost" 
           size="sm" 
           onClick={onBack}
-          className="text-gray-400 hover:text-white transition-colors duration-200"
+          className="text-gray-400 hover:text-white hover:bg-white/10 transition-colors duration-200"
         >
           <ArrowLeft className="w-4 h-4 mr-1" />
           Back
@@ -79,7 +79,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
         className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${
           isDragging 
             ? 'border-primary bg-primary/10' 
-            : 'border-white/30 hover:border-white/50'
+            : 'border-white/20 hover:border-white/30'
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -92,7 +92,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
         <p className="font-aoenik text-lg mb-2">
           Drop your resumes here or click to browse
         </p>
-        <p className="font-aoenik text-sm text-gray-400">
+        <p className="font-aoenik text-sm text-gray-500">
           Supports PDF, JPG, PNG (Max 10 files)
         </p>
         <input
@@ -118,7 +118,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
                   <p className="font-aoenik text-sm font-medium truncate max-w-48">
                     {file.name}
                   </p>
-                  <p className="font-aoenik text-xs text-gray-400">
+                  <p className="font-aoenik text-xs text-gray-500">
                     {(file.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                 </div>
@@ -127,7 +127,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
                 variant="ghost"
                 size="sm"
                 onClick={() => removeFile(index)}
-                className="text-gray-400 hover:text-red-400 transition-colors duration-200"
+                className="text-gray-400 hover:text-red-400 hover:bg-white/10 transition-colors duration-200"
               >
                 <X className="w-4 h-4" />
               </Button>
