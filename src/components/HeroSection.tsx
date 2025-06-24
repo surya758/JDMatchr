@@ -55,7 +55,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-black text-white overflow-hidden pt-20">
+    <section className="min-h-screen bg-black text-white overflow-hidden pt-20">
       <div className="container mx-auto px-6 py-20">
         <div className="max-w-4xl mx-auto text-center mb-16 animate-fade-in">
           <h1 className="font-aoenik text-5xl md:text-7xl font-bold mb-6 leading-tight">
