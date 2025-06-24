@@ -10,37 +10,11 @@ const Footer = () => {
       <div className="relative z-10 px-4 sm:px-6 py-4">
         {/* Desktop Layout - Thin Horizontal */}
         <div className="hidden sm:flex items-center justify-between">
-          {/* Left: Brand + Navigation */}
-          <div className="flex items-center space-x-6">
+          {/* Left: Brand */}
+          <div className="flex items-center">
             <h3 className="font-aoenik text-sm font-bold text-text">
               JDMatchr
             </h3>
-            <div className="flex items-center space-x-4">
-              <a
-                href="#hero"
-                className="font-aoenik text-xs text-text-muted hover:text-text transition-colors duration-200"
-              >
-                Home
-              </a>
-              <a
-                href="#comparison"
-                className="font-aoenik text-xs text-text-muted hover:text-text transition-colors duration-200"
-              >
-                Why?
-              </a>
-              <a
-                href="#pricing"
-                className="font-aoenik text-xs text-text-muted hover:text-text transition-colors duration-200"
-              >
-                Pricing
-              </a>
-              <a
-                href="#faq"
-                className="font-aoenik text-xs text-text-muted hover:text-text transition-colors duration-200"
-              >
-                FAQ
-              </a>
-            </div>
           </div>
 
           {/* Right: Social + Legal + Copyright */}
@@ -107,34 +81,6 @@ const Footer = () => {
             <p className="font-aoenik text-sm text-text-muted">
               AI-powered resume screening made simple
             </p>
-          </div>
-
-          {/* Navigation Links */}
-          <div className="flex flex-wrap justify-center items-center gap-4">
-            <a
-              href="#hero"
-              className="font-aoenik text-sm text-text-muted hover:text-text transition-colors duration-200"
-            >
-              Home
-            </a>
-            <a
-              href="#comparison"
-              className="font-aoenik text-sm text-text-muted hover:text-text transition-colors duration-200"
-            >
-              Why?
-            </a>
-            <a
-              href="#pricing"
-              className="font-aoenik text-sm text-text-muted hover:text-text transition-colors duration-200"
-            >
-              Pricing
-            </a>
-            <a
-              href="#faq"
-              className="font-aoenik text-sm text-text-muted hover:text-text transition-colors duration-200"
-            >
-              FAQ
-            </a>
           </div>
 
           {/* Social Media */}
