@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -20,33 +19,45 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				'aoenik': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+				'aoenik': ['Space Grotesk', 'system-ui', '-apple-system', 'sans-serif'],
+				'sans': ['Space Grotesk', 'system-ui', '-apple-system', 'sans-serif'],
 			},
 			colors: {
+				// HSL-based color system
+				'bg-dark': 'hsl(var(--bg-dark))',
+				'bg': 'hsl(var(--bg))',
+				'bg-light': 'hsl(var(--bg-light))',
+				'text': 'hsl(var(--text))',
+				'text-muted': 'hsl(var(--text-muted))',
+				'text-subtle': 'hsl(var(--text-subtle))',
+				'border-custom': 'hsl(var(--border))',
+				'border-light': 'hsl(var(--border-light))',
+				
+				// Existing system colors
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#3B82F6',
-					foreground: '#FFFFFF'
+					DEFAULT: 'hsl(var(--primary))',
+					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
-					DEFAULT: '#F8FAFC',
-					foreground: '#334155'
+					DEFAULT: 'hsl(var(--secondary))',
+					foreground: 'hsl(var(--secondary-foreground))'
 				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
 					foreground: 'hsl(var(--destructive-foreground))'
 				},
 				muted: {
-					DEFAULT: '#F1F5F9',
-					foreground: '#64748B'
+					DEFAULT: 'hsl(var(--muted))',
+					foreground: 'hsl(var(--muted-foreground))'
 				},
 				accent: {
-					DEFAULT: '#E2E8F0',
-					foreground: '#1E293B'
+					DEFAULT: 'hsl(var(--accent))',
+					foreground: 'hsl(var(--accent-foreground))'
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',

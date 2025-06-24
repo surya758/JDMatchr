@@ -1,7 +1,6 @@
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, X, FileText, Image, ArrowLeft, Zap } from 'lucide-react';
+import { Upload, X, FileText, Image, ArrowLeft, Zap } from "lucide-react";
 
 interface ResumeUploadProps {
   onBack: () => void;
@@ -26,49 +25,51 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
     e.preventDefault();
     setIsDragging(false);
     const droppedFiles = Array.from(e.dataTransfer.files);
-    setFiles(prev => [...prev, ...droppedFiles].slice(0, 10));
+    setFiles((prev) => [...prev, ...droppedFiles].slice(0, 10));
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
-      setFiles(prev => [...prev, ...selectedFiles].slice(0, 10));
+      setFiles((prev) => [...prev, ...selectedFiles].slice(0, 10));
     }
   };
 
   const removeFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const getFileIcon = (file: File) => {
-    if (file.type.includes('image')) {
-      return <Image className="w-4 h-4 text-gray-400" />;
+    if (file.type.includes("image")) {
+      return <Image className="w-4 h-4 text-text-muted" />;
     }
-    return <FileText className="w-4 h-4 text-gray-400" />;
+    return <FileText className="w-4 h-4 text-text-muted" />;
   };
 
   const handleRankResumes = () => {
-    console.log('Ranking resumes...', { files, jobDescription });
+    console.log("Ranking resumes...", { files, jobDescription });
     // This would trigger the AI analysis
   };
 
   return (
-    <div className="bg-gray-900/80 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 shadow-2xl">
+    <div className="bg-bg border border-border-custom rounded-2xl p-8 shadow-2xl">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-slate-800 rounded-lg border border-gray-600">
-            <Upload className="w-5 h-5 text-gray-300" />
+          <div className="p-2 bg-bg-light rounded-lg border border-border-custom">
+            <Upload className="w-5 h-5 text-text-muted" />
           </div>
-          <h3 className="font-aoenik text-lg font-semibold text-gray-100">Upload Resumes</h3>
-          <span className="bg-slate-800 text-blue-400 px-3 py-1 rounded-full text-xs font-medium border border-gray-600">
+          <h3 className="font-aoenik text-lg font-semibold text-text">
+            Upload Resumes
+          </h3>
+          <span className="bg-bg-light text-primary px-3 py-1 rounded-full text-xs font-medium border border-border-custom">
             {files.length}/10
           </span>
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onBack}
-          className="text-gray-400 hover:text-gray-200 hover:bg-gray-800 border border-gray-700 transition-colors duration-200"
+          className="text-text-muted hover:text-text hover:bg-bg-light border border-border-custom transition-colors duration-200"
         >
           <ArrowLeft className="w-4 h-4 mr-1" />
           Back
@@ -76,23 +77,25 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
       </div>
 
       <div
-        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${
-          isDragging 
-            ? 'border-blue-500 bg-blue-500/10' 
-            : 'border-gray-600 hover:border-gray-500 bg-gray-800/50'
+        className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer duration-300 ${
+          isDragging
+            ? "border-primary bg-bg-light"
+            : "border-border-light hover:border-text-subtle bg-bg-light"
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
       >
-        <Upload className={`w-12 h-12 mx-auto mb-4 transition-colors duration-300 ${
-          isDragging ? 'text-blue-500' : 'text-gray-400'
-        }`} />
-        <p className="font-aoenik text-lg mb-2 text-gray-200">
+        <Upload
+          className={`w-12 h-12 mx-auto mb-4 transition-colors duration-300 ${
+            isDragging ? "text-primary" : "text-text-muted"
+          }`}
+        />
+        <p className="font-aoenik text-lg mb-2 text-text">
           Drop your resumes here or click to browse
         </p>
-        <p className="font-aoenik text-sm text-gray-500">
+        <p className="font-aoenik text-sm text-text-subtle">
           Supports PDF, JPG, PNG (Max 10 files)
         </p>
         <input
@@ -108,17 +111,17 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
       {files.length > 0 && (
         <div className="mt-6 space-y-3 max-h-60 overflow-y-auto">
           {files.map((file, index) => (
-            <div 
-              key={index} 
-              className="flex items-center justify-between bg-gray-800 rounded-lg p-3 border border-gray-700 hover:bg-gray-750 transition-colors duration-200"
+            <div
+              key={index}
+              className="flex items-center justify-between bg-bg-light rounded-lg p-3 border border-border-custom hover:bg-border-custom transition-colors duration-200"
             >
               <div className="flex items-center space-x-3">
                 {getFileIcon(file)}
                 <div>
-                  <p className="font-aoenik text-sm font-medium truncate max-w-48 text-gray-200">
+                  <p className="font-aoenik text-sm font-medium truncate max-w-48 text-text">
                     {file.name}
                   </p>
-                  <p className="font-aoenik text-xs text-gray-500">
+                  <p className="font-aoenik text-xs text-text-subtle">
                     {(file.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                 </div>
@@ -127,7 +130,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
                 variant="ghost"
                 size="sm"
                 onClick={() => removeFile(index)}
-                className="text-gray-400 hover:text-red-400 hover:bg-gray-700 transition-colors duration-200"
+                className="text-text-muted hover:text-destructive hover:bg-bg-dark transition-colors duration-200"
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -140,7 +143,7 @@ const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
         <div className="mt-8 flex justify-center">
           <Button
             onClick={handleRankResumes}
-            className="font-aoenik bg-blue-600 hover:bg-blue-700 border border-blue-500 px-8 py-3 text-lg transition-all duration-300 hover:scale-105 shadow-lg"
+            className="font-aoenik bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg transition-all duration-300 hover:scale-105 shadow-lg"
           >
             <Zap className="w-5 h-5 mr-2" />
             Rank Them
