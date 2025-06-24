@@ -1,10 +1,20 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, CreditCard } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
+import { useSubscription } from "../hooks/useSubscription";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
+  const { user, loading } = useAuth();
+  const {
+    jobCreditsRemaining,
+    subscriptionStatus,
+    isLoading: subscriptionLoading,
+  } = useSubscription();
+  const navigate = useNavigate();
+  const location = useLocation();
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -20,48 +30,72 @@ const Navbar = () => {
     setIsMobileMenuOpen(false);
   };
 
+  console.log(jobCreditsRemaining, "jobCreditsRemaining");
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-dark/80 backdrop-blur-md border-b border-border-custom">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center px-4 sm:px-6 py-3 sm:py-4">
           {/* Logo - Left Side */}
-          <div className="flex items-center space-x-2 flex-1">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-md flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xs sm:text-sm">
-                JD
+          <Link to="/" className="cursor-pointer">
+            <div className="flex items-center space-x-2 flex-1">
+              <img
+                src="/assets/images/logo.png"
+                alt="JDMatchr"
+                width={18}
+                height={18}
+                className="cursor-pointer"
+              />
+              <span className="font-grotesk font-semibold text-base sm:text-lg lg:text-xl text-text">
+                JDMatchr
               </span>
             </div>
-            <span className="font-grotesk font-semibold text-base sm:text-lg lg:text-xl text-text">
-              JDmatcher
-            </span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation - Centered */}
-          <div className="hidden lg:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
-            <button
-              onClick={() => scrollToSection(1)}
-              className="font-grotesk text-text-muted hover:text-text transition-colors duration-200 text-sm"
-            >
-              Pricing
-            </button>
-            <button
-              onClick={() => scrollToSection(2)}
-              className="font-grotesk text-text-muted hover:text-text transition-colors duration-200 text-sm"
-            >
-              Why?
-            </button>
-          </div>
+          {!user && (
+            <div className="hidden lg:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
+              <button
+                onClick={() => scrollToSection(1)}
+                className="font-grotesk text-text-muted hover:text-text transition-colors duration-200 text-sm"
+              >
+                Pricing
+              </button>
+              <button
+                onClick={() => scrollToSection(2)}
+                className="font-grotesk text-text-muted hover:text-text transition-colors duration-200 text-sm"
+              >
+                Why?
+              </button>
+            </div>
+          )}
 
           {/* Desktop Buttons - Right Side */}
-          <div className="hidden lg:flex items-center justify-end flex-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="font-grotesk text-text-muted hover:text-text hover:bg-bg-light text-sm"
-              onClick={() => (window.location.href = "/login")}
-            >
-              Login
-            </Button>
+          <div className="hidden lg:flex items-center justify-end flex-1 space-x-4">
+            {!loading && user && !subscriptionLoading && (
+              <div className="flex items-center space-x-2 px-3 py-1.5 bg-bg/50 border border-border-custom rounded-lg">
+                <CreditCard className="w-4 h-4 text-text-muted" />
+                <span className="font-grotesk text-sm text-text-muted">
+                  {jobCreditsRemaining}{" "}
+                  {jobCreditsRemaining === 1 ? "credit" : "credits"}
+                </span>
+                <span className="text-text-subtle text-xs">
+                  ({subscriptionStatus})
+                </span>
+              </div>
+            )}
+            {!loading && !location.pathname.includes("/dashboard") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="font-grotesk text-text-muted hover:text-text hover:bg-bg-light text-sm"
+                onClick={() => {
+                  navigate(user ? "/dashboard" : "/login");
+                }}
+              >
+                {user ? "Dashboard" : "Login"}
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -88,26 +122,54 @@ const Navbar = () => {
         >
           <div className="border-t border-border-custom bg-bg/95 backdrop-blur-sm">
             <div className="px-4 py-4 space-y-1">
-              <button
-                onClick={() => scrollToSection(1)}
-                className="block w-full text-left font-grotesk text-text-muted hover:text-text hover:bg-bg-light transition-colors duration-200 py-3 px-3 rounded-lg text-sm"
+              {!user && (
+                <>
+                  <button
+                    onClick={() => scrollToSection(1)}
+                    className="block w-full text-left font-grotesk text-text-muted hover:text-text hover:bg-bg-light transition-colors duration-200 py-3 px-3 rounded-lg text-sm"
+                  >
+                    Pricing
+                  </button>
+                  <button
+                    onClick={() => scrollToSection(2)}
+                    className="block w-full text-left font-grotesk text-text-muted hover:text-text hover:bg-bg-light transition-colors duration-200 py-3 px-3 rounded-lg text-sm"
+                  >
+                    Why?
+                  </button>
+                </>
+              )}
+              {!loading && user && !subscriptionLoading && (
+                <div className="mb-3 p-3 bg-bg/50 border border-border-custom rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <CreditCard className="w-4 h-4 text-text-muted" />
+                      <span className="font-grotesk text-sm text-text-muted">
+                        {jobCreditsRemaining}{" "}
+                        {jobCreditsRemaining === 1 ? "credit" : "credits"}
+                      </span>
+                    </div>
+                    <span className="text-text-subtle text-xs">
+                      {subscriptionStatus}
+                    </span>
+                  </div>
+                </div>
+              )}
+              <div
+                className={`${
+                  !user ? "pt-2 border-t border-border-custom mt-3" : ""
+                }`}
               >
-                Pricing
-              </button>
-              <button
-                onClick={() => scrollToSection(2)}
-                className="block w-full text-left font-grotesk text-text-muted hover:text-text hover:bg-bg-light transition-colors duration-200 py-3 px-3 rounded-lg text-sm"
-              >
-                Why?
-              </button>
-              <div className="pt-2 border-t border-border-custom mt-3">
-                <Button
-                  variant="ghost"
-                  className="w-full font-grotesk text-text-muted hover:text-text hover:bg-bg-light justify-start text-sm py-3"
-                  onClick={() => (window.location.href = "/login")}
-                >
-                  Login
-                </Button>
+                {!loading && (
+                  <Button
+                    variant="ghost"
+                    className="w-full font-grotesk text-text-muted hover:text-text hover:bg-bg-light justify-start text-sm py-3"
+                    onClick={() => {
+                      navigate(user ? "/dashboard" : "/login");
+                    }}
+                  >
+                    {user ? "Dashboard" : "Login"}
+                  </Button>
+                )}
               </div>
             </div>
           </div>

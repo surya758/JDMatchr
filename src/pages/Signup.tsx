@@ -1,31 +1,32 @@
 import React, { useEffect, useState } from "react";
-import { Eye, EyeOff, ArrowLeft, Mail, Lock } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Loader, LoaderInline } from "../components/ui/loader";
+import { LoaderInline } from "../components/ui/loader";
 import { useAuth } from "../hooks/useAuth";
-import { useNavigate, Link } from "react-router-dom";
+import { useToast } from "../hooks/use-toast";
 import Footer from "../components/Footer";
 import LottieBackground from "../components/LottieBackground";
 
 // Import the Lottie animation data
 import animationData from "../assets/animations/bg.json";
 
-const Login = () => {
-  const navigate = useNavigate();
-  const { signIn, signInWithGoogle, user, loading } = useAuth();
-
+const Signup = () => {
   const [formData, setFormData] = useState({
+    fullName: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { signUp, signInWithGoogle, user, loading } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  // Redirect if already logged in
   useEffect(() => {
     if (!loading && user) {
       navigate("/dashboard");
@@ -42,52 +43,94 @@ const Login = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError(null);
 
-    try {
-      const { error } = await signIn(formData.email, formData.password);
-
-      if (error) setError(error.message);
-    } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "Please make sure your passwords match.",
+        variant: "destructive",
+      });
+      return;
     }
 
-    setIsLoading(false);
+    if (formData.password.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await signUp(
+        formData.email,
+        formData.password,
+        formData.fullName
+      );
+
+      if (error) {
+        toast({
+          title: "Signup failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Account created successfully!",
+          description: "Please check your email to verify your account.",
+        });
+        navigate("/login");
+      }
+    } catch (error) {
+      toast({
+        title: "Signup failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleSignup = async () => {
     try {
       const { error } = await signInWithGoogle();
       if (error) {
-        setError(error.message);
+        toast({
+          title: "Google signup failed",
+          description: error.message,
+          variant: "destructive",
+        });
       }
-    } catch (err) {
-      setError("Failed to sign in with Google. Please try again.");
+    } catch (error) {
+      toast({
+        title: "Google signup failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
     }
   };
-
-  const isFormValid = formData.email && formData.password;
 
   return (
     <div className="min-h-screen bg-bg-dark text-text font-grotesk">
       {/* Lottie Background Animation */}
       {animationData && <LottieBackground animationData={animationData} />}
 
-      {/* Fixed width container that contains everything */}
+      {/* Fixed width container */}
       <div className="max-w-7xl mx-auto relative border-l border-r border-border-custom flex flex-col min-h-screen">
         {/* Vertical line decorations */}
         <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-text-subtle to-transparent opacity-50 z-10"></div>
         <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-text-subtle to-transparent opacity-50 z-10"></div>
 
+        {/* Content */}
         <div className="relative z-10 px-4 sm:px-6 py-12 sm:py-20 flex-1 flex items-center justify-center">
           <div
             className={`w-full max-w-md transition-all duration-1000 ease-out ${
@@ -105,110 +148,135 @@ const Login = () => {
               <span className="font-grotesk text-sm">Back</span>
             </button>
 
-            {/* Login Form */}
+            {/* Signup Form */}
             <div className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-bg-light/10 to-transparent pointer-events-none"></div>
 
               <div className="relative z-10">
-                {/* Header */}
                 <div className="text-center mb-8">
                   <h1 className="font-grotesk text-2xl font-bold text-text mb-2">
-                    Welcome Back
+                    Create Account
                   </h1>
                   <p className="font-grotesk text-text-muted">
-                    Sign in to your JDMatchr account
+                    Join JDMatchr and start screening resumes with AI
                   </p>
                 </div>
 
-                {/* Error Message */}
-                {error && (
-                  <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-                    <p className="text-red-400 text-sm font-grotesk text-center">
-                      {error}
-                    </p>
-                  </div>
-                )}
-
-                {/* Login Form */}
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Full Name */}
+                  <div>
+                    <label className="block font-grotesk text-sm font-medium text-text mb-2">
+                      Full Name
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-subtle w-5 h-5" />
+                      <Input
+                        id="fullName"
+                        name="fullName"
+                        type="text"
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                        placeholder="Enter your full name"
+                        className="pl-10 bg-bg/30 border-border-custom focus:border-primary/50 focus:ring-0 focus:outline-none transition-border-colors duration-300"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email */}
                   <div>
                     <label className="block font-grotesk text-sm font-medium text-text mb-2">
                       Email
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-subtle w-5 h-5" />
                       <Input
-                        type="email"
+                        id="email"
                         name="email"
+                        type="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        placeholder="your@email.com"
-                        className="bg-bg/30 border-border-custom focus:border-primary/50 focus:ring-0 focus:outline-none transition-border-colors duration-300 font-grotesk pl-10"
+                        placeholder="Enter your email"
+                        className="pl-10 bg-bg/30 border-border-custom focus:border-primary/50 focus:ring-0 focus:outline-none transition-border-colors duration-300"
                         required
                       />
                     </div>
                   </div>
 
+                  {/* Password */}
                   <div>
                     <label className="block font-grotesk text-sm font-medium text-text mb-2">
                       Password
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-subtle w-5 h-5" />
                       <Input
-                        type={showPassword ? "text" : "password"}
+                        id="password"
                         name="password"
+                        type={showPassword ? "text" : "password"}
                         value={formData.password}
                         onChange={handleInputChange}
-                        placeholder="Enter your password"
-                        className="bg-bg/30 border-border-custom focus:border-primary/50 focus:ring-0 focus:outline-none transition-border-colors duration-300 font-grotesk pl-10 pr-10"
+                        placeholder="Create a password"
+                        className="pl-10 pr-10 bg-bg/30 border-border-custom focus:border-primary/50 focus:ring-0 focus:outline-none transition-border-colors duration-300"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-text transition-colors duration-200"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-subtle hover:text-text transition-colors duration-200"
                       >
                         {showPassword ? (
-                          <EyeOff className="w-4 h-4" />
+                          <EyeOff className="w-5 h-5" />
                         ) : (
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-5 h-5" />
                         )}
                       </button>
                     </div>
                   </div>
 
-                  {/* Remember Me & Forgot Password */}
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        className="w-4 h-4 rounded border-border-custom bg-bg/30 text-primary focus:ring-0 focus:ring-offset-0"
-                      />
-                      <span className="font-grotesk text-sm text-text-muted">
-                        Remember me
-                      </span>
+                  {/* Confirm Password */}
+                  <div>
+                    <label className="block font-grotesk text-sm font-medium text-text mb-2">
+                      Confirm Password
                     </label>
-                    <button
-                      type="button"
-                      className="font-grotesk text-sm text-primary hover:text-primary/80 transition-colors duration-200"
-                    >
-                      Forgot password?
-                    </button>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-subtle w-5 h-5" />
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={formData.confirmPassword}
+                        onChange={handleInputChange}
+                        placeholder="Confirm your password"
+                        className="pl-10 pr-10 bg-bg/30 border-border-custom focus:border-primary/50 focus:ring-0 focus:outline-none transition-border-colors duration-300"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-subtle hover:text-text transition-colors duration-200"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Login Button */}
+                  {/* Submit Button */}
                   <Button
                     type="submit"
-                    disabled={!isFormValid || isLoading}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-grotesk font-medium py-3 transition-all duration-200 disabled:opacity-50"
+                    disabled={isLoading}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3 transition-all duration-200 hover:scale-[1.01]"
                   >
                     {isLoading ? (
                       <LoaderInline isLoading={isLoading} />
                     ) : (
-                      "Sign In"
+                      "Create Account"
                     )}
                   </Button>
                 </form>
@@ -222,12 +290,12 @@ const Login = () => {
                   <div className="flex-1 border-t border-border-custom"></div>
                 </div>
 
-                {/* Google Login */}
+                {/* Google Signup */}
                 <Button
                   type="button"
                   variant="outline"
                   className="w-full bg-bg/30 border-border-custom hover:bg-bg-light text-text font-grotesk font-medium py-3 transition-all duration-200 mb-6"
-                  onClick={handleGoogleLogin}
+                  onClick={handleGoogleSignup}
                 >
                   <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
                     <path
@@ -250,15 +318,15 @@ const Login = () => {
                   Continue with Google
                 </Button>
 
-                {/* Sign Up Link */}
+                {/* Login Link */}
                 <div className="text-center">
                   <p className="font-grotesk text-sm text-text-muted">
-                    Don't have an account?{" "}
+                    Already have an account?{" "}
                     <Link
-                      to="/signup"
+                      to="/login"
                       className="text-primary hover:text-primary/80 transition-colors duration-200 font-medium"
                     >
-                      Sign up
+                      Sign in
                     </Link>
                   </p>
                 </div>
@@ -274,4 +342,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;

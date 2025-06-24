@@ -163,7 +163,9 @@ const PricingPlans = () => {
                 onClick={
                   plan.comingSoon
                     ? undefined
-                    : () => (window.location.href = "/login")
+                    : () =>
+                        (window.location.href =
+                          plan.name === "Free Plan" ? "/signup" : "/login")
                 }
                 className={`w-full font-grotesk transition-all duration-200 ${
                   plan.comingSoon

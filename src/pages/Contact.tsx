@@ -1,10 +1,12 @@
-import React, { useState } from "react";
-import { Send, Mail, ArrowLeft } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Send, ArrowLeft } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Loader } from "../components/ui/loader";
 import Footer from "../components/Footer";
+import LottieBackground from "../components/LottieBackground";
+import animationData from "../assets/animations/bg.json";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +17,15 @@ const Contact = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Trigger fade-in animation on component mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 100); // Small delay for smooth entrance
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -47,6 +58,9 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-bg-dark text-text font-grotesk">
+      {/* Lottie Background Animation */}
+      <LottieBackground animationData={animationData} />
+
       {/* Fixed width container that contains everything */}
       <div className="max-w-7xl mx-auto relative border-l border-r border-border-custom flex flex-col min-h-screen">
         {/* Vertical line decorations */}
@@ -54,7 +68,13 @@ const Contact = () => {
         <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-text-subtle to-transparent opacity-50 z-10"></div>
 
         <div className="relative z-10 px-4 sm:px-6 py-12 sm:py-20 flex-1 flex items-center justify-center">
-          <div className="w-full max-w-md">
+          <div
+            className={`w-full max-w-md transition-all duration-1000 ease-out ${
+              isVisible
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-8"
+            }`}
+          >
             {/* Back Button */}
             <button
               onClick={() => window.history.back()}
@@ -71,9 +91,6 @@ const Contact = () => {
               <div className="relative z-10">
                 {/* Header */}
                 <div className="text-center mb-8">
-                  <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Mail className="w-8 h-8 text-primary" />
-                  </div>
                   <h1 className="font-grotesk text-2xl font-bold text-text mb-2">
                     Get in Touch
                   </h1>

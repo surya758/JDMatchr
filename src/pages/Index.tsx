@@ -5,8 +5,11 @@ import PricingPlans from "@/components/PricingPlans";
 import ComparisonSection from "@/components/ComparisonSection";
 import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
+import LottieBackground from "@/components/LottieBackground";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+
+import animationData from "../assets/animations/bg.json";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -65,6 +68,9 @@ const Index = () => {
 
   return (
     <div className="font-grotesk bg-bg-dark">
+      {/* Lottie Background Animation */}
+      {animationData && <LottieBackground animationData={animationData} />}
+
       {/* Fixed width container that contains everything */}
       <div className="max-w-7xl mx-auto relative border-l border-r border-border-custom">
         {/* Vertical line decorations */}

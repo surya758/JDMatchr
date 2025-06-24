@@ -159,16 +159,16 @@ const HeroSection = () => {
                         placeholder="Looking for a Frontend Developer with 3+ years of experience in React, TypeScript..."
                         value={jobDescription}
                         onChange={(e) => setJobDescription(e.target.value)}
-                        className="min-h-20 sm:min-h-24 bg-bg-light/50 backdrop-blur-sm border-border-custom text-text placeholder:text-text-subtle font-grotesk resize-none focus:border-primary/50 focus:ring-0 focus:outline-none transition-border-colors duration-300 text-sm rounded-xl"
+                        className="min-h-20 sm:min-h-24 bg-bg-light/30 backdrop-blur-sm border-border-custom text-text placeholder:text-text-subtle font-grotesk resize-none focus:border-primary/50 focus:ring-0 focus:outline-none transition-border-colors duration-300 text-sm rounded-xl"
                         disabled={isUploadingFile}
                       />
                       {jobDescription.trim() && (
                         <div className="absolute bottom-2 flex items-center right-2 bg-bg-light rounded-full px-2 py-0.5">
                           <span className="text-xs text-text-muted">
-                            {jobDescription.trim().split(" ").length}{" "}
-                            {jobDescription.trim().split(" ").length > 1
-                              ? "words"
-                              : "word"}
+                            {jobDescription.trim().length}{" "}
+                            {jobDescription.trim().length > 1
+                              ? "characters"
+                              : "character"}
                           </span>
                         </div>
                       )}

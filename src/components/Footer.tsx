@@ -12,7 +12,13 @@ const Footer = () => {
         <div className="hidden sm:flex items-center justify-between">
           {/* Left: Brand */}
           <div className="flex items-center">
-            <h3 className="font-grotesk text-sm font-bold text-text">
+            <img
+              src="/assets/images/logo.png"
+              alt="JDMatchr"
+              width={14}
+              height={14}
+            />
+            <h3 className="ml-2 font-grotesk text-sm font-bold text-text">
               JDMatchr
             </h3>
           </div>
@@ -58,7 +64,7 @@ const Footer = () => {
               </a>
               <span className="text-text-subtle">•</span>
               <a
-                href="mailto:hello@jdmatchr.com"
+                href="/contact"
                 className="font-grotesk text-text-subtle hover:text-text-muted transition-colors duration-200"
               >
                 Contact
