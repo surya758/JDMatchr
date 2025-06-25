@@ -42,30 +42,22 @@ serve(async (req) => {
     // Send email using Resend (if API key is configured)
     if (RESEND_API_KEY) {
       const emailData = {
-        from: 'JDMatchr Contact <noreply@jdmatchr.com>',
-        to: ['surya@jdmatchr.com'],
+        from: 'JDMatchr Contact <surya@jdmatchr.com>',
+        to: ['skant758@gmail.com'],
         subject: subject || `New Contact Form Message from ${name}`,
         html: `
-          <div style="font-family: 'Space Grotesk', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #000000; color: #f5f5f5;">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #3b82f6; margin: 0; font-size: 24px;">New Contact Form Message</h1>
-            </div>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #3b82f6;">New Contact Form Message - JDMatchr</h2>
             
-            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-              <h2 style="color: #f5f5f5; margin: 0 0 15px 0; font-size: 18px;">Contact Details</h2>
-              <p style="margin: 5px 0; color: #a3a3a3;"><strong style="color: #f5f5f5;">Name:</strong> ${name}</p>
-              <p style="margin: 5px 0; color: #a3a3a3;"><strong style="color: #f5f5f5;">Email:</strong> ${email}</p>
-              ${subject ? `<p style="margin: 5px 0; color: #a3a3a3;"><strong style="color: #f5f5f5;">Subject:</strong> ${subject}</p>` : ''}
-            </div>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            ${subject ? `<p><strong>Subject:</strong> ${subject}</p>` : ''}
             
-            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 20px;">
-              <h2 style="color: #f5f5f5; margin: 0 0 15px 0; font-size: 18px;">Message</h2>
-              <p style="margin: 0; color: #a3a3a3; line-height: 1.6; white-space: pre-wrap;">${message}</p>
-            </div>
+            <p><strong>Message:</strong></p>
+            <p style="background: #f5f5f5; padding: 15px; border-left: 3px solid #3b82f6;">${message}</p>
             
-            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(59, 130, 246, 0.2);">
-              <p style="margin: 0; color: #737373; font-size: 14px;">This message was sent from the JDMatchr contact form.</p>
-            </div>
+            <hr style="margin: 20px 0;">
+            <p style="color: #666; font-size: 12px;">This message was sent from the JDMatchr contact form.</p>
           </div>
         `,
         reply_to: email

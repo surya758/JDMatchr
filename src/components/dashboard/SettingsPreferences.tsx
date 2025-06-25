@@ -328,13 +328,6 @@ const SettingsPreferences = () => {
               variant="outline"
               className="w-full border-border-custom hover:bg-bg-light justify-start"
             >
-              Change Password
-            </Button>
-
-            <Button
-              variant="outline"
-              className="w-full border-border-custom hover:bg-bg-light justify-start"
-            >
               Two-Factor Authentication
             </Button>
 
