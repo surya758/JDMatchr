@@ -70,7 +70,7 @@ const HeroSection = () => {
 
   return (
     <section className="text-text overflow-hidden flex items-center justify-center min-h-[calc(100vh-6rem)]">
-      <div className="px-6 py-0 w-full">
+      <div className="px-2 md:px-6 py-0 w-full">
         <div className="max-w-4xl mx-auto text-center mb-8 sm:mb-12 lg:mb-16 animate-fade-in">
           <h1 className="font-grotesk text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 mt-8 sm:mt-12 leading-tight px-2">
             Paste the JD. Upload resumes.{" "}
