@@ -84,7 +84,7 @@ serve(async (req) => {
       headers: {
         ...corsHeaders,
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="JDMatchr-Billing-Report-${new Date().toISOString().split('T')[0]}.pdf"`,
+        'Content-Disposition': `attachment; filename="jdmatchr-Billing-Report-${new Date().toISOString().split('T')[0]}.pdf"`,
       },
     });
 
@@ -203,7 +203,7 @@ async function generateBillingReport(reportData: BillingReportData): Promise<Uin
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(36);
   doc.setFont('helvetica', 'bold');
-  doc.text('JDMatchr', 105, 35, { align: 'center' });
+  doc.text('jdmatchr', 105, 35, { align: 'center' });
   
   // Report title
   doc.setFontSize(16);
@@ -398,7 +398,7 @@ async function generateBillingReport(reportData: BillingReportData): Promise<Uin
   doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text('Thank you for choosing JDMatchr!', 105, currentY, { align: 'center' });
+  doc.text('Thank you for choosing jdmatchr!', 105, currentY, { align: 'center' });
   
   currentY += 12;
   doc.setFontSize(10);

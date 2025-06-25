@@ -85,11 +85,11 @@ const ComparisonSection = () => {
           <div className="flex items-center justify-center space-x-2 mb-3">
             <Key className="w-4 h-4 text-text-muted" />
             <span className="font-grotesk text-xs text-text-muted uppercase tracking-wider">
-              Why JDMatchr
+              Why jdmatchr
             </span>
           </div>
           <h2 className="font-grotesk text-2xl md:text-3xl font-bold text-text mb-3">
-            JDMatchr vs Popular LLMs
+            jdmatchr vs Popular LLMs
           </h2>
           <p className="font-grotesk text-base text-text-muted max-w-2xl mx-auto">
             Purpose-built beats general-purpose for hiring workflows
@@ -124,12 +124,12 @@ const ComparisonSection = () => {
                 </p>
               </div>
 
-              {/* JDMatchr */}
+              {/* jdmatchr */}
               <div>
                 <div className="flex items-center space-x-2 mb-1">
                   <Check className="w-3 h-3 text-text-muted" />
                   <span className="font-grotesk text-xs font-medium text-text">
-                    JDMatchr
+                    jdmatchr
                   </span>
                 </div>
                 <p className="font-grotesk text-xs text-text pl-5">
@@ -145,7 +145,7 @@ const ComparisonSection = () => {
           <div className="bg-bg-light border border-border-custom rounded-lg px-4 py-3 inline-block">
             <span className="font-grotesk text-xs text-text-muted">
               <span className="font-medium">Reality check:</span> LLMs works,
-              but JDMatchr is built specifically for this
+              but jdmatchr is built specifically for this
             </span>
           </div>
         </div>

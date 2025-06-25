@@ -39,13 +39,13 @@ const Navbar = () => {
             <div className="flex items-center space-x-2">
               <img
                 src="/assets/images/logo.png"
-                alt="JDMatchr"
+                alt="jdmatchr"
                 width={18}
                 height={18}
                 className="cursor-pointer"
               />
               <span className="font-grotesk font-semibold text-base sm:text-lg lg:text-xl text-text">
-                JDMatchr
+                jdmatchr
               </span>
             </div>
           </Link>

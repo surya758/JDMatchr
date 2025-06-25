@@ -42,12 +42,12 @@ serve(async (req) => {
     // Send email using Resend (if API key is configured)
     if (RESEND_API_KEY) {
       const emailData = {
-        from: 'JDMatchr Contact <surya@jdmatchr.com>',
+        from: 'jdmatchr Contact <surya@jdmatchr.com>',
         to: ['skant758@gmail.com'],
         subject: subject || `New Contact Form Message from ${name}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #3b82f6;">New Contact Form Message - JDMatchr</h2>
+            <h2 style="color: #3b82f6;">New Contact Form Message - jdmatchr</h2>
             
             <p><strong>Name:</strong> ${name}</p>
             <p><strong>Email:</strong> ${email}</p>
@@ -57,7 +57,7 @@ serve(async (req) => {
             <p style="background: #f5f5f5; padding: 15px; border-left: 3px solid #3b82f6;">${message}</p>
             
             <hr style="margin: 20px 0;">
-            <p style="color: #666; font-size: 12px;">This message was sent from the JDMatchr contact form.</p>
+            <p style="color: #666; font-size: 12px;">This message was sent from the jdmatchr contact form.</p>
           </div>
         `,
         reply_to: email

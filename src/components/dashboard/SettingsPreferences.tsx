@@ -127,7 +127,7 @@ const SettingsPreferences = () => {
           // Show success message before redirect
           toast({
             title: "Account deleted successfully",
-            description: "Thank you for using JDMatchr.",
+            description: "Thank you for using jdmatchr.",
           });
 
           // Account deletion successful - reset theme and sign out

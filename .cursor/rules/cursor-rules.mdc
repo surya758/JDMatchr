@@ -3,11 +3,11 @@ description:
 globs: 
 alwaysApply: true
 ---
-# JDMatchr Project Rules
+# jdmatchr Project Rules
 
 ## Project Overview
 
-JDMatchr is an AI-powered resume screening tool with a minimal, modern design focused on user experience and professional aesthetics.
+jdmatchr is an AI-powered resume screening tool with a minimal, modern design focused on user experience and professional aesthetics.
 
 ## Design System & Visual Language
 
@@ -192,4 +192,4 @@ JDMatchr is an AI-powered resume screening tool with a minimal, modern design fo
 - **Types**: PascalCase with descriptive names
 - **Constants**: UPPER_SNAKE_CASE
 
-Remember: JDMatchr is about simplicity, professionalism, and user experience. Every design decision should reduce friction and provide clear value to HR professionals screening candidates.
+Remember: jdmatchr is about simplicity, professionalism, and user experience. Every design decision should reduce friction and provide clear value to HR professionals screening candidates.

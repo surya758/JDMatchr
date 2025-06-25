@@ -1,4 +1,4 @@
--- Seed data for JDMatchr
+-- Seed data for jdmatchr
 -- This file contains initial data for development and testing
 
 -- Example: Insert test users (uncomment if needed for development)

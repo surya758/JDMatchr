@@ -1,6 +1,6 @@
-# JDMatchr Supabase Project
+# jdmatchr Supabase Project
 
-This directory contains the Supabase configuration, migrations, and database schema for JDMatchr.
+This directory contains the Supabase configuration, migrations, and database schema for jdmatchr.
 
 ## Setup Instructions
 

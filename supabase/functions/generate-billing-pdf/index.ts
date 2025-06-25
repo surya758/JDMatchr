@@ -87,7 +87,7 @@ serve(async (req) => {
       headers: {
         ...corsHeaders,
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="JDMatchr-Invoice-${billingData.invoiceNumber}.pdf"`,
+        'Content-Disposition': `attachment; filename="jdmatchr-Invoice-${billingData.invoiceNumber}.pdf"`,
       },
     });
 
@@ -188,7 +188,7 @@ async function generateBillingPDF(billingData: BillingData): Promise<Uint8Array>
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(32);
   doc.setFont('helvetica', 'bold');
-  doc.text('JDMatchr', 20, 35);
+  doc.text('jdmatchr', 20, 35);
   
   // Subtitle
   doc.setFontSize(12);
@@ -274,7 +274,7 @@ async function generateBillingPDF(billingData: BillingData): Promise<Uint8Array>
   doc.setTextColor(colors.text[0], colors.text[1], colors.text[2]);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text('Thank you for choosing JDMatchr!', 105, footerY, { align: 'center' });
+  doc.text('Thank you for choosing jdmatchr!', 105, footerY, { align: 'center' });
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
@@ -561,7 +561,7 @@ function generateInvoiceHTML(billingData: BillingData): string {
         <div class="invoice-header">
           <div class="header-content">
             <div class="company-info">
-              <h1>JDMatchr</h1>
+              <h1>jdmatchr</h1>
               <p>AI-Powered Resume Screening Platform</p>
               <p>support@jdmatchr.com</p>
             </div>
@@ -611,7 +611,7 @@ function generateInvoiceHTML(billingData: BillingData): string {
         </table>
 
         <div class="footer">
-          <p>Thank you for choosing JDMatchr!</p>
+          <p>Thank you for choosing jdmatchr!</p>
           <p>For support, contact us at support@jdmatchr.com</p>
         </div>
       </div>

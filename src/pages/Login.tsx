@@ -161,7 +161,7 @@ const Login = () => {
                     Welcome Back
                   </h1>
                   <p className="font-grotesk text-text-muted">
-                    Sign in to your JDMatchr account
+                    Sign in to your jdmatchr account
                   </p>
                 </div>
 

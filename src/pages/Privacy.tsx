@@ -161,7 +161,7 @@ const Privacy = () => {
               </h1>
               <p className="font-grotesk text-text-muted text-lg max-w-2xl mx-auto">
                 Your privacy is important to us. This policy explains how
-                JDMatchr collects, uses, and protects your personal information.
+                jdmatchr collects, uses, and protects your personal information.
               </p>
               <p className="font-grotesk text-text-subtle text-sm mt-4">
                 Last updated:{" "}

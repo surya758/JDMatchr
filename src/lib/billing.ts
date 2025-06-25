@@ -48,7 +48,7 @@ export async function generateBillingReport(): Promise<BillingPDFResponse> {
     const url = window.URL.createObjectURL(pdfBlob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `JDMatchr-Billing-Report-${new Date().toISOString().split('T')[0]}.pdf`;
+    a.download = `jdmatchr-Billing-Report-${new Date().toISOString().split('T')[0]}.pdf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -104,7 +104,7 @@ export async function generateBillingPDF(subscriptionId: string): Promise<Billin
     const url = window.URL.createObjectURL(pdfBlob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `JDMatchr-Invoice-${subscriptionId.slice(-8).toUpperCase()}.pdf`;
+    a.download = `jdmatchr-Invoice-${subscriptionId.slice(-8).toUpperCase()}.pdf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

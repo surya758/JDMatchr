@@ -158,7 +158,7 @@ const Signup = () => {
                     Create Account
                   </h1>
                   <p className="font-grotesk text-text-muted">
-                    Join JDMatchr and start screening resumes with AI
+                    Join jdmatchr and start screening resumes with AI
                   </p>
                 </div>
 

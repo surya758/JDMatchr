@@ -62,7 +62,7 @@ const EmailConfirmed = () => {
                 </h1>
                 <p className="font-grotesk text-text-muted mb-8 leading-relaxed">
                   Your email address has been successfully verified. Your
-                  JDMatchr account is now active and ready to use.
+                  jdmatchr account is now active and ready to use.
                 </p>
 
                 {/* Action Button */}
@@ -79,7 +79,7 @@ const EmailConfirmed = () => {
                 {/* Additional Info */}
                 <div className="mt-8 pt-6 border-t border-border-custom">
                   <p className="text-text-subtle text-sm">
-                    You can now access all JDMatchr features including
+                    You can now access all jdmatchr features including
                     AI-powered resume screening and analysis.
                   </p>
                 </div>
@@ -90,7 +90,7 @@ const EmailConfirmed = () => {
             <div className="mt-8 text-center">
               <p className="text-text-subtle text-sm">
                 Welcome to{" "}
-                <span className="font-medium text-primary">JDMatchr</span>
+                <span className="font-medium text-primary">jdmatchr</span>
               </p>
             </div>
           </div>

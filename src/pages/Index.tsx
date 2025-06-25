@@ -190,7 +190,7 @@ const Index = () => {
                     </h3>
                     <p className="font-aoenik text-sm text-text-muted mb-6 max-w-md">
                       Have specific questions about your use case? Want to see a
-                      demo? We're here to help you make the most of JDMatchr.
+                      demo? We're here to help you make the most of jdmatchr.
                     </p>
                     <Button
                       size="sm"

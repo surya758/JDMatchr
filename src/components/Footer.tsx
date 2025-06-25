@@ -14,12 +14,12 @@ const Footer = () => {
           <div className="flex items-center">
             <img
               src="/assets/images/logo.png"
-              alt="JDMatchr"
+              alt="jdmatchr"
               width={14}
               height={14}
             />
             <h3 className="ml-2 font-grotesk text-sm font-bold text-text">
-              JDMatchr
+              jdmatchr
             </h3>
           </div>
 
@@ -82,7 +82,7 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <h3 className="font-grotesk text-lg font-bold text-text mb-2">
-              JDMatchr
+              jdmatchr
             </h3>
             <p className="font-grotesk text-sm text-text-muted">
               AI-powered resume screening made simple
@@ -136,7 +136,7 @@ const Footer = () => {
               </a>
             </div>
             <p className="font-grotesk text-xs text-text-subtle">
-              © {new Date().getFullYear()} JDMatchr. All rights reserved.
+              © {new Date().getFullYear()} jdmatchr. All rights reserved.
             </p>
           </div>
         </div>

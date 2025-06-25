@@ -23,7 +23,7 @@ const Terms = () => {
       content: [
         {
           subtitle: "Agreement",
-          text: "By accessing and using JDMatchr, you accept and agree to be bound by the terms and provision of this agreement.",
+          text: "By accessing and using jdmatchr, you accept and agree to be bound by the terms and provision of this agreement.",
         },
         {
           subtitle: "Modifications",
@@ -36,7 +36,7 @@ const Terms = () => {
       content: [
         {
           subtitle: "AI Resume Screening",
-          text: "JDMatchr provides AI-powered resume analysis and job matching services to help streamline the recruitment process.",
+          text: "jdmatchr provides AI-powered resume analysis and job matching services to help streamline the recruitment process.",
         },
         {
           subtitle: "Service Availability",
@@ -70,7 +70,7 @@ const Terms = () => {
       content: [
         {
           subtitle: "Permitted Use",
-          text: "You may use JDMatchr solely for legitimate business purposes related to recruitment and hiring.",
+          text: "You may use jdmatchr solely for legitimate business purposes related to recruitment and hiring.",
         },
         {
           subtitle: "Prohibited Activities",
@@ -121,7 +121,7 @@ const Terms = () => {
       content: [
         {
           subtitle: "Our IP",
-          text: "JDMatchr and its technology, including AI algorithms and software, are protected by intellectual property laws.",
+          text: "jdmatchr and its technology, including AI algorithms and software, are protected by intellectual property laws.",
         },
         {
           subtitle: "User Content",
@@ -186,7 +186,7 @@ const Terms = () => {
                 Terms of Service
               </h1>
               <p className="font-grotesk text-text-muted text-lg max-w-2xl mx-auto">
-                Please read these terms carefully before using JDMatchr. By
+                Please read these terms carefully before using jdmatchr. By
                 using our service, you agree to these terms and conditions.
               </p>
               <p className="font-grotesk text-text-subtle text-sm mt-4">
@@ -276,7 +276,7 @@ const Terms = () => {
                 <p className="font-grotesk text-text-muted leading-relaxed">
                   These terms shall be governed by and construed in accordance
                   with applicable laws. Any disputes arising from these terms or
-                  your use of JDMatchr shall be resolved through binding
+                  your use of jdmatchr shall be resolved through binding
                   arbitration or in the appropriate courts.
                 </p>
               </div>
