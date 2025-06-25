@@ -95,6 +95,16 @@
     @apply border-border;
     border-color: hsl(var(--border));
   }
+  
+  html {
+    /* Hide scrollbar on html element */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  html::-webkit-scrollbar {
+    display: none;
+  }
 
   body {
     @apply bg-background text-foreground font-sans;
@@ -102,6 +112,13 @@
     background: hsl(var(--bg-dark));
     font-family: 'Space Grotesk', sans-serif;
     overflow-x: hidden;
+    /* Hide scrollbar globally */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  body::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -144,6 +161,15 @@
 .snap-container::-webkit-scrollbar {
   width: 0px;
   background: transparent;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
 }
 
 .snap-section {

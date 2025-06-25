@@ -129,7 +129,7 @@ const Footer = () => {
               </a>
               <span className="text-text-subtle">•</span>
               <a
-                href="mailto:surya@jdmatchr.com"
+                href="/contact"
                 className="font-grotesk text-text-subtle hover:text-text-muted transition-colors duration-200"
               >
                 Contact

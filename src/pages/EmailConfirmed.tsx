@@ -33,15 +33,15 @@ const EmailConfirmed = () => {
   }
 
   return (
-    <div className="min-h-screen bg-bg-dark text-text font-grotesk">
+    <div className="min-h-screen bg-bg-dark text-text font-grotesk scrollbar-hide">
       {/* Lottie Background Animation */}
       {animationData && <LottieBackground animationData={animationData} />}
 
       {/* Fixed width container */}
-      <div className="max-w-7xl mx-auto relative border-l border-r border-border-custom flex flex-col min-h-screen">
+      <div className="max-w-7xl mx-auto relative md:border-l md:border-r border-border-custom flex flex-col min-h-screen">
         {/* Vertical line decorations */}
-        <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-text-subtle to-transparent opacity-50 z-10"></div>
-        <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-text-subtle to-transparent opacity-50 z-10"></div>
+        <div className="hidden md:block absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-text-subtle to-transparent opacity-50 z-10"></div>
+        <div className="hidden md:block absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-text-subtle to-transparent opacity-50 z-10"></div>
 
         {/* Content */}
         <div className="relative z-10 px-4 sm:px-6 navbar-spacing pb-12 sm:pb-20 flex-1 flex items-center justify-center">

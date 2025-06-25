@@ -69,7 +69,6 @@ const Index = () => {
   };
 
   const totalSections = 5;
-  const progressPercentage = ((currentSection + 1) / totalSections) * 100;
 
   return (
     <>
