@@ -41,7 +41,9 @@ const DashboardOverview = () => {
     {
       title: "Credits Left",
       value: jobCreditsRemaining.toString(),
-      subtitle: `${subscriptionStatus} plan`,
+      subtitle: `${
+        subscriptionStatus.charAt(0).toUpperCase() + subscriptionStatus.slice(1)
+      } plan`,
       icon: Users,
       color: "text-primary",
       bgColor: "bg-primary/10",

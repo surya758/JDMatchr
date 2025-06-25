@@ -134,7 +134,7 @@ const MyReports = () => {
           {filteredReports.map((report) => (
             <div
               key={report.id}
-              className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-6 shadow-xl hover:bg-bg-light transition-colors duration-200"
+              className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-6 shadow-xl"
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">

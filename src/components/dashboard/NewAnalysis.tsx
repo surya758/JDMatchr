@@ -170,7 +170,7 @@ const NewAnalysis = () => {
                 Drag and drop files here, or click to browse
               </p>
               <p className="text-text-subtle text-xs">
-                Supports PDF, DOC, DOCX, TXT files
+                Supports PDF, JPG, PNG, GIF, TIFF, BMP, WEBP files
               </p>
             </label>
           </div>

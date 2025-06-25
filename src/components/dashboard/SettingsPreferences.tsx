@@ -19,12 +19,16 @@ import {
   confirmationConfigs,
 } from "../../hooks/useConfirmation";
 import ConfirmationModal from "../ui/confirmation-modal";
+import { deleteUserAccount } from "../../lib/account";
+import { useNavigate } from "react-router-dom";
 
 const SettingsPreferences = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { profile, updateProfile, isUpdating } = useUserProfile();
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(profile?.full_name || "");
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const navigate = useNavigate();
 
   const {
     isOpen: isConfirmationOpen,
@@ -97,23 +101,34 @@ const SettingsPreferences = () => {
         ),
       },
       async () => {
-        // TODO: Implement actual account deletion logic
-        // This would typically involve:
-        // 1. Cancel active subscriptions
-        // 2. Delete user data from database
-        // 3. Sign out the user
-        // 4. Redirect to home page
+        setIsDeletingAccount(true);
 
-        alert("Account deletion is not yet implemented. This is a demo.");
+        try {
+          // Call the account deletion service
+          const result = await deleteUserAccount();
 
-        // Example implementation:
-        // try {
-        //   await deleteUserAccount(user.id);
-        //   await signOut();
-        //   navigate('/');
-        // } catch (error) {
-        //   alert('Failed to delete account. Please try again or contact support.');
-        // }
+          if (!result.success) {
+            throw new Error(result.error || "Failed to delete account");
+          }
+
+          // Account deletion successful - sign out and redirect
+          await signOut();
+          navigate("/", { replace: true });
+
+          // Show success message (will show briefly before redirect)
+          alert(
+            "Your account has been successfully deleted. Thank you for using JDMatchr."
+          );
+        } catch (error) {
+          console.error("Account deletion error:", error);
+          alert(
+            error instanceof Error
+              ? `Failed to delete account: ${error.message}`
+              : "Failed to delete account. Please try again or contact support."
+          );
+        } finally {
+          setIsDeletingAccount(false);
+        }
       }
     );
   };
@@ -308,10 +323,17 @@ const SettingsPreferences = () => {
             <Button
               variant="outline"
               onClick={handleDeleteAccount}
-              disabled={isConfirmationLoading}
+              disabled={isConfirmationLoading || isDeletingAccount}
               className="w-full border-red-500/20 hover:bg-red-500/5 text-red-400 justify-start disabled:opacity-50"
             >
-              Delete Account
+              {isDeletingAccount ? (
+                <div className="flex items-center">
+                  <div className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin mr-2" />
+                  Deleting Account...
+                </div>
+              ) : (
+                "Delete Account"
+              )}
             </Button>
           </div>
         </div>
