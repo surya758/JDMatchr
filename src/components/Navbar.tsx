@@ -30,8 +30,6 @@ const Navbar = () => {
     setIsMobileMenuOpen(false);
   };
 
-  console.log(jobCreditsRemaining, "jobCreditsRemaining");
-
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-dark/80 backdrop-blur-md border-b border-border-custom">
       <div className="max-w-7xl mx-auto">
@@ -79,7 +77,7 @@ const Navbar = () => {
                   {jobCreditsRemaining}{" "}
                   {jobCreditsRemaining === 1 ? "credit" : "credits"}
                 </span>
-                <span className="text-text-subtle text-xs">
+                <span className="text-text-subtle text-xs capitalize">
                   ({subscriptionStatus})
                 </span>
               </div>

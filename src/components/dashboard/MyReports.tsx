@@ -1,11 +1,33 @@
 import React, { useState } from "react";
-import { Search, Filter, Download, Eye, Calendar, Users } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Download,
+  Eye,
+  Calendar,
+  Users,
+  ChevronDown,
+  X,
+  SlidersHorizontal,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Switch } from "../ui/switch";
 
 const MyReports = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [dateRange, setDateRange] = useState("all");
+  const [scoreRange, setScoreRange] = useState("all");
+  const [candidatesRange, setCandidatesRange] = useState("all");
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState("date");
+  const [sortOrder, setSortOrder] = useState("desc");
 
   // Mock data - in real app this would come from API
   const reports = [
@@ -38,14 +60,107 @@ const MyReports = () => {
     },
   ];
 
-  const filteredReports = reports.filter((report) => {
-    const matchesSearch =
-      report.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.topMatch.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter =
-      filterStatus === "all" || report.status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredReports = reports
+    .filter((report) => {
+      const matchesSearch =
+        report.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        report.topMatch.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesStatus =
+        filterStatus === "all" || report.status === filterStatus;
+
+      const matchesDateRange = (() => {
+        if (dateRange === "all") return true;
+        const reportDate = new Date(report.date);
+        const now = new Date();
+        const daysDiff = Math.floor(
+          (now.getTime() - reportDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        switch (dateRange) {
+          case "today":
+            return daysDiff === 0;
+          case "week":
+            return daysDiff <= 7;
+          case "month":
+            return daysDiff <= 30;
+          case "quarter":
+            return daysDiff <= 90;
+          default:
+            return true;
+        }
+      })();
+
+      const matchesScoreRange = (() => {
+        if (scoreRange === "all") return true;
+        const score = report.matchScore;
+        switch (scoreRange) {
+          case "excellent":
+            return score >= 90;
+          case "good":
+            return score >= 75 && score < 90;
+          case "fair":
+            return score >= 60 && score < 75;
+          case "poor":
+            return score < 60;
+          default:
+            return true;
+        }
+      })();
+
+      const matchesCandidatesRange = (() => {
+        if (candidatesRange === "all") return true;
+        const candidates = report.candidatesAnalyzed;
+        switch (candidatesRange) {
+          case "small":
+            return candidates <= 5;
+          case "medium":
+            return candidates > 5 && candidates <= 15;
+          case "large":
+            return candidates > 15;
+          default:
+            return true;
+        }
+      })();
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesDateRange &&
+        matchesScoreRange &&
+        matchesCandidatesRange
+      );
+    })
+    .sort((a, b) => {
+      let aValue, bValue;
+
+      switch (sortBy) {
+        case "date":
+          aValue = new Date(a.date).getTime();
+          bValue = new Date(b.date).getTime();
+          break;
+        case "score":
+          aValue = a.matchScore;
+          bValue = b.matchScore;
+          break;
+        case "candidates":
+          aValue = a.candidatesAnalyzed;
+          bValue = b.candidatesAnalyzed;
+          break;
+        case "title":
+          aValue = a.jobTitle.toLowerCase();
+          bValue = b.jobTitle.toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+
+      if (sortOrder === "asc") {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-green-400";
@@ -61,6 +176,37 @@ const MyReports = () => {
     return "bg-red-500/10";
   };
 
+  const clearAllFilters = () => {
+    setSearchTerm("");
+    setFilterStatus("all");
+    setDateRange("all");
+    setScoreRange("all");
+    setCandidatesRange("all");
+  };
+
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (searchTerm) count++;
+    if (filterStatus !== "all") count++;
+    if (dateRange !== "all") count++;
+    if (scoreRange !== "all") count++;
+    if (candidatesRange !== "all") count++;
+    return count;
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "completed":
+        return <CheckCircle className="w-4 h-4 text-green-400" />;
+      case "processing":
+        return <Clock className="w-4 h-4 text-blue-400" />;
+      case "failed":
+        return <AlertCircle className="w-4 h-4 text-red-400" />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -71,42 +217,185 @@ const MyReports = () => {
         </p>
       </div>
 
-      {/* Filters and Search */}
-      <div className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-6 shadow-xl">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="flex flex-col sm:flex-row gap-4 flex-1">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
-              <Input
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search reports..."
-                className="pl-10 bg-bg/30 border-border-custom focus:border-primary/50 focus:ring-0 focus:outline-none"
-              />
-            </div>
-
-            {/* Filter */}
-            <div className="flex items-center space-x-2">
-              <Filter className="w-4 h-4 text-text-muted" />
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="bg-bg/30 border border-border-custom rounded-lg px-3 py-2 text-text focus:border-primary/50 focus:ring-0 focus:outline-none"
+      {/* Streamlined Filters */}
+      <div className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-4 shadow-xl">
+        {/* Main Search and Controls */}
+        <div className="flex items-center gap-4">
+          {/* Search Bar - Takes most of the space */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted" />
+            <Input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search reports..."
+              className="pl-10 pr-8 bg-bg/30 border-border-custom focus:border-primary/50 focus:ring-0 focus:outline-none"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted hover:text-text transition-colors"
               >
-                <option value="all">All Reports</option>
-                <option value="completed">Completed</option>
-                <option value="processing">Processing</option>
-                <option value="failed">Failed</option>
-              </select>
-            </div>
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
-          <div className="text-text-muted text-sm">
-            {filteredReports.length} report
-            {filteredReports.length !== 1 ? "s" : ""} found
+          {/* Compact Controls */}
+          <div className="flex items-center gap-2">
+            {/* Sort Dropdown */}
+            <div className="relative">
+              <select
+                value={`${sortBy}-${sortOrder}`}
+                onChange={(e) => {
+                  const [sort, order] = e.target.value.split("-");
+                  setSortBy(sort);
+                  setSortOrder(order);
+                }}
+                className="bg-bg/30 border border-border-custom rounded-lg pl-3 pr-10 py-2 text-sm text-text focus:border-primary/50 focus:ring-0 appearance-none cursor-pointer w-full"
+              >
+                <option value="date-desc">Newest</option>
+                <option value="date-asc">Oldest</option>
+                <option value="score-desc">Top Score</option>
+                <option value="score-asc">Low Score</option>
+                <option value="candidates-desc">Most Candidates</option>
+                <option value="candidates-asc">Few Candidates</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+            </div>
+
+            {/* Filter Toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`border-border-custom hover:bg-bg-light relative ${
+                getActiveFiltersCount() > 0
+                  ? "border-primary/50 bg-primary/5"
+                  : ""
+              }`}
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              {getActiveFiltersCount() > 0 && (
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                  <span className="text-xs text-primary-foreground font-medium">
+                    {getActiveFiltersCount()}
+                  </span>
+                </div>
+              )}
+            </Button>
+
+            {/* Clear Filters - Only show when active */}
+            {getActiveFiltersCount() > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="text-text-muted hover:text-red-400 p-2"
+                title="Clear all filters"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
+
+        {/* Results Summary - Compact single line */}
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border-custom/50">
+          <div className="text-text-muted text-sm">
+            <span className="font-medium text-text">
+              {filteredReports.length}
+            </span>{" "}
+            of <span className="font-medium text-text">{reports.length}</span>{" "}
+            reports
+          </div>
+          {getActiveFiltersCount() > 0 && (
+            <div className="text-text-subtle text-xs">
+              {getActiveFiltersCount()} filter
+              {getActiveFiltersCount() !== 1 ? "s" : ""}
+            </div>
+          )}
+        </div>
+
+        {/* Expandable Filters Panel */}
+        {showFilters && (
+          <div className="mt-4 pt-4 border-t border-border-custom/50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Status Filter */}
+              <div className="space-y-2">
+                <Label className="text-text-muted text-sm">Status</Label>
+                <div className="relative">
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="w-full bg-bg/30 border border-border-custom rounded-lg pl-3 pr-10 py-2 text-sm text-text focus:border-primary/50 focus:ring-0 appearance-none cursor-pointer"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="completed">Completed</option>
+                    <option value="processing">Processing</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Date Range */}
+              <div className="space-y-2">
+                <Label className="text-text-muted text-sm">Date Range</Label>
+                <div className="relative">
+                  <select
+                    value={dateRange}
+                    onChange={(e) => setDateRange(e.target.value)}
+                    className="w-full bg-bg/30 border border-border-custom rounded-lg pl-3 pr-10 py-2 text-sm text-text focus:border-primary/50 focus:ring-0 appearance-none cursor-pointer"
+                  >
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">Last 7 Days</option>
+                    <option value="month">Last 30 Days</option>
+                    <option value="quarter">Last 90 Days</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Score Range */}
+              <div className="space-y-2">
+                <Label className="text-text-muted text-sm">Match Score</Label>
+                <div className="relative">
+                  <select
+                    value={scoreRange}
+                    onChange={(e) => setScoreRange(e.target.value)}
+                    className="w-full bg-bg/30 border border-border-custom rounded-lg pl-3 pr-10 py-2 text-sm text-text focus:border-primary/50 focus:ring-0 appearance-none cursor-pointer"
+                  >
+                    <option value="all">All Scores</option>
+                    <option value="excellent">90%+ Excellent</option>
+                    <option value="good">75-89% Good</option>
+                    <option value="fair">60-74% Fair</option>
+                    <option value="poor">&lt;60% Poor</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Candidates Range */}
+              <div className="space-y-2">
+                <Label className="text-text-muted text-sm">Candidates</Label>
+                <div className="relative">
+                  <select
+                    value={candidatesRange}
+                    onChange={(e) => setCandidatesRange(e.target.value)}
+                    className="w-full bg-bg/30 border border-border-custom rounded-lg pl-3 pr-10 py-2 text-sm text-text focus:border-primary/50 focus:ring-0 appearance-none cursor-pointer"
+                  >
+                    <option value="all">Any Amount</option>
+                    <option value="small">1-5 Small</option>
+                    <option value="medium">6-15 Medium</option>
+                    <option value="large">16+ Large</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Reports List */}

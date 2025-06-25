@@ -36,6 +36,21 @@ export const useAuth = () => {
           session,
           loading: false,
         })
+        
+        // Handle different sign-in scenarios
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Check if this is coming from email confirmation link
+          const urlParams = new URLSearchParams(window.location.search)
+          const isEmailConfirmation = urlParams.has('token_hash') || window.location.pathname.includes('confirm')
+          
+          if (isEmailConfirmation && window.location.pathname !== '/email-confirmed') {
+            // User clicked email confirmation link, redirect to confirmation page (only if not already there)
+            window.location.href = '/email-confirmed'
+          } else if (window.location.pathname === '/login' || window.location.pathname === '/signup') {
+            // Normal login/signup on website, redirect to dashboard
+            window.location.href = '/dashboard'
+          }
+        }
       }
     )
 
@@ -51,6 +66,7 @@ export const useAuth = () => {
         data: {
           full_name: fullName,
         },
+        emailRedirectTo: `${window.location.origin}/email-confirmed`,
       },
     })
     return { data, error }

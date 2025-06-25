@@ -7,10 +7,8 @@ import DashboardOverview from "../components/dashboard/DashboardOverview";
 import NewAnalysis from "../components/dashboard/NewAnalysis";
 import MyReports from "../components/dashboard/MyReports";
 import Settings from "../components/dashboard/Settings";
-import { useAuth } from "../hooks/useAuth";
 
 const Dashboard = () => {
-  const { user, loading } = useAuth();
   const location = useLocation();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 

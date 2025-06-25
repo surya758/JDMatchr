@@ -58,70 +58,35 @@
   }
 
   .dark {
-    /* Dark theme already defined above as default */
-    --background: var(--bg-dark);
-    --foreground: var(--text);
-    --card: var(--bg);
-    --card-foreground: var(--text);
-    --popover: var(--bg);
-    --popover-foreground: var(--text);
-    --secondary: var(--bg-light);
-    --secondary-foreground: var(--text);
-    --muted: var(--bg-light);
-    --muted-foreground: var(--text-muted);
-    --accent: var(--bg-light);
-    --accent-foreground: var(--text);
-    --destructive: 0 62% 50%;
-    --destructive-foreground: var(--text);
-    --border: var(--border);
-    --input: var(--bg-light);
-    --ring: var(--primary);
-    --sidebar-background: var(--bg);
-    --sidebar-foreground: var(--text-muted);
-    --sidebar-primary: var(--primary);
-    --sidebar-primary-foreground: var(--primary-foreground);
-    --sidebar-accent: var(--bg-light);
-    --sidebar-accent-foreground: var(--text);
-    --sidebar-border: var(--border);
-    --sidebar-ring: var(--primary);
+     /* Background colors using HSL */
+     --bg-dark: 0 0% 0%;           /* Pure black */
+     --bg: 0 0% 5%;                /* Very dark gray */
+     --bg-light: 0 0% 10%;         /* Dark gray */
+     
+     /* Text colors using HSL */
+     --text: 0 0% 95%;             /* Almost white */
+     --text-muted: 0 0% 70%;       /* Light gray */
+     --text-subtle: 0 0% 50%;      /* Medium gray */
+     
+     /* Border colors */
+     --border: 0 0% 15%;           /* Dark border */
+     --border-light: 0 0% 20%;     /* Lighter border */
   }
   
   .light {
     /* Light theme with inverted relationships */
-    --bg-dark: 0 0% 98%;          /* Light gray */
-    --bg: 0 0% 100%;               /* Very light gray */  
-    --bg-light: 0 0% 96%;        /* Pure white */
+    --bg-dark: 0 0% 90%;          /* Light gray */
+    --bg: 0 0% 95%;               /* Very light gray */  
+    --bg-light: 0 0% 100%;        /* Pure white */
+
+    /* Text colors using HSL */
     --text: 0 0% 5%;              /* Very dark */
     --text-muted: 0 0% 30%;       /* Dark gray */
     --text-subtle: 0 0% 50%;      /* Medium gray */
+
+    /* Border colors */
     --border: 0 0% 85%;           /* Light border */
     --border-light: 0 0% 80%;     /* Darker light border */
-    
-    --background: var(--bg-light);
-    --foreground: var(--text);
-    --card: var(--bg);
-    --card-foreground: var(--text);
-    --popover: var(--bg);
-    --popover-foreground: var(--text);
-    --secondary: var(--bg-dark);
-    --secondary-foreground: var(--text);
-    --muted: var(--bg-dark);
-    --muted-foreground: var(--text-muted);
-    --accent: var(--bg-dark);
-    --accent-foreground: var(--text);
-    --destructive: 0 84% 60%;
-    --destructive-foreground: var(--bg-light);
-    --border: var(--border);
-    --input: var(--bg-dark);
-    --ring: var(--primary);
-    --sidebar-background: var(--bg);
-    --sidebar-foreground: var(--text-muted);
-    --sidebar-primary: var(--primary);
-    --sidebar-primary-foreground: var(--primary-foreground);
-    --sidebar-accent: var(--bg-dark);
-    --sidebar-accent-foreground: var(--text);
-    --sidebar-border: var(--border);
-    --sidebar-ring: var(--primary);
   }
 }
 

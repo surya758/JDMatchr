@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Save,
   User,
   Bell,
   Shield,
@@ -8,10 +7,13 @@ import {
   Edit3,
   X,
   Check,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { Switch } from "../ui/switch";
 import { useAuth } from "../../hooks/useAuth";
 import { useUserProfile } from "../../hooks/useUserProfile";
 import {
@@ -21,6 +23,8 @@ import {
 import ConfirmationModal from "../ui/confirmation-modal";
 import { deleteUserAccount } from "../../lib/account";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../hooks/use-toast";
+import { useTheme } from "next-themes";
 
 const SettingsPreferences = () => {
   const { user, signOut } = useAuth();
@@ -29,6 +33,8 @@ const SettingsPreferences = () => {
   const [editedName, setEditedName] = useState(profile?.full_name || "");
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
 
   const {
     isOpen: isConfirmationOpen,
@@ -44,7 +50,6 @@ const SettingsPreferences = () => {
     email: user?.email || "",
     notifications: true,
     emailReports: true,
-    darkMode: true,
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,8 +73,16 @@ const SettingsPreferences = () => {
         });
         setFormData((prev) => ({ ...prev, fullName: editedName.trim() }));
         setIsEditingName(false);
+        toast({
+          title: "Name updated successfully",
+          description: "Your full name has been updated.",
+        });
       } catch (error) {
-        alert("Failed to update name. Please try again.");
+        toast({
+          title: "Failed to update name",
+          description: "Please try again.",
+          variant: "destructive",
+        });
       }
     }
   };
@@ -111,21 +124,25 @@ const SettingsPreferences = () => {
             throw new Error(result.error || "Failed to delete account");
           }
 
+          // Show success message before redirect
+          toast({
+            title: "Account deleted successfully",
+            description: "Thank you for using JDMatchr.",
+          });
+
           // Account deletion successful - sign out and redirect
           await signOut();
           navigate("/", { replace: true });
-
-          // Show success message (will show briefly before redirect)
-          alert(
-            "Your account has been successfully deleted. Thank you for using JDMatchr."
-          );
         } catch (error) {
           console.error("Account deletion error:", error);
-          alert(
-            error instanceof Error
-              ? `Failed to delete account: ${error.message}`
-              : "Failed to delete account. Please try again or contact support."
-          );
+          toast({
+            title: "Failed to delete account",
+            description:
+              error instanceof Error
+                ? error.message
+                : "Please try again or contact support.",
+            variant: "destructive",
+          });
         } finally {
           setIsDeletingAccount(false);
         }
@@ -356,20 +373,159 @@ const SettingsPreferences = () => {
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-text font-medium">Dark Mode</Label>
-                <p className="text-text-muted text-sm">
-                  Use dark theme (currently enabled)
-                </p>
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-bg-light/50">
+                  {theme === "dark" ? (
+                    <Moon className="w-4 h-4 text-text-muted" />
+                  ) : (
+                    <Sun className="w-4 h-4 text-text-muted" />
+                  )}
+                </div>
+                <div>
+                  <Label className="text-text font-medium">Theme</Label>
+                  <p className="text-text-muted text-sm">
+                    Choose between light and dark theme
+                  </p>
+                </div>
               </div>
-              <input
-                type="checkbox"
-                name="darkMode"
-                checked={formData.darkMode}
-                onChange={handleInputChange}
-                disabled
-                className="w-4 h-4 rounded border-border-custom bg-bg/30 text-primary focus:ring-0 opacity-50"
+              <Switch
+                checked={theme === "dark"}
+                onCheckedChange={(checked) => {
+                  const newTheme = checked ? "dark" : "light";
+                  setTheme(newTheme);
+                  toast({
+                    title: "Theme updated",
+                    description: `Switched to ${newTheme} theme`,
+                  });
+                }}
+                className="data-[state=checked]:bg-primary"
               />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-bg-light/50">
+                  <Palette className="w-4 h-4 text-text-muted" />
+                </div>
+                <div>
+                  <Label className="text-text font-medium">System Theme</Label>
+                  <p className="text-text-muted text-sm">
+                    Follow your system's theme preference
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={theme === "system"}
+                onCheckedChange={(checked) => {
+                  const newTheme = checked ? "system" : "dark";
+                  setTheme(newTheme);
+                  toast({
+                    title: "Theme updated",
+                    description: checked
+                      ? "Following system theme preference"
+                      : "Switched to dark theme",
+                  });
+                }}
+                className="data-[state=checked]:bg-primary"
+              />
+            </div>
+
+            {/* Theme Preview */}
+            <div className="pt-4 border-t border-border-custom">
+              <Label className="text-text font-medium mb-3 block">
+                Theme Preview
+              </Label>
+              <div className="grid grid-cols-3 gap-3">
+                {/* Light Theme Preview */}
+                <button
+                  onClick={() => {
+                    setTheme("light");
+                    toast({
+                      title: "Theme updated",
+                      description: "Switched to light theme",
+                    });
+                  }}
+                  className={`relative p-3 rounded-xl border-2 transition-all duration-200 ${
+                    theme === "light"
+                      ? "border-primary shadow-lg scale-105"
+                      : "border-border-custom hover:border-border-light"
+                  }`}
+                >
+                  <div className="bg-white rounded-lg p-2 space-y-1">
+                    <div className="bg-gray-200 h-2 rounded w-full"></div>
+                    <div className="bg-gray-300 h-1.5 rounded w-3/4"></div>
+                    <div className="bg-blue-500 h-1.5 rounded w-1/2"></div>
+                  </div>
+                  <span className="text-xs text-text-muted mt-1 block">
+                    Light
+                  </span>
+                  {theme === "light" && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-primary-foreground" />
+                    </div>
+                  )}
+                </button>
+
+                {/* Dark Theme Preview */}
+                <button
+                  onClick={() => {
+                    setTheme("dark");
+                    toast({
+                      title: "Theme updated",
+                      description: "Switched to dark theme",
+                    });
+                  }}
+                  className={`relative p-3 rounded-xl border-2 transition-all duration-200 ${
+                    theme === "dark"
+                      ? "border-primary shadow-lg scale-105"
+                      : "border-border-custom hover:border-border-light"
+                  }`}
+                >
+                  <div className="bg-gray-900 rounded-lg p-2 space-y-1">
+                    <div className="bg-gray-700 h-2 rounded w-full"></div>
+                    <div className="bg-gray-600 h-1.5 rounded w-3/4"></div>
+                    <div className="bg-blue-400 h-1.5 rounded w-1/2"></div>
+                  </div>
+                  <span className="text-xs text-text-muted mt-1 block">
+                    Dark
+                  </span>
+                  {theme === "dark" && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-primary-foreground" />
+                    </div>
+                  )}
+                </button>
+
+                {/* System Theme Preview */}
+                <button
+                  onClick={() => {
+                    setTheme("system");
+                    toast({
+                      title: "Theme updated",
+                      description: "Following system theme preference",
+                    });
+                  }}
+                  className={`relative p-3 rounded-xl border-2 transition-all duration-200 ${
+                    theme === "system"
+                      ? "border-primary shadow-lg scale-105"
+                      : "border-border-custom hover:border-border-light"
+                  }`}
+                >
+                  <div className="rounded-lg p-2 space-y-1 bg-gradient-to-r from-gray-900 to-white">
+                    <div className="bg-gradient-to-r from-gray-700 to-gray-200 h-2 rounded w-full"></div>
+                    <div className="bg-gradient-to-r from-gray-600 to-gray-300 h-1.5 rounded w-3/4"></div>
+                    <div className="bg-blue-500 h-1.5 rounded w-1/2"></div>
+                  </div>
+                  <span className="text-xs text-text-muted mt-1 block">
+                    System
+                  </span>
+                  {theme === "system" && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-primary-foreground" />
+                    </div>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
