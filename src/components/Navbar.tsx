@@ -33,10 +33,10 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-dark/80 backdrop-blur-md border-b border-border-custom">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
           {/* Logo - Left Side */}
           <Link to="/" className="cursor-pointer">
-            <div className="flex items-center space-x-2 flex-1">
+            <div className="flex items-center space-x-2">
               <img
                 src="/assets/images/logo.png"
                 alt="JDMatchr"
@@ -69,7 +69,7 @@ const Navbar = () => {
           )}
 
           {/* Desktop Buttons - Right Side */}
-          <div className="hidden lg:flex items-center justify-end flex-1 space-x-4">
+          <div className="hidden lg:flex items-center space-x-4">
             {!loading && user && !subscriptionLoading && (
               <div className="flex items-center space-x-2 px-3 py-1.5 bg-bg/50 border border-border-custom rounded-lg">
                 <CreditCard className="w-4 h-4 text-text-muted" />
@@ -96,7 +96,7 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button - Right Side */}
           <div className="flex items-center lg:hidden">
             <button
               onClick={toggleMobileMenu}

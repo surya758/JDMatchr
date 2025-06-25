@@ -109,6 +109,31 @@
   font-family: 'Space Grotesk', sans-serif;
 }
 
+/* Navbar spacing utilities */
+.navbar-spacing {
+  /* Account for fixed navbar height */
+  padding-top: 5rem; /* 80px - safe for most mobile devices */
+}
+
+@media (min-width: 640px) {
+  .navbar-spacing {
+    padding-top: 5.5rem; /* 88px - for larger screens */
+  }
+}
+
+/* Mobile viewport height fix */
+.mobile-vh {
+  /* Use dynamic viewport height for mobile */
+  height: 100dvh;
+}
+
+@supports not (height: 100dvh) {
+  .mobile-vh {
+    /* Fallback for older browsers */
+    height: 100vh;
+  }
+}
+
 /* Smooth snap scrolling */
 .snap-container {
   scroll-behavior: smooth;
@@ -118,6 +143,17 @@
 .snap-container::-webkit-scrollbar {
   width: 0px;
   background: transparent;
+}
+
+/* Disable snap scrolling on mobile for better touch experience */
+@media (max-width: 768px) {
+  .snap-container {
+    scroll-snap-type: none;
+  }
+  
+  .snap-section {
+    scroll-snap-align: none;
+  }
 }
 
 /* Hide scrollbar on mobile devices */

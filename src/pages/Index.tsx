@@ -72,10 +72,10 @@ const Index = () => {
       {animationData && <LottieBackground animationData={animationData} />}
 
       {/* Fixed width container that contains everything */}
-      <div className="max-w-7xl mx-auto relative border-l border-r border-border-custom">
-        {/* Vertical line decorations */}
-        <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-text-subtle to-transparent opacity-50 z-10"></div>
-        <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-text-subtle to-transparent opacity-50 z-10"></div>
+      <div className="max-w-7xl mx-auto relative md:border-l md:border-r border-border-custom">
+        {/* Vertical line decorations - Desktop only */}
+        <div className="hidden md:block absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-text-subtle to-transparent opacity-50 z-10"></div>
+        <div className="hidden md:block absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-text-subtle to-transparent opacity-50 z-10"></div>
 
         {/* Fixed Navbar */}
         <Navbar />
@@ -96,16 +96,16 @@ const Index = () => {
           ))}
         </div>
 
-        {/* Snap Scroll Container */}
+        {/* Scroll Container */}
         <div
           ref={scrollContainerRef}
-          className="h-screen overflow-y-scroll snap-y snap-mandatory snap-container"
+          className="mobile-vh overflow-y-scroll md:snap-y md:snap-mandatory snap-container"
         >
           {/* Hero Section */}
           <section
             ref={setSectionRef(0)}
             data-section="hero"
-            className={`h-screen snap-start snap-always flex items-center justify-center transition-opacity duration-500 ease-out ${
+            className={`mobile-vh md:snap-start md:snap-always snap-section flex items-center justify-center transition-opacity duration-500 ease-out ${
               visibleSections.has(0) ? "opacity-100" : "opacity-30"
             }`}
           >
@@ -118,11 +118,11 @@ const Index = () => {
           <section
             ref={setSectionRef(1)}
             data-section="pricing"
-            className={`h-screen snap-start snap-always flex items-center justify-center transition-opacity duration-500 ease-out ${
+            className={`min-h-screen md:mobile-vh md:snap-start md:snap-always snap-section flex items-center justify-center transition-opacity duration-500 ease-out ${
               visibleSections.has(1) ? "opacity-100" : "opacity-30"
             }`}
           >
-            <div className="w-full overflow-y-auto max-h-screen">
+            <div className="w-full md:overflow-y-auto md:max-h-screen">
               <PricingPlans />
             </div>
           </section>
@@ -131,11 +131,11 @@ const Index = () => {
           <section
             ref={setSectionRef(2)}
             data-section="comparison"
-            className={`h-screen snap-start snap-always flex items-center justify-center transition-opacity duration-500 ease-out ${
+            className={`min-h-screen md:mobile-vh md:snap-start md:snap-always snap-section flex items-center justify-center transition-opacity duration-500 ease-out ${
               visibleSections.has(2) ? "opacity-100" : "opacity-30"
             }`}
           >
-            <div className="w-full overflow-y-auto max-h-screen">
+            <div className="w-full md:overflow-y-auto md:max-h-screen">
               <ComparisonSection />
             </div>
           </section>
@@ -144,11 +144,11 @@ const Index = () => {
           <section
             ref={setSectionRef(3)}
             data-section="faq"
-            className={`h-screen snap-start snap-always flex items-center justify-center transition-opacity duration-500 ease-out ${
+            className={`min-h-screen md:mobile-vh md:snap-start md:snap-always snap-section flex items-center justify-center transition-opacity duration-500 ease-out ${
               visibleSections.has(3) ? "opacity-100" : "opacity-30"
             }`}
           >
-            <div className="w-full overflow-y-auto max-h-screen">
+            <div className="w-full md:overflow-y-auto md:max-h-screen">
               <FAQSection />
             </div>
           </section>
@@ -157,7 +157,7 @@ const Index = () => {
           <section
             ref={setSectionRef(4)}
             data-section="contact"
-            className={`h-screen snap-start snap-always flex flex-col transition-opacity duration-500 ease-out ${
+            className={`min-h-screen md:mobile-vh md:snap-start md:snap-always snap-section flex flex-col transition-opacity duration-500 ease-out ${
               visibleSections.has(4) ? "opacity-100" : "opacity-30"
             }`}
           >

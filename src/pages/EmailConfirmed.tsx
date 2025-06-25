@@ -44,7 +44,7 @@ const EmailConfirmed = () => {
         <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-text-subtle to-transparent opacity-50 z-10"></div>
 
         {/* Content */}
-        <div className="relative z-10 px-4 sm:px-6 py-12 sm:py-20 flex-1 flex items-center justify-center">
+        <div className="relative z-10 px-4 sm:px-6 navbar-spacing pb-12 sm:pb-20 flex-1 flex items-center justify-center">
           <div className="w-full max-w-md text-center">
             {/* Success Card */}
             <div className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-8 shadow-2xl relative overflow-hidden">
