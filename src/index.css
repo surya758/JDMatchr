@@ -138,7 +138,7 @@
 .snap-container {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  scroll-snap-type: y mandatory;
 }
 
 .snap-container::-webkit-scrollbar {
@@ -146,46 +146,12 @@
   background: transparent;
 }
 
-/* Disable snap scrolling on mobile for better touch experience */
-@media (max-width: 768px) {
-  .snap-container {
-    scroll-snap-type: none;
-    height: auto;
-    min-height: 100vh;
-  }
-  
-  .snap-section {
-    scroll-snap-align: none;
-  }
+.snap-section {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
-/* Hide scrollbar on mobile devices */
-@media (max-width: 768px) {
-  body {
-    overflow-x: hidden;
-    position: relative;
-    touch-action: pan-y;
-  }
-  
-  .snap-container {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* Internet Explorer 10+ */
-  }
-  
-  .snap-container::-webkit-scrollbar {
-    display: none; /* WebKit */
-  }
-  
-  /* Hide any other scrollbars on mobile */
-  *::-webkit-scrollbar {
-    display: none;
-  }
-  
-  * {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-}
+
 
 /* Fix autofill styling for dark theme */
 input:-webkit-autofill,

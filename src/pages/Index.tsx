@@ -25,9 +25,6 @@ const Index = () => {
 
     sectionRefs.current.forEach((section, index) => {
       if (section) {
-        // Check if we're on mobile (window width < 768px)
-        const isMobile = window.innerWidth < 768;
-
         const observer = new IntersectionObserver(
           (entries) => {
             entries.forEach((entry) => {
@@ -47,7 +44,7 @@ const Index = () => {
             });
           },
           {
-            root: isMobile ? null : scrollContainerRef.current, // Use viewport on mobile, scroll container on desktop
+            root: scrollContainerRef.current,
             threshold: [0.3, 0.5, 0.7], // Multiple thresholds for better detection
             rootMargin: "-10% 0px -10% 0px",
           }
@@ -103,13 +100,13 @@ const Index = () => {
         {/* Scroll Container */}
         <div
           ref={scrollContainerRef}
-          className="md:mobile-vh md:overflow-y-scroll md:snap-y md:snap-mandatory snap-container"
+          className="mobile-vh overflow-y-scroll snap-y snap-mandatory snap-container"
         >
           {/* Hero Section */}
           <section
             ref={setSectionRef(0)}
             data-section="hero"
-            className={`min-h-screen md:mobile-vh md:snap-start md:snap-always snap-section flex items-center justify-center transition-opacity duration-500 ease-out ${
+            className={`mobile-vh snap-start snap-always snap-section flex items-center justify-center transition-opacity duration-500 ease-out ${
               visibleSections.has(0) ? "opacity-100" : "opacity-30"
             }`}
           >
@@ -122,11 +119,11 @@ const Index = () => {
           <section
             ref={setSectionRef(1)}
             data-section="pricing"
-            className={`min-h-screen md:mobile-vh md:snap-start md:snap-always snap-section flex items-center justify-center transition-opacity duration-500 ease-out ${
+            className={`mobile-vh snap-start snap-always snap-section flex items-center justify-center transition-opacity duration-500 ease-out ${
               visibleSections.has(1) ? "opacity-100" : "opacity-30"
             }`}
           >
-            <div className="w-full md:overflow-y-auto md:max-h-screen">
+            <div className="w-full overflow-y-auto max-h-screen">
               <PricingPlans />
             </div>
           </section>
@@ -135,11 +132,11 @@ const Index = () => {
           <section
             ref={setSectionRef(2)}
             data-section="comparison"
-            className={`min-h-screen md:mobile-vh md:snap-start md:snap-always snap-section flex items-center justify-center transition-opacity duration-500 ease-out ${
+            className={`mobile-vh snap-start snap-always snap-section flex items-center justify-center transition-opacity duration-500 ease-out ${
               visibleSections.has(2) ? "opacity-100" : "opacity-30"
             }`}
           >
-            <div className="w-full md:overflow-y-auto md:max-h-screen">
+            <div className="w-full overflow-y-auto max-h-screen">
               <ComparisonSection />
             </div>
           </section>
@@ -148,11 +145,11 @@ const Index = () => {
           <section
             ref={setSectionRef(3)}
             data-section="faq"
-            className={`min-h-screen md:mobile-vh md:snap-start md:snap-always snap-section flex items-center justify-center transition-opacity duration-500 ease-out ${
+            className={`mobile-vh snap-start snap-always snap-section flex items-center justify-center transition-opacity duration-500 ease-out ${
               visibleSections.has(3) ? "opacity-100" : "opacity-30"
             }`}
           >
-            <div className="w-full md:overflow-y-auto md:max-h-screen">
+            <div className="w-full overflow-y-auto max-h-screen">
               <FAQSection />
             </div>
           </section>
@@ -161,7 +158,7 @@ const Index = () => {
           <section
             ref={setSectionRef(4)}
             data-section="contact"
-            className={`min-h-screen md:mobile-vh md:snap-start md:snap-always snap-section flex flex-col transition-opacity duration-500 ease-out ${
+            className={`mobile-vh snap-start snap-always snap-section flex flex-col transition-opacity duration-500 ease-out ${
               visibleSections.has(4) ? "opacity-100" : "opacity-30"
             }`}
           >
