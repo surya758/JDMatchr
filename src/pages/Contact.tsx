@@ -3,10 +3,12 @@ import { Send, ArrowLeft } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
-import { Loader } from "../components/ui/loader";
+import { Loader, LoaderInline } from "../components/ui/loader";
+import { useToast } from "../hooks/use-toast";
 import Footer from "../components/Footer";
 import LottieBackground from "../components/LottieBackground";
 import animationData from "../assets/animations/bg.json";
+import { submitContactForm, type ContactFormData } from "../lib/contact";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -18,6 +20,7 @@ const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const { toast } = useToast();
 
   // Trigger fade-in animation on component mount
   useEffect(() => {
@@ -41,17 +44,49 @@ const Contact = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const contactData: ContactFormData = {
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      };
 
-    setIsSubmitting(false);
-    setSubmitted(true);
+      const result = await submitContactForm(contactData);
 
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({ name: "", email: "", subject: "", message: "" });
-    }, 3000);
+      if (result.success) {
+        // Show success message
+        toast({
+          title: "Message sent successfully!",
+          description: result.message,
+        });
+
+        setSubmitted(true);
+
+        // Reset form after 3 seconds
+        setTimeout(() => {
+          setSubmitted(false);
+          setFormData({ name: "", email: "", subject: "", message: "" });
+        }, 3000);
+      } else {
+        // Show error message
+        toast({
+          title: "Failed to send message",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Contact form error:", error);
+      toast({
+        title: "Failed to send message",
+        description:
+          "An unexpected error occurred. Please try again or contact us directly at surya@jdmatchr.com",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isFormValid = formData.name && formData.email && formData.message;
@@ -179,7 +214,7 @@ const Contact = () => {
                       className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-grotesk font-medium py-3 transition-all duration-200 disabled:opacity-50"
                     >
                       {isSubmitting ? (
-                        <Loader size="sm" text="Sending..." />
+                        <LoaderInline isLoading={isSubmitting} size="sm" />
                       ) : (
                         <>
                           <span>Send Message</span>
