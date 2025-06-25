@@ -18,9 +18,11 @@ import {
 } from "../../hooks/useConfirmation";
 import ConfirmationModal from "../ui/confirmation-modal";
 import { generateBillingPDF, generateBillingReport } from "../../lib/billing";
+import { useToast } from "../../hooks/use-toast";
 
 const SettingsBilling = () => {
   const { profile } = useUserProfile();
+  const { toast } = useToast();
 
   const {
     subscription,
@@ -109,7 +111,11 @@ const SettingsBilling = () => {
 
   const handleUpgrade = (planName: string) => {
     if (planName === "Enterprise") {
-      alert("Enterprise plan coming soon! Contact support for early access.");
+      toast({
+        title: "Enterprise Plan Coming Soon",
+        description: "Contact support for early access to Enterprise features.",
+        variant: "default",
+      });
       return;
     }
 
@@ -118,7 +124,10 @@ const SettingsBilling = () => {
       async () => {
         const plan = planName.toLowerCase() as "free" | "pro" | "enterprise";
         await upgradeSubscription(plan);
-        alert(`Successfully upgraded to ${planName} plan!`);
+        toast({
+          title: "Subscription upgraded successfully!",
+          description: `You've been upgraded to the ${planName} plan.`,
+        });
       }
     );
   };
@@ -126,16 +135,22 @@ const SettingsBilling = () => {
   const handleCancelSubscription = () => {
     showConfirmation(confirmationConfigs.cancelSubscription(), async () => {
       await cancelSubscription();
-      alert(
-        "Subscription cancelled successfully. You'll keep access until your current billing period ends."
-      );
+      toast({
+        title: "Subscription cancelled",
+        description:
+          "You'll keep access until your current billing period ends.",
+        variant: "default",
+      });
     });
   };
 
   const handleReactivateSubscription = () => {
     showConfirmation(confirmationConfigs.reactivateSubscription(), async () => {
       await reactivateSubscription();
-      alert("Subscription reactivated successfully!");
+      toast({
+        title: "Subscription reactivated",
+        description: "Your subscription has been successfully reactivated.",
+      });
     });
   };
 
@@ -149,11 +164,24 @@ const SettingsBilling = () => {
     try {
       const result = await generateBillingPDF(subscriptionId);
       if (!result.success) {
-        alert(result.error || "Failed to generate PDF");
+        toast({
+          title: "Failed to generate PDF",
+          description: result.error || "Please try again later.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Invoice downloaded",
+          description: "Your invoice has been downloaded successfully.",
+        });
       }
     } catch (error) {
       console.error("PDF download error:", error);
-      alert("Failed to download invoice. Please try again.");
+      toast({
+        title: "Download failed",
+        description: "Failed to download invoice. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setDownloadingPDF(null);
     }
@@ -165,11 +193,24 @@ const SettingsBilling = () => {
     try {
       const result = await generateBillingReport();
       if (!result.success) {
-        alert(result.error || "Failed to generate billing report");
+        toast({
+          title: "Failed to generate report",
+          description: result.error || "Please try again later.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Billing report downloaded",
+          description: "Your comprehensive billing report has been downloaded.",
+        });
       }
     } catch (error) {
       console.error("Billing report download error:", error);
-      alert("Failed to download billing report. Please try again.");
+      toast({
+        title: "Download failed",
+        description: "Failed to download billing report. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setDownloadingReport(false);
     }
