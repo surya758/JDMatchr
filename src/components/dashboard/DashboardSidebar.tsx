@@ -12,6 +12,7 @@ import {
   Menu,
   LayoutDashboard,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useAuth } from "../../hooks/useAuth";
 import { useUserProfile } from "../../hooks/useUserProfile";
 import { useSubscription } from "../../hooks/useSubscription";
@@ -35,6 +36,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   const { user, signOut } = useAuth();
   const { profile } = useUserProfile();
   const { subscriptionStatus } = useSubscription();
+  const { setTheme } = useTheme();
   const {
     isOpen: isConfirmationOpen,
     isLoading: isConfirmationLoading,
@@ -126,6 +128,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         variant: "warning",
       },
       async () => {
+        setTheme("dark");
         await signOut();
         navigate("/");
       }
@@ -291,7 +294,15 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             title={isCollapsed ? "User Menu" : ""}
           >
             <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded-full flex-shrink-0">
-              <User className="w-4 h-4 text-primary" />
+              {profile?.avatar_url ? (
+                <img
+                  src={profile?.avatar_url}
+                  alt="User Avatar"
+                  className="w-8 h-8 rounded-full"
+                />
+              ) : (
+                <User className="w-4 h-4 text-primary" />
+              )}
             </div>
 
             {!isCollapsed && (

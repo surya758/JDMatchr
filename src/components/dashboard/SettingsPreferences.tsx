@@ -130,7 +130,8 @@ const SettingsPreferences = () => {
             description: "Thank you for using JDMatchr.",
           });
 
-          // Account deletion successful - sign out and redirect
+          // Account deletion successful - reset theme and sign out
+          setTheme("dark");
           await signOut();
           navigate("/", { replace: true });
         } catch (error) {
