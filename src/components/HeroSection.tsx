@@ -8,6 +8,7 @@ import {
   useJobDescriptionProcessor,
   type FormattedJD,
 } from "@/hooks/useJobDescriptionProcessor";
+import { useToast } from "@/hooks/use-toast";
 
 const HeroSection = () => {
   const [step, setStep] = useState<"jd" | "upload">("jd");
@@ -22,6 +23,7 @@ const HeroSection = () => {
   );
   const [isImageFile, setIsImageFile] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   // React Query hook for processing job descriptions
   const jdProcessor = useJobDescriptionProcessor();
@@ -32,15 +34,16 @@ const HeroSection = () => {
         { type: "text", content: jobDescription },
         {
           onSuccess: (data) => {
-            console.log("Formatted JD:", data.formattedJD);
             setFormattedJD(data.formattedJD);
             setStep("upload");
           },
           onError: (error) => {
             console.error("Error formatting job description:", error);
-            // For now, continue to upload step even if formatting fails
-            // TODO: Add proper error handling and user notification
-            setStep("upload");
+            toast({
+              title: "Failed to process job description",
+              description: error.message,
+              variant: "destructive",
+            });
           },
         }
       );
@@ -185,8 +188,6 @@ const HeroSection = () => {
             fileInputRef.current.value = "";
           }
 
-          console.log("Processed file:", data);
-
           // Automatically proceed to resume upload step for file uploads
           setStep("upload");
         },
@@ -197,7 +198,11 @@ const HeroSection = () => {
           if (fileInputRef.current) {
             fileInputRef.current.value = "";
           }
-          // TODO: Add error toast notification
+          toast({
+            title: "Failed to process file",
+            description: error.message,
+            variant: "destructive",
+          });
         },
       }
     );
