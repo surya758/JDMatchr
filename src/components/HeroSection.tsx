@@ -28,6 +28,7 @@ const HeroSection = () => {
   // React Query hook for processing job descriptions
   const jdProcessor = useJobDescriptionProcessor();
 
+  // Only used if user manually types in the job description
   const handleUploadResumes = () => {
     if (jobDescription.trim()) {
       jdProcessor.mutate(
