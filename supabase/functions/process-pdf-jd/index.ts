@@ -5,8 +5,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface JDFormatRequest {
-  content: string;
+interface PDFJDRequest {
+  pdfData: string; // base64 encoded PDF data
+  fileName?: string;
 }
 
 interface FormattedJD {
@@ -30,11 +31,11 @@ serve(async (req) => {
   }
 
   try {
-    const { content }: JDFormatRequest = await req.json();
+    const { pdfData, fileName }: PDFJDRequest = await req.json();
 
-    if (!content || content.trim().length === 0) {
+    if (!pdfData) {
       return new Response(
-        JSON.stringify({ error: 'Job description content is required' }),
+        JSON.stringify({ error: 'PDF data is required' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -48,19 +49,14 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY not configured');
     }
 
-    // Prepare the prompt for Gemini
+    // Prepare the prompt for job description extraction
     const prompt = `
-You are an expert HR assistant. Analyze the following job description and extract information into a structured format. 
+You are an expert HR assistant. Analyze this PDF document which contains a job description and extract all relevant information into a structured format.
 
-The job description content:
-"""
-${content}
-"""
-
-Please extract and format the information into the following JSON structure. If certain information is not available, leave those fields empty or with empty arrays:
+Please carefully read all content in the PDF and extract the information into the following JSON structure. If certain information is not available in the document, leave those fields empty or with empty arrays:
 
 {
-  "title": "Job title extracted from the content",
+  "title": "Job title extracted from the PDF",
   "company": "Company name if mentioned",
   "location": "Location if mentioned (city, state, remote, etc.)",
   "employmentType": "Full-time, Part-time, Contract, Internship, etc.",
@@ -76,24 +72,28 @@ Please extract and format the information into the following JSON structure. If 
 Focus on accuracy and be comprehensive. Extract as much relevant information as possible while maintaining the structure. Return only the JSON object, no additional text.
 `;
 
-    // Call Gemini API
+    // Call Gemini API with inline PDF data
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: prompt
+          contents: [{
+            parts: [
+              {
+                text: prompt
+              },
+              {
+                inline_data: {
+                  mime_type: 'application/pdf',
+                  data: pdfData
                 }
-              ]
-            }
-          ],
+              }
+            ]
+          }],
           generationConfig: {
             temperature: 0.1,
             topK: 32,
@@ -135,7 +135,9 @@ Focus on accuracy and be comprehensive. Extract as much relevant information as 
       JSON.stringify({ 
         success: true, 
         formattedJD,
-        originalContent: content 
+        source: 'pdf',
+        fileName: fileName || 'unknown.pdf',
+        extractedText: generatedText // Include raw response for debugging
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -143,11 +145,11 @@ Focus on accuracy and be comprehensive. Extract as much relevant information as 
     );
 
   } catch (error) {
-    console.error('Error in format-job-description function:', error);
+    console.error('Error in process-pdf-jd function:', error);
     
     return new Response(
       JSON.stringify({ 
-        error: 'Failed to format job description',
+        error: 'Failed to process PDF job description',
         details: error.message 
       }),
       { 

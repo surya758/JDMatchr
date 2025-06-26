@@ -141,6 +141,52 @@ const processImageFile = async (file: File): Promise<FormattedJD> => {
   return data.formattedJD;
 };
 
+const processPDFFile = async (file: File): Promise<FormattedJD> => {
+  // Convert PDF to base64
+  const base64Data = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      // Remove data URL prefix (data:application/pdf;base64,)
+      const base64 = result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error("Failed to read PDF file"));
+    reader.readAsDataURL(file);
+  });
+
+  // Call the process-pdf-jd edge function
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-pdf-jd`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({
+        pdfData: base64Data,
+        fileName: file.name,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({
+      error: `API error: ${response.status}`,
+    }));
+    throw new Error(errorData.error || `API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  
+  if (!data.success) {
+    throw new Error(data.error || 'Failed to process PDF');
+  }
+
+  return data.formattedJD;
+};
+
 const cleanContent = (content: string): string => {
   // Clean up content by removing blank lines and extra whitespace
   return content
@@ -180,6 +226,21 @@ const processJobDescription = async (input: ProcessJDInput): Promise<ProcessJDRe
         source: input.type,
         fileName,
         isImageFile: true, // Flag to identify image processing
+      };
+    }
+    
+    // Check if it's a PDF file
+    if (input.file.type === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')) {
+      // Process PDF directly with Gemini API
+      const formattedJD = await processPDFFile(input.file);
+      
+      return {
+        success: true,
+        formattedJD,
+        originalContent: 'PDF processed directly',
+        source: input.type,
+        fileName,
+        isImageFile: true, // Use same flag for automatic processing behavior
       };
     } else {
       // Extract content from text files (TXT/DOCX)

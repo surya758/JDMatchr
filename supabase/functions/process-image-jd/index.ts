@@ -111,7 +111,7 @@ Focus on accuracy and be comprehensive. Extract as much relevant information as 
             temperature: 0.1,
             topK: 32,
             topP: 1,
-            maxOutputTokens: 2048,
+            maxOutputTokens: 65536,
           },
         }),
       }

@@ -154,10 +154,11 @@ const HeroSection = () => {
       textTypes.includes(file.type) ||
       textExtensions.some((ext) => file.name.toLowerCase().endsWith(ext));
     const isImageFile = imageTypes.includes(file.type.toLowerCase());
+    const isPDFFile =
+      file.type === "application/pdf" ||
+      file.name.toLowerCase().endsWith(".pdf");
 
-    if (!isTextFile && !isImageFile) {
-      // For other file types (PDF), we'll handle them later
-      // TODO: Handle PDF uploads
+    if (!isTextFile && !isImageFile && !isPDFFile) {
       console.log("Unsupported file type:", file.type);
       return;
     }
@@ -166,11 +167,13 @@ const HeroSection = () => {
       { type: "file", file },
       {
         onSuccess: (data) => {
-          // For image files, set a descriptive message instead of "Image processed directly"
-          const displayContent =
-            data.originalContent === "Image processed directly"
-              ? `Image file processed: ${data.fileName}`
-              : data.originalContent;
+          // For image and PDF files, set a descriptive message instead of generic "processed directly"
+          let displayContent = data.originalContent;
+          if (data.originalContent === "Image processed directly") {
+            displayContent = `Image file processed: ${data.fileName}`;
+          } else if (data.originalContent === "PDF processed directly") {
+            displayContent = `PDF file processed: ${data.fileName}`;
+          }
 
           setJobDescription(displayContent);
           setFormattedJD(data.formattedJD);
@@ -279,13 +282,12 @@ const HeroSection = () => {
                             : "Drop file or click to browse"}
                         </p>
                         <p className="font-grotesk text-xs text-text-subtle">
-                          TXT, DOCX, JPG, PNG, WEBP (auto-processed) • PDF
-                          (coming soon)
+                          TXT, DOCX, JPG, PNG, WEBP, PDF (auto-processed)
                         </p>
                         <input
                           ref={fileInputRef}
                           type="file"
-                          accept=".txt,.docx,.jpg,.jpeg,.png,.webp,.heic,.heif"
+                          accept=".txt,.docx,.pdf,.jpg,.jpeg,.png,.webp,.heic,.heif"
                           onChange={handleFileSelect}
                           className="hidden"
                         />
