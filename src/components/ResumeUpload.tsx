@@ -1,16 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Upload,
-  X,
-  FileText,
-  Image,
-  ArrowLeft,
-  Zap,
-  User,
-  Calendar,
-  Award,
-} from "lucide-react";
+import { Upload, X, FileText, Image, ArrowLeft, Zap } from "lucide-react";
 
 import { FormattedJD } from "@/hooks/useJobDescriptionProcessor";
 import {
@@ -41,7 +31,9 @@ const ResumeUpload = ({
   const [processingFiles, setProcessingFiles] = useState<Set<string>>(
     new Set()
   );
+  const [isCancelling, setIsCancelling] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cancelProcessingRef = useRef(false);
 
   // Hooks
   const resumeProcessor = useResumeProcessor();
@@ -78,6 +70,8 @@ const ResumeUpload = ({
       Object.values(imagePreviewUrls).forEach((url) => {
         URL.revokeObjectURL(url);
       });
+      // Reset cancel flag on unmount
+      cancelProcessingRef.current = false;
     };
   }, []);
 
@@ -121,36 +115,12 @@ const ResumeUpload = ({
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const getResumeIcon = (file: File) => {
-    if (file.type.includes("image")) {
-      return <Image className="w-6 h-6 text-primary" />;
-    }
-    return <FileText className="w-6 h-6 text-primary" />;
-  };
-
-  const extractCandidateName = (filename: string) => {
-    // Remove file extension and common resume keywords
-    const nameWithoutExt = filename.replace(
-      /\.(pdf|jpg|jpeg|png|doc|docx)$/i,
-      ""
-    );
-    const cleanName = nameWithoutExt
-      .replace(/resume|cv|curriculum/gi, "")
-      .replace(/[-_]/g, " ")
-      .trim();
-
-    // Capitalize first letters
-    return (
-      cleanName
-        .split(" ")
-        .map(
-          (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-        )
-        .join(" ") || "Unknown Candidate"
-    );
-  };
-
   const processResumeFile = async (file: File) => {
+    // Check if processing was cancelled
+    if (cancelProcessingRef.current) {
+      throw new Error("Processing cancelled");
+    }
+
     const fileName = file.name;
 
     // Check if file is TXT or DOCX (currently supported)
@@ -175,7 +145,17 @@ const ResumeUpload = ({
     setProcessingFiles((prev) => new Set(prev).add(fileName));
 
     try {
+      // Check again before making the API call
+      if (cancelProcessingRef.current) {
+        throw new Error("Processing cancelled");
+      }
+
       const result = await resumeProcessor.mutateAsync({ file });
+
+      // Check one more time before returning success
+      if (cancelProcessingRef.current) {
+        throw new Error("Processing cancelled");
+      }
 
       toast({
         title: "Resume processed successfully",
@@ -186,6 +166,11 @@ const ResumeUpload = ({
 
       return result;
     } catch (error) {
+      // Don't show error toast if it was cancelled
+      if (cancelProcessingRef.current) {
+        throw error;
+      }
+
       console.error(`Failed to process ${fileName}:`, error);
 
       toast({
@@ -216,12 +201,32 @@ const ResumeUpload = ({
       return;
     }
 
+    // Reset cancel flag
+    cancelProcessingRef.current = false;
+    setIsCancelling(false);
+
     console.log("Processing resumes...", { files, jobDescription });
 
-    // Process all files in parallel
+    // Process all files with cancellation support
     const results = await Promise.allSettled(
-      files.map((file) => processResumeFile(file))
+      files.map(async (file) => {
+        // Check if cancelled before processing each file
+        if (cancelProcessingRef.current) {
+          throw new Error("Processing cancelled");
+        }
+        return await processResumeFile(file);
+      })
     );
+
+    // If cancelled, don't update results
+    if (cancelProcessingRef.current) {
+      toast({
+        title: "Processing cancelled",
+        description: "Resume processing was cancelled by user.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Filter successful results
     const successful = results
@@ -244,6 +249,19 @@ const ResumeUpload = ({
       // Log processed data for testing
       console.log("Processed resumes:", successful);
     }
+  };
+
+  const handleCancelProcessing = () => {
+    setIsCancelling(true);
+    cancelProcessingRef.current = true;
+
+    // Clear all processing files immediately
+    setProcessingFiles(new Set());
+
+    toast({
+      title: "Cancelling processing",
+      description: "Stopping resume processing...",
+    });
   };
 
   return (
@@ -306,21 +324,29 @@ const ResumeUpload = ({
 
       <div className="relative z-10">
         <div
-          className={`group border-2 border-dashed rounded-xl p-4 sm:p-6 text-center transition-all cursor-pointer duration-300 ${
-            isDragging
-              ? "border-primary bg-primary/5 scale-[1.01]"
-              : "border-border-light hover:border-primary/50 hover:bg-primary/5"
+          className={`group border-2 border-dashed rounded-xl p-4 sm:p-6 text-center transition-all duration-300 ${
+            processingFiles.size > 0
+              ? "border-border-light bg-bg-light/20 cursor-not-allowed opacity-60"
+              : isDragging
+              ? "border-primary bg-primary/5 scale-[1.01] cursor-pointer"
+              : "border-border-light hover:border-primary/50 hover:bg-primary/5 cursor-pointer"
           }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
+          onDragOver={processingFiles.size > 0 ? undefined : handleDragOver}
+          onDragLeave={processingFiles.size > 0 ? undefined : handleDragLeave}
+          onDrop={processingFiles.size > 0 ? undefined : handleDrop}
+          onClick={
+            processingFiles.size > 0
+              ? undefined
+              : () => fileInputRef.current?.click()
+          }
         >
           <div className="relative inline-block mb-3">
             <div className="bg-bg-light rounded-full p-3">
               <Upload
                 className={`w-8 h-8 transition-colors duration-300 ${
-                  isDragging
+                  processingFiles.size > 0
+                    ? "text-text-subtle"
+                    : isDragging
                     ? "text-primary"
                     : "text-text-muted group-hover:text-primary"
                 }`}
@@ -328,12 +354,16 @@ const ResumeUpload = ({
             </div>
           </div>
           <p className="font-grotesk text-sm text-text-muted mb-1">
-            {isDragging
+            {processingFiles.size > 0
+              ? "Processing resumes..."
+              : isDragging
               ? "Drop resumes here"
               : "Drop resumes or click to browse"}
           </p>
           <p className="font-grotesk text-xs text-text-subtle">
-            PDF, TXT, DOCX, JPG, PNG, GIF, TIFF, BMP, WEBP (Max 10 files)
+            {processingFiles.size > 0
+              ? "Upload disabled while processing"
+              : "PDF, TXT, DOCX, JPG, PNG, GIF, TIFF, BMP, WEBP (Max 10 files)"}
           </p>
           <input
             ref={fileInputRef}
@@ -341,6 +371,7 @@ const ResumeUpload = ({
             multiple
             accept=".txt,.docx,.pdf,.jpg,.jpeg,.png,.webp,.heic,.heif"
             onChange={handleFileSelect}
+            disabled={processingFiles.size > 0}
             className="hidden"
           />
         </div>
@@ -348,187 +379,154 @@ const ResumeUpload = ({
 
       {files.length > 0 && (
         <div className="relative z-10 mt-6">
-          <div className="flex items-center space-x-2 mb-4">
-            <div className="bg-bg-light rounded-full p-1">
-              <User className="w-3 h-3 text-primary" />
-            </div>
-            <h4 className="font-grotesk text-sm font-medium text-text">
-              Candidate Pool
-            </h4>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-72 overflow-y-auto">
-            {files.map((file, index) => {
-              const previewKey = `${file.name}-${index}`;
-              const isImage = file.type.includes("image");
-              const previewUrl = imagePreviewUrls[previewKey];
-
-              return (
-                <div
-                  key={index}
-                  className="bg-bg-light/50 backdrop-blur-sm border border-border-custom rounded-xl p-3 hover:bg-bg-light/70 hover:border-primary/30 transition-all duration-200 group relative"
-                >
-                  {/* Remove button */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeFile(index)}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-text-subtle hover:text-destructive hover:bg-bg/50 p-1 h-auto w-auto z-10 rounded-lg"
-                  >
-                    <X className="w-3 h-3" />
-                  </Button>
-
-                  {/* Resume preview card */}
-                  <div className="flex items-start space-x-3">
-                    {/* Image preview or icon */}
-                    <div className="flex-shrink-0">
-                      {isImage && previewUrl ? (
-                        <div className="w-12 h-16 rounded-lg border border-border-custom overflow-hidden bg-bg">
-                          <img
-                            src={previewUrl}
-                            alt={`Preview of ${extractCandidateName(
-                              file.name
-                            )}'s resume`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="p-2 bg-bg-light rounded-lg border border-border-custom">
-                          {getResumeIcon(file)}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      {/* Candidate name */}
-                      <h5 className="font-grotesk text-sm font-semibold text-text truncate mr-6">
-                        {extractCandidateName(file.name)}
-                      </h5>
-
-                      {/* Resume details */}
-                      <div className="mt-1 space-y-1">
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="w-3 h-3 text-text-subtle" />
-                          <span className="font-grotesk text-xs text-text-subtle">
-                            Just uploaded
-                          </span>
-                        </div>
-
-                        <div className="flex items-center space-x-1">
-                          <FileText className="w-3 h-3 text-text-subtle" />
-                          <span className="font-grotesk text-xs text-text-subtle">
-                            {file.type.includes("pdf")
-                              ? "PDF"
-                              : file.type.includes("text") ||
-                                file.name.toLowerCase().endsWith(".txt")
-                              ? "TXT"
-                              : file.name.toLowerCase().endsWith(".docx")
-                              ? "DOCX"
-                              : "Image"}{" "}
-                            • {(file.size / 1024 / 1024).toFixed(1)} MB
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Status indicator */}
-                      <div className="mt-2 flex items-center space-x-2">
-                        {processingFiles.has(file.name) ? (
-                          <>
-                            <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></div>
-                            <span className="font-grotesk text-xs text-yellow-600 font-medium">
-                              Processing...
-                            </span>
-                          </>
-                        ) : processedResumes.find(
-                            (r) => r.fileName === file.name
-                          ) ? (
-                          <>
-                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                            <span className="font-grotesk text-xs text-green-600 font-medium">
-                              Processed
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></div>
-                            <span className="font-grotesk text-xs text-primary font-medium">
-                              Ready to rank
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+          {/* Uploaded Files Summary */}
+          <div className="bg-bg-light/30 backdrop-blur-sm border border-border-custom rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="bg-bg-light rounded-full p-1.5">
+                  <Upload className="w-4 h-4 text-primary" />
                 </div>
-              );
-            })}
+                <div>
+                  <h4 className="font-grotesk text-sm font-semibold text-text">
+                    Uploaded Files
+                  </h4>
+                  <p className="font-grotesk text-xs text-text-muted">
+                    {files.length} out of 10 resumes uploaded
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                {/* File type breakdown */}
+                <div className="flex items-center space-x-2 text-xs">
+                  {files.filter((f) => f.name.toLowerCase().endsWith(".txt"))
+                    .length > 0 && (
+                    <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                      {
+                        files.filter((f) =>
+                          f.name.toLowerCase().endsWith(".txt")
+                        ).length
+                      }{" "}
+                      TXT
+                    </span>
+                  )}
+                  {files.filter((f) => f.name.toLowerCase().endsWith(".docx"))
+                    .length > 0 && (
+                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                      {
+                        files.filter((f) =>
+                          f.name.toLowerCase().endsWith(".docx")
+                        ).length
+                      }{" "}
+                      DOCX
+                    </span>
+                  )}
+                  {files.filter((f) => f.type.includes("pdf")).length > 0 && (
+                    <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
+                      {files.filter((f) => f.type.includes("pdf")).length} PDF
+                    </span>
+                  )}
+                  {files.filter((f) => f.type.includes("image")).length > 0 && (
+                    <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">
+                      {files.filter((f) => f.type.includes("image")).length} IMG
+                    </span>
+                  )}
+                </div>
+
+                {/* Clear all button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={processingFiles.size > 0}
+                  onClick={() => {
+                    // Cleanup image URLs
+                    Object.values(imagePreviewUrls).forEach((url) =>
+                      URL.revokeObjectURL(url)
+                    );
+                    setImagePreviewUrls({});
+                    setFiles([]);
+                    setProcessedResumes([]);
+                  }}
+                  className="text-text-subtle hover:text-destructive hover:bg-bg/50 p-2 h-auto w-auto rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Processed Resumes Preview */}
-      {processedResumes.length > 0 && (
-        <div className="relative z-10 mt-6">
-          <div className="flex items-center space-x-2 mb-4">
-            <div className="bg-bg-light rounded-full p-1">
-              <Award className="w-3 h-3 text-green-600" />
-            </div>
-            <h4 className="font-grotesk text-sm font-medium text-text">
-              Processed Candidates ({processedResumes.length})
-            </h4>
-          </div>
-
-          <div className="space-y-3 max-h-60 overflow-y-auto">
-            {processedResumes.map((resume, index) => (
-              <div
-                key={index}
-                className="bg-bg-light/50 backdrop-blur-sm border border-border-custom rounded-xl p-4 hover:bg-bg-light/70 transition-all duration-200"
-              >
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="p-2 bg-green-100 rounded-lg border border-green-200">
-                      <User className="w-5 h-5 text-green-600" />
-                    </div>
-                  </div>
-
-                  <div className="flex-1">
-                    <h5 className="font-grotesk text-sm font-semibold text-text">
-                      {resume.processedResume.personalInfo.name ||
-                        resume.fileName}
-                    </h5>
-
-                    <div className="mt-1 space-y-1">
-                      <p className="font-grotesk text-xs text-text-muted">
-                        {resume.processedResume.experience.totalYears} years
-                        experience
-                        {resume.processedResume.experience.currentRole &&
-                          ` • ${resume.processedResume.experience.currentRole}`}
-                      </p>
-
-                      <p className="font-grotesk text-xs text-text-subtle">
-                        Skills:{" "}
-                        {resume.processedResume.skills.technical
-                          .slice(0, 3)
-                          .join(", ")}
-                        {resume.processedResume.skills.technical.length > 3 &&
-                          "..."}
-                      </p>
-
-                      {resume.processedResume.notablePoints.standoutAchievements
-                        .length > 0 && (
-                        <p className="font-grotesk text-xs text-primary">
-                          💫{" "}
-                          {
-                            resume.processedResume.notablePoints
-                              .standoutAchievements[0]
-                          }
-                        </p>
-                      )}
-                    </div>
-                  </div>
+      {/* Processing Status Summary */}
+      {(processedResumes.length > 0 || processingFiles.size > 0) && (
+        <div className="relative z-10 mt-4">
+          <div className="bg-bg-light/30 backdrop-blur-sm border border-border-custom rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="bg-bg-light rounded-full p-1.5">
+                  <Zap className="w-4 h-4 text-green-600" />
+                </div>
+                <div>
+                  <h4 className="font-grotesk text-sm font-semibold text-text">
+                    Processing Status
+                  </h4>
+                  <p className="font-grotesk text-xs text-text-muted">
+                    {processedResumes.length} out of {files.length} resumes
+                    processed
+                  </p>
                 </div>
               </div>
-            ))}
+
+              <div className="flex items-center space-x-4">
+                {/* Processing status indicators */}
+                {processingFiles.size > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                    <span className="font-grotesk text-xs text-yellow-600 font-medium">
+                      {processingFiles.size} processing...
+                    </span>
+                  </div>
+                )}
+
+                {processedResumes.length > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="font-grotesk text-xs text-green-600 font-medium">
+                      {processedResumes.length} completed
+                    </span>
+                  </div>
+                )}
+
+                {files.length - processedResumes.length - processingFiles.size >
+                  0 && (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    <span className="font-grotesk text-xs text-primary font-medium">
+                      {files.length -
+                        processedResumes.length -
+                        processingFiles.size}{" "}
+                      pending
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            {files.length > 0 && (
+              <div className="mt-3">
+                <div className="w-full bg-bg-light rounded-full h-2">
+                  <div
+                    className="bg-green-500 h-2 rounded-full transition-all duration-300 ease-out"
+                    style={{
+                      width: `${
+                        (processedResumes.length / files.length) * 100
+                      }%`,
+                    }}
+                  ></div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -536,18 +534,30 @@ const ResumeUpload = ({
       {files.length > 0 && (
         <div className="relative z-10 mt-6 flex justify-center">
           <Button
-            onClick={handleRankResumes}
-            disabled={resumeProcessor.isPending || processingFiles.size > 0}
-            className="group font-grotesk bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 text-sm font-medium transition-all duration-200 shadow-lg disabled:opacity-50"
+            onClick={
+              processingFiles.size > 0
+                ? handleCancelProcessing
+                : handleRankResumes
+            }
+            className={`group font-grotesk px-6 py-2.5 text-sm font-medium transition-all duration-200 shadow-lg disabled:opacity-50 ${
+              processingFiles.size > 0
+                ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground border-destructive"
+                : "bg-primary hover:bg-primary/90 text-primary-foreground"
+            }`}
           >
-            <Zap className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:scale-110" />
-            {processingFiles.size > 0
-              ? `Processing ${processingFiles.size} file${
-                  processingFiles.size !== 1 ? "s" : ""
-                }...`
-              : `Process ${files.length} Candidate${
+            {processingFiles.size > 0 ? (
+              <>
+                <X className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:scale-110" />
+                {isCancelling ? "Cancelling..." : "Cancel Processing"}
+              </>
+            ) : (
+              <>
+                <Zap className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:scale-110" />
+                {`Process ${files.length} Candidate${
                   files.length !== 1 ? "s" : ""
                 }`}
+              </>
+            )}
           </Button>
         </div>
       )}

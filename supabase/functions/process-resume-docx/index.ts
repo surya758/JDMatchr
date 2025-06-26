@@ -110,17 +110,33 @@ serve(async (req) => {
       const body = doc.getBody() || '';
       const footers = doc.getFooters() || '';
       
+      // Try to get additional content that might contain links
+      let annotations = '';
+      let textboxes = '';
+      try {
+        annotations = doc.getAnnotations() || '';
+        textboxes = doc.getTextboxes() || '';
+      } catch (e) {
+        // These methods might not be available in all versions
+        console.log('Additional content extraction failed:', e);
+      }
+      
       // Combine all content with clear separation
       extractedContent = [
         headers ? `HEADERS:\n${headers}` : '',
         body ? `CONTENT:\n${body}` : '',
-        footers ? `FOOTERS:\n${footers}` : ''
+        footers ? `FOOTERS:\n${footers}` : '',
+        annotations ? `ANNOTATIONS:\n${annotations}` : '',
+        textboxes ? `TEXTBOXES:\n${textboxes}` : ''
       ].filter(section => section.length > 0).join('\n\n');
       
       console.log('DOCX extraction successful:', { 
         headersLength: headers.length, 
         bodyLength: body.length, 
-        footersLength: footers.length 
+        footersLength: footers.length,
+        annotationsLength: annotations.length,
+        textboxesLength: textboxes.length,
+        fullContentSample: extractedContent.substring(0, 500) + '...'
       });
       
     } catch (extractError) {
@@ -142,6 +158,19 @@ serve(async (req) => {
     const prompt = `
 You are an expert HR analyst and resume parser. Analyze the following DOCX resume content (including headers, body, and footers) and extract comprehensive information into a structured format. Be thorough and look for subtle details that might indicate exceptional talent, unique experiences, or potential concerns.
 
+CRITICAL LINK EXTRACTION INSTRUCTIONS:
+- Social media profiles and websites are often formatted as text without full URLs in DOCX headers
+- Look for patterns like "LinkedIn: username", "GitHub: username", "Portfolio: domain.com", etc.
+- Convert partial URLs and usernames to complete URLs:
+  * "linkedin.com/in/username" → "https://linkedin.com/in/username"
+  * "github.com/username" → "https://github.com/username"  
+  * "LinkedIn" near a username → construct full LinkedIn URL
+  * "GitHub" near a username → construct full GitHub URL
+  * Domain names without protocol → add "https://"
+- Headers often contain contact info in compact format - extract and expand all links
+- Look for email addresses, phone numbers, and any website references
+- Be aggressive in link detection - if you see social platform names, look for associated usernames
+
 Resume content:
 """
 ${extractedContent}
@@ -156,9 +185,9 @@ Extract and format the information into the following JSON structure. If certain
     "email": "Email address if found",
     "phone": "Phone number if found",
     "location": "City, State/Country if mentioned",
-    "linkedIn": "LinkedIn profile URL if mentioned",
-    "github": "GitHub profile URL if mentioned",
-    "portfolio": "Portfolio/website URL if mentioned"
+    "linkedIn": "Full LinkedIn URL - construct from username if only partial info found (e.g., if you see 'suryakant' near LinkedIn, make it 'https://linkedin.com/in/suryakant')",
+    "github": "Full GitHub URL - construct from username if only partial info found (e.g., if you see 'username' near GitHub, make it 'https://github.com/username')",
+    "portfolio": "Full website/portfolio URL - add https:// if missing (e.g., 'suryakant.online' becomes 'https://suryakant.online')"
   },
   "experience": {
     "totalYears": 0,
