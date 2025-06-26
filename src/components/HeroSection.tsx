@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { LoaderOverlay, LoaderInline } from "@/components/ui/loader";
 import { Upload, FileText, File } from "lucide-react";
 import ResumeUpload from "./ResumeUpload";
+import mammoth from "mammoth";
 
 const HeroSection = () => {
   const [step, setStep] = useState<"jd" | "upload">("jd");
@@ -11,6 +12,9 @@ const HeroSection = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessingJD, setIsProcessingJD] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [interfaceMode, setInterfaceMode] = useState<
+    "initial" | "typing" | "uploaded"
+  >("initial");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUploadResumes = async () => {
@@ -53,19 +57,114 @@ const HeroSection = () => {
     }
   };
 
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setJobDescription(value);
+
+    // Update interface mode based on content
+    if (value.trim()) {
+      setInterfaceMode("typing");
+    } else {
+      setInterfaceMode("initial");
+    }
+  };
+
+  const handleShowUpload = () => {
+    setInterfaceMode("initial");
+    // Clear any existing content if user wants to upload instead
+    setJobDescription("");
+
+    // Reset file input for clean state
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleUploadAgain = () => {
+    setInterfaceMode("initial");
+    setJobDescription("");
+
+    // Reset file input for clean state
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const handleFileUpload = async (file: File) => {
     setIsUploadingFile(true);
 
-    // Simulate file processing
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      let content = "";
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      setJobDescription(content);
+      // Handle different file types
+      if (
+        file.type === "text/plain" ||
+        file.name.toLowerCase().endsWith(".txt")
+      ) {
+        // Handle TXT files
+        const reader = new FileReader();
+        content = await new Promise<string>((resolve, reject) => {
+          reader.onload = (e) => {
+            resolve((e.target?.result as string) || "");
+          };
+          reader.onerror = () => reject(new Error("Failed to read file"));
+          reader.readAsText(file);
+        });
+      } else if (
+        file.type ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        file.name.toLowerCase().endsWith(".docx")
+      ) {
+        // Handle DOCX files with mammoth
+        const arrayBuffer = await new Promise<ArrayBuffer>(
+          (resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              resolve(e.target?.result as ArrayBuffer);
+            };
+            reader.onerror = () => reject(new Error("Failed to read file"));
+            reader.readAsArrayBuffer(file);
+          }
+        );
+
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        content = result.value;
+      } else {
+        // For other file types (PDF, images), we'll handle them later via upload
+        setIsUploadingFile(false);
+        // TODO: Handle PDF and image uploads to Supabase Storage
+        return;
+      }
+
+      // Simulate processing time for better UX
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Clean up content by removing blank lines and extra whitespace
+      const cleanedContent = content
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
+        .join("\n")
+        .trim();
+
+      setJobDescription(cleanedContent);
+      setInterfaceMode("uploaded");
       setIsUploadingFile(false);
-    };
-    reader.readAsText(file);
+
+      // Reset file input so the same file can be uploaded again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("Error processing file:", error);
+      setIsUploadingFile(false);
+
+      // Reset file input on error as well
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      // TODO: Add error toast notification
+    }
   };
 
   return (
@@ -93,7 +192,7 @@ const HeroSection = () => {
                   {/* Loading overlay for file upload */}
                   <LoaderOverlay
                     isLoading={isUploadingFile}
-                    text="Processing file..."
+                    text="Extracting text from file..."
                     size="md"
                   />
 
@@ -107,59 +206,82 @@ const HeroSection = () => {
                   </div>
 
                   <div className="relative z-10">
+                    {/* Upload Area - Show only in initial mode */}
                     <div
-                      className={`group border-2 border-dashed rounded-xl p-4 mb-3 text-center transition-all duration-300 cursor-pointer ${
-                        isDragging
-                          ? "border-primary bg-primary/5 scale-[1.01]"
-                          : "border-border-light hover:border-primary/50 hover:bg-primary/5"
+                      className={`transition-all duration-500 ease-in-out ${
+                        interfaceMode === "initial"
+                          ? "opacity-100 max-h-40 mb-3"
+                          : "opacity-0 max-h-0 mb-0 overflow-hidden"
                       }`}
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
-                      onClick={() => fileInputRef.current?.click()}
                     >
-                      <div className="relative inline-block mb-2">
-                        <div className="bg-bg-light rounded-full p-2">
-                          <File
-                            className={`w-5 h-5 transition-colors duration-300 ${
-                              isDragging
-                                ? "text-primary"
-                                : "text-text-muted group-hover:text-primary"
-                            }`}
-                          />
+                      <div
+                        className={`group border-2 border-dashed rounded-xl p-4 text-center transition-all duration-300 cursor-pointer ${
+                          isDragging
+                            ? "border-primary bg-primary/5 scale-[1.01]"
+                            : "border-border-light hover:border-primary/50 hover:bg-primary/5"
+                        }`}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <div className="relative inline-block mb-2">
+                          <div className="bg-bg-light rounded-full p-2">
+                            <File
+                              className={`w-5 h-5 transition-colors duration-300 ${
+                                isDragging
+                                  ? "text-primary"
+                                  : "text-text-muted group-hover:text-primary"
+                              }`}
+                            />
+                          </div>
                         </div>
+                        <p className="font-grotesk text-sm text-text-muted mb-1">
+                          {isDragging
+                            ? "Drop file here"
+                            : "Drop file or click to browse"}
+                        </p>
+                        <p className="font-grotesk text-xs text-text-subtle">
+                          TXT, DOCX, PDF, JPG, PNG, GIF, TIFF, BMP, WEBP
+                        </p>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept=".txt,.docx,.pdf,.gif,.tiff,.tif,.jpg,.jpeg,.png,.bmp,.webp"
+                          onChange={handleFileSelect}
+                          className="hidden"
+                        />
                       </div>
-                      <p className="font-grotesk text-sm text-text-muted mb-1">
-                        {isDragging
-                          ? "Drop file here"
-                          : "Drop file or click to browse"}
-                      </p>
-                      <p className="font-grotesk text-xs text-text-subtle">
-                        PDF, JPG, PNG, GIF, TIFF, BMP, WEBP
-                      </p>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".pdf,.gif,.tiff,.tif,.jpg,.jpeg,.png,.bmp,.webp,.txt,.doc,.docx"
-                        onChange={handleFileSelect}
-                        className="hidden"
-                      />
                     </div>
 
-                    <div className="flex items-center my-4">
-                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border-custom to-transparent"></div>
-                      <span className="px-3 font-grotesk text-xs text-text-subtle bg-bg rounded-full border border-border-custom">
-                        or write
-                      </span>
-                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border-custom to-transparent"></div>
+                    {/* Divider - Show only in initial mode */}
+                    <div
+                      className={`transition-all duration-500 ease-in-out ${
+                        interfaceMode === "initial"
+                          ? "opacity-100 max-h-8 my-4"
+                          : "opacity-0 max-h-0 my-0 overflow-hidden"
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border-custom to-transparent"></div>
+                        <span className="px-3 font-grotesk text-xs text-text-subtle bg-bg rounded-full border border-border-custom">
+                          or write
+                        </span>
+                        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border-custom to-transparent"></div>
+                      </div>
                     </div>
 
+                    {/* Textarea */}
                     <div className="relative">
                       <Textarea
                         placeholder="Looking for a Frontend Developer with 3+ years of experience in React, TypeScript..."
                         value={jobDescription}
-                        onChange={(e) => setJobDescription(e.target.value)}
-                        className="min-h-20 sm:min-h-24 bg-bg-light/30 backdrop-blur-sm border-border-custom text-text placeholder:text-text-subtle font-grotesk resize-none focus:border-primary/50 focus:ring-0 focus:outline-none transition-border-colors duration-300 text-sm rounded-xl"
+                        onChange={handleTextareaChange}
+                        className={`bg-bg-light/30 backdrop-blur-sm border-border-custom text-text placeholder:text-text-subtle font-grotesk resize-none focus:border-primary/50 focus:ring-0 focus:outline-none transition-all duration-500 ease-in-out text-sm rounded-xl ${
+                          interfaceMode === "initial"
+                            ? "min-h-20 sm:min-h-24"
+                            : "min-h-40 sm:min-h-48"
+                        }`}
                         disabled={isUploadingFile}
                       />
                       {jobDescription.trim() && (
@@ -172,6 +294,33 @@ const HeroSection = () => {
                           </span>
                         </div>
                       )}
+                    </div>
+
+                    {/* Alternative Action Buttons - Show when typing or uploaded */}
+                    <div
+                      className={`transition-all duration-500 ease-in-out ${
+                        interfaceMode !== "initial"
+                          ? "opacity-100 max-h-12 mt-3"
+                          : "opacity-0 max-h-0 mt-0 overflow-hidden"
+                      }`}
+                    >
+                      <div className="flex justify-center">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={
+                            interfaceMode === "uploaded"
+                              ? handleUploadAgain
+                              : handleShowUpload
+                          }
+                          className="text-text-muted hover:text-text hover:bg-bg-light/50 border border-border-custom transition-all duration-200 rounded-xl text-xs"
+                        >
+                          <File className="w-3 h-3 mr-1" />
+                          {interfaceMode === "uploaded"
+                            ? "Upload different file"
+                            : "or upload a file"}
+                        </Button>
+                      </div>
                     </div>
 
                     <div className="mt-4 flex justify-center">
