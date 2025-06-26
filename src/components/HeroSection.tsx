@@ -4,33 +4,69 @@ import { Textarea } from "@/components/ui/textarea";
 import { LoaderOverlay, LoaderInline } from "@/components/ui/loader";
 import { Upload, FileText, File } from "lucide-react";
 import ResumeUpload from "./ResumeUpload";
-import mammoth from "mammoth";
+import {
+  useJobDescriptionProcessor,
+  type FormattedJD,
+} from "@/hooks/useJobDescriptionProcessor";
 
 const HeroSection = () => {
   const [step, setStep] = useState<"jd" | "upload">("jd");
   const [jobDescription, setJobDescription] = useState("");
   const [isDragging, setIsDragging] = useState(false);
-  const [isProcessingJD, setIsProcessingJD] = useState(false);
-  const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [interfaceMode, setInterfaceMode] = useState<
     "initial" | "typing" | "uploaded"
   >("initial");
+  const [formattedJD, setFormattedJD] = useState<FormattedJD | null>(null);
+  const [contentSource, setContentSource] = useState<"manual" | "file" | null>(
+    null
+  );
+  const [isImageFile, setIsImageFile] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUploadResumes = async () => {
+  // React Query hook for processing job descriptions
+  const jdProcessor = useJobDescriptionProcessor();
+
+  const handleUploadResumes = () => {
     if (jobDescription.trim()) {
-      setIsProcessingJD(true);
-
-      // Simulate JD processing/validation
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      setIsProcessingJD(false);
-      setStep("upload");
+      jdProcessor.mutate(
+        { type: "text", content: jobDescription },
+        {
+          onSuccess: (data) => {
+            console.log("Formatted JD:", data.formattedJD);
+            setFormattedJD(data.formattedJD);
+            setStep("upload");
+          },
+          onError: (error) => {
+            console.error("Error formatting job description:", error);
+            // For now, continue to upload step even if formatting fails
+            // TODO: Add proper error handling and user notification
+            setStep("upload");
+          },
+        }
+      );
     }
   };
 
   const handleBack = () => {
     setStep("jd");
+
+    // For image files, reset to clean initial state since the textarea content isn't meaningful
+    if (isImageFile) {
+      setInterfaceMode("initial");
+      setJobDescription("");
+      setFormattedJD(null);
+      setContentSource(null);
+      setIsImageFile(false);
+    } else {
+      // Restore the correct interface mode based on content source for text files
+      if (contentSource === "file") {
+        setInterfaceMode("uploaded");
+      } else if (contentSource === "manual" && jobDescription.trim()) {
+        setInterfaceMode("typing");
+      } else {
+        setInterfaceMode("initial");
+      }
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -64,8 +100,12 @@ const HeroSection = () => {
     // Update interface mode based on content
     if (value.trim()) {
       setInterfaceMode("typing");
+      setContentSource("manual");
+      setIsImageFile(false); // Reset image flag when manually typing
     } else {
       setInterfaceMode("initial");
+      setContentSource(null);
+      setIsImageFile(false);
     }
   };
 
@@ -73,6 +113,8 @@ const HeroSection = () => {
     setInterfaceMode("initial");
     // Clear any existing content if user wants to upload instead
     setJobDescription("");
+    setContentSource(null);
+    setIsImageFile(false);
 
     // Reset file input for clean state
     if (fileInputRef.current) {
@@ -83,6 +125,8 @@ const HeroSection = () => {
   const handleUploadAgain = () => {
     setInterfaceMode("initial");
     setJobDescription("");
+    setContentSource(null);
+    setIsImageFile(false);
 
     // Reset file input for clean state
     if (fileInputRef.current) {
@@ -90,81 +134,70 @@ const HeroSection = () => {
     }
   };
 
-  const handleFileUpload = async (file: File) => {
-    setIsUploadingFile(true);
+  const handleFileUpload = (file: File) => {
+    // Check if file type is supported
+    const textTypes = [
+      "text/plain",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+    const textExtensions = [".txt", ".docx"];
+    const imageTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "image/heic",
+      "image/heif",
+    ];
 
-    try {
-      let content = "";
+    const isTextFile =
+      textTypes.includes(file.type) ||
+      textExtensions.some((ext) => file.name.toLowerCase().endsWith(ext));
+    const isImageFile = imageTypes.includes(file.type.toLowerCase());
 
-      // Handle different file types
-      if (
-        file.type === "text/plain" ||
-        file.name.toLowerCase().endsWith(".txt")
-      ) {
-        // Handle TXT files
-        const reader = new FileReader();
-        content = await new Promise<string>((resolve, reject) => {
-          reader.onload = (e) => {
-            resolve((e.target?.result as string) || "");
-          };
-          reader.onerror = () => reject(new Error("Failed to read file"));
-          reader.readAsText(file);
-        });
-      } else if (
-        file.type ===
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-        file.name.toLowerCase().endsWith(".docx")
-      ) {
-        // Handle DOCX files with mammoth
-        const arrayBuffer = await new Promise<ArrayBuffer>(
-          (resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              resolve(e.target?.result as ArrayBuffer);
-            };
-            reader.onerror = () => reject(new Error("Failed to read file"));
-            reader.readAsArrayBuffer(file);
-          }
-        );
-
-        const result = await mammoth.extractRawText({ arrayBuffer });
-        content = result.value;
-      } else {
-        // For other file types (PDF, images), we'll handle them later via upload
-        setIsUploadingFile(false);
-        // TODO: Handle PDF and image uploads to Supabase Storage
-        return;
-      }
-
-      // Simulate processing time for better UX
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      // Clean up content by removing blank lines and extra whitespace
-      const cleanedContent = content
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0)
-        .join("\n")
-        .trim();
-
-      setJobDescription(cleanedContent);
-      setInterfaceMode("uploaded");
-      setIsUploadingFile(false);
-
-      // Reset file input so the same file can be uploaded again
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    } catch (error) {
-      console.error("Error processing file:", error);
-      setIsUploadingFile(false);
-
-      // Reset file input on error as well
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-      // TODO: Add error toast notification
+    if (!isTextFile && !isImageFile) {
+      // For other file types (PDF), we'll handle them later
+      // TODO: Handle PDF uploads
+      console.log("Unsupported file type:", file.type);
+      return;
     }
+
+    jdProcessor.mutate(
+      { type: "file", file },
+      {
+        onSuccess: (data) => {
+          // For image files, set a descriptive message instead of "Image processed directly"
+          const displayContent =
+            data.originalContent === "Image processed directly"
+              ? `Image file processed: ${data.fileName}`
+              : data.originalContent;
+
+          setJobDescription(displayContent);
+          setFormattedJD(data.formattedJD);
+          setContentSource("file");
+          setIsImageFile(data.isImageFile || false);
+
+          // Reset file input so the same file can be uploaded again
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+
+          console.log("Processed file:", data);
+
+          // Automatically proceed to resume upload step for file uploads
+          setStep("upload");
+        },
+        onError: (error) => {
+          console.error("Error processing file:", error);
+
+          // Reset file input on error as well
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+          // TODO: Add error toast notification
+        },
+      }
+    );
   };
 
   return (
@@ -189,10 +222,14 @@ const HeroSection = () => {
                   {/* Background gradient */}
                   <div className="absolute inset-0 bg-gradient-to-br from-bg-light/10 to-transparent pointer-events-none"></div>
 
-                  {/* Loading overlay for file upload */}
+                  {/* Loading overlay for file processing */}
                   <LoaderOverlay
-                    isLoading={isUploadingFile}
-                    text="Extracting text from file..."
+                    isLoading={jdProcessor.isPending}
+                    text={
+                      interfaceMode === "initial" || interfaceMode === "typing"
+                        ? "Processing job description..."
+                        : "Processing..."
+                    }
                     size="md"
                   />
 
@@ -242,12 +279,13 @@ const HeroSection = () => {
                             : "Drop file or click to browse"}
                         </p>
                         <p className="font-grotesk text-xs text-text-subtle">
-                          TXT, DOCX, PDF, JPG, PNG, GIF, TIFF, BMP, WEBP
+                          TXT, DOCX, JPG, PNG, WEBP (auto-processed) • PDF
+                          (coming soon)
                         </p>
                         <input
                           ref={fileInputRef}
                           type="file"
-                          accept=".txt,.docx,.pdf,.gif,.tiff,.tif,.jpg,.jpeg,.png,.bmp,.webp"
+                          accept=".txt,.docx,.jpg,.jpeg,.png,.webp,.heic,.heif"
                           onChange={handleFileSelect}
                           className="hidden"
                         />
@@ -282,7 +320,7 @@ const HeroSection = () => {
                             ? "min-h-20 sm:min-h-24"
                             : "min-h-40 sm:min-h-48"
                         }`}
-                        disabled={isUploadingFile}
+                        disabled={jdProcessor.isPending}
                       />
                       {jobDescription.trim() && (
                         <div className="absolute bottom-2 flex items-center right-2 bg-bg-light rounded-full px-2 py-0.5">
@@ -327,13 +365,11 @@ const HeroSection = () => {
                       <Button
                         onClick={handleUploadResumes}
                         disabled={
-                          !jobDescription.trim() ||
-                          isProcessingJD ||
-                          isUploadingFile
+                          !jobDescription.trim() || jdProcessor.isPending
                         }
                         className="group font-grotesk bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100 shadow-lg w-full sm:w-auto"
                       >
-                        {isProcessingJD ? (
+                        {jdProcessor.isPending ? (
                           <>
                             <LoaderInline
                               isLoading={true}
@@ -360,6 +396,7 @@ const HeroSection = () => {
                 <ResumeUpload
                   onBack={handleBack}
                   jobDescription={jobDescription}
+                  formattedJD={formattedJD}
                 />
               </div>
             )}

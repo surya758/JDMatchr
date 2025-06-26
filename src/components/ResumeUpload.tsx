@@ -12,12 +12,19 @@ import {
   Award,
 } from "lucide-react";
 
+import { FormattedJD } from "@/hooks/useJobDescriptionProcessor";
+
 interface ResumeUploadProps {
   onBack: () => void;
   jobDescription: string;
+  formattedJD?: FormattedJD | null;
 }
 
-const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
+const ResumeUpload = ({
+  onBack,
+  jobDescription,
+  formattedJD,
+}: ResumeUploadProps) => {
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<{
