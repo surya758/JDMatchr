@@ -9,6 +9,7 @@ import {
   type FormattedJD,
 } from "@/hooks/useJobDescriptionProcessor";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 const HeroSection = () => {
   const [step, setStep] = useState<"jd" | "upload">("jd");
@@ -22,11 +23,17 @@ const HeroSection = () => {
     null
   );
   const [isImageFile, setIsImageFile] = useState<boolean>(false);
+  const [showingResults, setShowingResults] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // React Query hook for processing job descriptions
   const jdProcessor = useJobDescriptionProcessor();
+
+  // Check if user is anonymous (not authenticated)
+  const isAnonymous = !user;
 
   // Only used if user manually types in the job description
   const handleUploadResumes = () => {
@@ -53,6 +60,7 @@ const HeroSection = () => {
 
   const handleBack = () => {
     setStep("jd");
+    setShowingResults(false);
 
     // For image files, reset to clean initial state since the textarea content isn't meaningful
     if (isImageFile) {
@@ -212,16 +220,18 @@ const HeroSection = () => {
   return (
     <section className="text-text overflow-hidden flex items-center justify-center min-h-[calc(100vh-6rem)]">
       <div className="px-2 md:px-6 py-0 w-full">
-        <div className="max-w-4xl mx-auto text-center mb-8 sm:mb-12 lg:mb-16 animate-fade-in">
-          <h1 className="font-grotesk text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 mt-8 sm:mt-12 leading-tight px-2">
-            Paste the JD. Upload resumes.{" "}
-            <span className="text-primary">Get scores.</span> That's it.
-          </h1>
-          <p className="font-grotesk text-base sm:text-lg md:text-xl text-text-muted max-w-3xl mx-auto leading-relaxed px-4">
-            A minimal AI tool for HRs to instantly rank candidates against any
-            job requirement. No onboarding. No manual scoring. Just results.
-          </p>
-        </div>
+        {!showingResults && !isAnalyzing && (
+          <div className="max-w-4xl mx-auto text-center mb-8 sm:mb-12 lg:mb-16 animate-fade-in">
+            <h1 className="font-grotesk text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 mt-8 sm:mt-12 leading-tight px-2">
+              Paste the JD. Upload resumes.{" "}
+              <span className="text-primary">Get scores.</span> That's it.
+            </h1>
+            <p className="font-grotesk text-base sm:text-lg md:text-xl text-text-muted max-w-3xl mx-auto leading-relaxed px-4">
+              A minimal AI tool for HRs to instantly rank candidates against any
+              job requirement. No onboarding. No manual scoring. Just results.
+            </p>
+          </div>
+        )}
 
         <div className="max-w-2xl mx-auto px-4">
           <div className="relative">
@@ -405,38 +415,43 @@ const HeroSection = () => {
                   onBack={handleBack}
                   jobDescription={jobDescription}
                   formattedJD={formattedJD}
+                  isAnonymous={isAnonymous}
+                  onShowingResults={setShowingResults}
+                  onAnalyzing={setIsAnalyzing}
                 />
               </div>
             )}
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-center items-center mt-8 sm:mt-12 lg:mt-16 space-y-4 sm:space-y-0 sm:space-x-8 lg:space-x-12 opacity-70 px-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-            <span className="font-grotesk text-xs sm:text-sm text-text-subtle">
-              PDF Support
-            </span>
+        {!showingResults && !isAnalyzing && (
+          <div className="flex flex-col sm:flex-row justify-center items-center mt-8 sm:mt-12 lg:mt-16 space-y-4 sm:space-y-0 sm:space-x-8 lg:space-x-12 opacity-70 px-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+              <span className="font-grotesk text-xs sm:text-sm text-text-subtle">
+                PDF Support
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div
+                className="w-2 h-2 bg-primary rounded-full animate-pulse"
+                style={{ animationDelay: "0.5s" }}
+              ></div>
+              <span className="font-grotesk text-xs sm:text-sm text-text-subtle">
+                Image Support
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div
+                className="w-2 h-2 bg-primary rounded-full animate-pulse"
+                style={{ animationDelay: "1s" }}
+              ></div>
+              <span className="font-grotesk text-xs sm:text-sm text-text-subtle">
+                Instant Results
+              </span>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div
-              className="w-2 h-2 bg-primary rounded-full animate-pulse"
-              style={{ animationDelay: "0.5s" }}
-            ></div>
-            <span className="font-grotesk text-xs sm:text-sm text-text-subtle">
-              Image Support
-            </span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div
-              className="w-2 h-2 bg-primary rounded-full animate-pulse"
-              style={{ animationDelay: "1s" }}
-            ></div>
-            <span className="font-grotesk text-xs sm:text-sm text-text-subtle">
-              Instant Results
-            </span>
-          </div>
-        </div>
+        )}
       </div>
     </section>
   );
