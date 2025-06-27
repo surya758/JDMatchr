@@ -86,6 +86,101 @@ const processDOCXFile = async (file: File): Promise<ProcessedResume> => {
   return data.processedResume;
 };
 
+// Process image files via edge function
+const processImageFile = async (file: File): Promise<ProcessedResume> => {
+  // Convert image to base64
+  const base64Data = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      // Remove data URL prefix (data:image/...;base64,)
+      const base64 = result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error("Failed to read image file"));
+    reader.readAsDataURL(file);
+  });
+
+  // Call the process-resume-image edge function
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-resume-image`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({
+        imageData: base64Data,
+        mimeType: file.type,
+        fileName: file.name,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({
+      error: `API error: ${response.status}`,
+    }));
+    throw new Error(errorData.error || `API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  
+  if (!data.success) {
+    throw new Error(data.error || 'Failed to process image resume');
+  }
+
+  return data.processedResume;
+};
+
+// Process PDF files via edge function
+const processPDFFile = async (file: File): Promise<ProcessedResume> => {
+  // Convert PDF to base64
+  const base64Data = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      // Remove data URL prefix (data:application/pdf;base64,)
+      const base64 = result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error("Failed to read PDF file"));
+    reader.readAsDataURL(file);
+  });
+
+  // Call the process-resume-pdf edge function
+  const response = await fetch(
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-resume-pdf`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({
+        pdfData: base64Data,
+        fileName: file.name,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({
+      error: `API error: ${response.status}`,
+    }));
+    throw new Error(errorData.error || `API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  
+  if (!data.success) {
+    throw new Error(data.error || 'Failed to process PDF resume');
+  }
+
+  return data.processedResume;
+};
+
 // Extract content from TXT files
 const extractResumeContent = async (file: File): Promise<string> => {
   if (file.type === "text/plain" || file.name.toLowerCase().endsWith('.txt')) {
@@ -163,12 +258,16 @@ const processResume = async (input: ProcessResumeInput): Promise<ProcessResumeRe
     originalContent = 'DOCX processed via edge function';
 
   } else if (isImageFile) {
-    // TODO: Implement image resume processing
-    throw new Error('Image resume processing not yet implemented');
+    // Process image files with edge function
+    processedResume = await processImageFile(file);
+    source = 'image';
+    originalContent = 'Image processed via edge function';
 
   } else if (isPDFFile) {
-    // TODO: Implement PDF resume processing
-    throw new Error('PDF resume processing not yet implemented');
+    // Process PDF files with edge function
+    processedResume = await processPDFFile(file);
+    source = 'pdf';
+    originalContent = 'PDF processed via edge function';
 
   } else {
     throw new Error(`Unsupported resume file type: ${file.type}. Supported types: TXT, DOCX, PDF (coming soon), Images (coming soon)`);

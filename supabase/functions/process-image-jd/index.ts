@@ -135,9 +135,8 @@ Focus on accuracy and be comprehensive. Extract as much relevant information as 
     let formattedJD: FormattedJD;
     try {
       // Clean up the response in case there's extra text
-      const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
-      const jsonString = jsonMatch ? jsonMatch[0] : generatedText;
-      formattedJD = JSON.parse(jsonString);
+      const cleanedText = generatedText.replace(/```json|```/g, '').trim();
+      formattedJD = JSON.parse(cleanedText);
     } catch (parseError) {
       console.error('Error parsing Gemini response:', parseError);
       console.error('Raw response:', generatedText);

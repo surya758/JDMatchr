@@ -1,6 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, X, FileText, Image, ArrowLeft, Zap } from "lucide-react";
+import {
+  Upload,
+  X,
+  FileText,
+  Image,
+  ArrowLeft,
+  Zap,
+  Lightbulb,
+} from "lucide-react";
 
 import { FormattedJD } from "@/hooks/useJobDescriptionProcessor";
 import {
@@ -15,11 +23,7 @@ interface ResumeUploadProps {
   formattedJD?: FormattedJD | null;
 }
 
-const ResumeUpload = ({
-  onBack,
-  jobDescription,
-  formattedJD,
-}: ResumeUploadProps) => {
+const ResumeUpload = ({ onBack, jobDescription }: ResumeUploadProps) => {
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<{
@@ -32,12 +36,59 @@ const ResumeUpload = ({
     new Set()
   );
   const [isCancelling, setIsCancelling] = useState(false);
+  const [currentFactIndex, setCurrentFactIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cancelProcessingRef = useRef(false);
 
   // Hooks
   const resumeProcessor = useResumeProcessor();
   const { toast } = useToast();
+
+  // HR Facts and Jokes
+  const hrFacts = [
+    "📄 Recruiters skim a resume in just 7 seconds. Blink and it's over!",
+    "🧠 75% of resumes are filtered by bots. Write for humans *and* machines!",
+    "😂 Why did the resume get rejected? It couldn't stay *objective*.",
+    "🎯 First impressions count. Typos are the silent killers.",
+    "🤖 AI scans 1,000 resumes before your coffee gets cold.",
+    "📈 Diverse teams = 35% better performance. Stats don't lie.",
+    "🎵 What's a recruiter's jam? Match-making beats!",
+    "😆 Why did HR bring a ladder? To reach the *top talent*.",
+    "📱 89% of recruiters are on LinkedIn. Are you visible?",
+    "🚫 25-page resumes exist. Please, don't be *that* person.",
+    "🍕 Someone sent a resume on a pizza box. Got the job too!",
+    "🎨 Purple pops on resumes—but don't go full rainbow.",
+    "🤔 Resume means 'summary' in French. Keep it short, oui?",
+    "📊 Google gets 3M+ job apps a year. Make yours stand out.",
+    "😄 What do you call no experience? Untapped potential!",
+  ];
+
+  // Cycle through facts every 8 seconds when processing
+  useEffect(() => {
+    if (processingFiles.size > 0) {
+      const interval = setInterval(() => {
+        setCurrentFactIndex((prev) => (prev + 1) % hrFacts.length);
+      }, 8000);
+      return () => clearInterval(interval);
+    }
+  }, [processingFiles.size, hrFacts.length]);
+
+  // Function to parse text and make content between * bold
+  const parseFactText = (text: string) => {
+    const parts = text.split(/(\*[^*]+\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith("*") && part.endsWith("*")) {
+        // Remove the asterisks and make bold
+        const boldText = part.slice(1, -1);
+        return (
+          <span key={index} className="font-semibold text-text">
+            {boldText}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
 
   // Create image preview URLs when files are added
   useEffect(() => {
@@ -98,23 +149,6 @@ const ResumeUpload = ({
     }
   };
 
-  const removeFile = (index: number) => {
-    const fileToRemove = files[index];
-    const key = `${fileToRemove.name}-${index}`;
-
-    // Revoke the URL for the removed file
-    if (imagePreviewUrls[key]) {
-      URL.revokeObjectURL(imagePreviewUrls[key]);
-      setImagePreviewUrls((prev) => {
-        const updated = { ...prev };
-        delete updated[key];
-        return updated;
-      });
-    }
-
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
   const processResumeFile = async (file: File) => {
     // Check if processing was cancelled
     if (cancelProcessingRef.current) {
@@ -123,20 +157,33 @@ const ResumeUpload = ({
 
     const fileName = file.name;
 
-    // Check if file is TXT or DOCX (currently supported)
+    // Check supported file types (TXT, DOCX, PDF, Images)
     const textTypes = [
       "text/plain",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
     const textExtensions = [".txt", ".docx"];
+    const pdfTypes = ["application/pdf"];
+    const imageTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "image/heic",
+      "image/heif",
+    ];
+
     const isTextFile =
       textTypes.includes(file.type) ||
       textExtensions.some((ext) => file.name.toLowerCase().endsWith(ext));
+    const isPDFFile = pdfTypes.includes(file.type);
+    const isImageFile = imageTypes.includes(file.type.toLowerCase());
+    const isSupportedFile = isTextFile || isPDFFile || isImageFile;
 
-    if (!isTextFile) {
+    if (!isSupportedFile) {
       toast({
-        title: "File type not yet supported",
-        description: `${fileName}: PDF and image processing coming soon. Currently only TXT and DOCX files are supported.`,
+        title: "File type not supported",
+        description: `${fileName}: Please upload TXT, DOCX, PDF, or image files.`,
         variant: "destructive",
       });
       return null;
@@ -156,13 +203,6 @@ const ResumeUpload = ({
       if (cancelProcessingRef.current) {
         throw new Error("Processing cancelled");
       }
-
-      toast({
-        title: "Resume processed successfully",
-        description: `${
-          result.processedResume.personalInfo.name || fileName
-        } has been analyzed.`,
-      });
 
       return result;
     } catch (error) {
@@ -457,76 +497,47 @@ const ResumeUpload = ({
         </div>
       )}
 
-      {/* Processing Status Summary */}
-      {(processedResumes.length > 0 || processingFiles.size > 0) && (
+      {/* HR Facts & Entertainment - Show while processing */}
+      {processingFiles.size > 0 && (
         <div className="relative z-10 mt-4">
-          <div className="bg-bg-light/30 backdrop-blur-sm border border-border-custom rounded-xl p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="bg-bg-light rounded-full p-1.5">
-                  <Zap className="w-4 h-4 text-green-600" />
-                </div>
-                <div>
+          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 backdrop-blur-sm border border-primary/20 rounded-xl p-4 transition-all duration-500 ease-in-out">
+            <div className="flex items-start space-x-3">
+              <div className="bg-primary/20 rounded-full p-2 animate-pulse">
+                <Lightbulb className="w-4 h-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center space-x-2 mb-2">
                   <h4 className="font-grotesk text-sm font-semibold text-text">
-                    Processing Status
+                    While you wait...
                   </h4>
-                  <p className="font-grotesk text-xs text-text-muted">
-                    {processedResumes.length} out of {files.length} resumes
-                    processed
+                </div>
+                <div className="relative overflow-hidden h-6">
+                  <p
+                    className="font-grotesk text-sm text-text-muted absolute inset-0 transition-all duration-700 ease-in-out transform"
+                    key={currentFactIndex}
+                    style={{
+                      animation: "slideInUp 0.7s ease-out",
+                    }}
+                  >
+                    {parseFactText(hrFacts[currentFactIndex])}
                   </p>
                 </div>
               </div>
-
-              <div className="flex items-center space-x-4">
-                {/* Processing status indicators */}
-                {processingFiles.size > 0 && (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-                    <span className="font-grotesk text-xs text-yellow-600 font-medium">
-                      {processingFiles.size} processing...
-                    </span>
-                  </div>
-                )}
-
-                {processedResumes.length > 0 && (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="font-grotesk text-xs text-green-600 font-medium">
-                      {processedResumes.length} completed
-                    </span>
-                  </div>
-                )}
-
-                {files.length - processedResumes.length - processingFiles.size >
-                  0 && (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <span className="font-grotesk text-xs text-primary font-medium">
-                      {files.length -
-                        processedResumes.length -
-                        processingFiles.size}{" "}
-                      pending
-                    </span>
-                  </div>
-                )}
-              </div>
             </div>
 
-            {/* Progress bar */}
-            {files.length > 0 && (
-              <div className="mt-3">
-                <div className="w-full bg-bg-light rounded-full h-2">
-                  <div
-                    className="bg-green-500 h-2 rounded-full transition-all duration-300 ease-out"
-                    style={{
-                      width: `${
-                        (processedResumes.length / files.length) * 100
-                      }%`,
-                    }}
-                  ></div>
-                </div>
-              </div>
-            )}
+            {/* Progress dots */}
+            <div className="flex justify-center mt-3 space-x-1">
+              {hrFacts.slice(0, 5).map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                    index === currentFactIndex % 5
+                      ? "bg-primary scale-125"
+                      : "bg-primary/30"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       )}

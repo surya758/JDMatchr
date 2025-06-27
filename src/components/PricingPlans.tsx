@@ -53,7 +53,7 @@ const PricingPlans = () => {
     {
       name: "Pro Plan",
       planKey: "pro",
-      price: "$9.99",
+      price: "$24.99",
       period: "/mo",
       description: "Ideal for HRs hiring regularly.",
       features: [
