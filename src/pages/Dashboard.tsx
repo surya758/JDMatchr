@@ -6,6 +6,7 @@ import DashboardSidebar from "../components/dashboard/DashboardSidebar";
 import DashboardOverview from "../components/dashboard/DashboardOverview";
 import NewAnalysis from "../components/dashboard/NewAnalysis";
 import MyReports from "../components/dashboard/MyReports";
+import ReportDetail from "../components/dashboard/ReportDetail";
 import Settings from "../components/dashboard/Settings";
 
 const Dashboard = () => {
@@ -21,6 +22,9 @@ const Dashboard = () => {
 
     if (path.includes("/new")) {
       return <NewAnalysis />;
+    } else if (path.match(/\/reports\/[^/]+$/)) {
+      // Specific report detail page (e.g., /dashboard/reports/123)
+      return <ReportDetail />;
     } else if (path.includes("/reports")) {
       return <MyReports />;
     } else if (path.includes("/settings")) {

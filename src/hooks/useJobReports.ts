@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getUserJobReports } from '@/lib/jobs';
+import { getUserJobReports, getJobOverview } from '@/lib/jobs';
 
 export interface JobReport {
   id: string;
@@ -24,5 +24,15 @@ export const useJobReports = () => {
     queryFn: getUserJobReports,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
+  });
+};
+
+export const useJobReportDetail = (jobId: string) => {
+  return useQuery({
+    queryKey: ['job-report-detail', jobId],
+    queryFn: () => getJobOverview(jobId),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    enabled: !!jobId,
   });
 }; 

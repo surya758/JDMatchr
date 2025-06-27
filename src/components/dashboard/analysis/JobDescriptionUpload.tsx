@@ -12,6 +12,7 @@ interface JobDescriptionUploadProps {
   contentSource: "manual" | "file" | null;
   isDragging: boolean;
   onDragStateChange: (isDragging: boolean) => void;
+  isDisabled?: boolean;
 }
 
 const JobDescriptionUpload: React.FC<JobDescriptionUploadProps> = ({
@@ -22,6 +23,7 @@ const JobDescriptionUpload: React.FC<JobDescriptionUploadProps> = ({
   contentSource,
   isDragging,
   onDragStateChange,
+  isDisabled = false,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [interfaceMode, setInterfaceMode] = useState<"initial" | "typing">(
@@ -47,14 +49,16 @@ const JobDescriptionUpload: React.FC<JobDescriptionUploadProps> = ({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     onDragStateChange(false);
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      onFileUpload(files[0]);
+    if (!isDisabled) {
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length > 0) {
+        onFileUpload(files[0]);
+      }
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+    if (!isDisabled && e.target.files && e.target.files[0]) {
       onFileUpload(e.target.files[0]);
     }
   };
@@ -81,18 +85,24 @@ const JobDescriptionUpload: React.FC<JobDescriptionUploadProps> = ({
   };
 
   const handleShowUpload = () => {
-    setInterfaceMode("initial");
-    // Clear any existing content if user wants to upload instead
-    onJobDescriptionChange("");
+    if (!isDisabled) {
+      setInterfaceMode("initial");
+      // Clear any existing content if user wants to upload instead
+      onJobDescriptionChange("");
 
-    // Reset file input for clean state
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      // Reset file input for clean state
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
   return (
-    <div className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-6 shadow-xl relative">
+    <div
+      className={`bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-6 shadow-xl relative ${
+        isDisabled ? "opacity-50" : ""
+      }`}
+    >
       <LoaderOverlay
         isLoading={isProcessing}
         text="Processing job description file..."
@@ -126,12 +136,16 @@ const JobDescriptionUpload: React.FC<JobDescriptionUploadProps> = ({
             className={`border-2 border-dashed rounded-xl p-4 text-center transition-all duration-300 ${
               isDragging
                 ? "border-primary bg-primary/5 scale-[1.01] cursor-pointer"
+                : isDisabled
+                ? "border-border-light cursor-not-allowed"
                 : "border-border-light hover:border-primary/50 hover:bg-primary/5 cursor-pointer"
             }`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
+            onDragOver={!isDisabled ? handleDragOver : undefined}
+            onDragLeave={!isDisabled ? handleDragLeave : undefined}
+            onDrop={!isDisabled ? handleDrop : undefined}
+            onClick={
+              !isDisabled ? () => fileInputRef.current?.click() : undefined
+            }
           >
             <File className="w-8 h-8 text-text-muted mx-auto mb-2" />
             <p className="font-grotesk text-sm text-text-muted mb-1">
@@ -146,7 +160,7 @@ const JobDescriptionUpload: React.FC<JobDescriptionUploadProps> = ({
               accept=".txt,.docx,.pdf,.jpg,.jpeg,.png,.webp,.heic,.heif"
               onChange={handleFileSelect}
               className="hidden"
-              disabled={isProcessing}
+              disabled={isProcessing || isDisabled}
             />
           </div>
         </div>
@@ -181,7 +195,7 @@ const JobDescriptionUpload: React.FC<JobDescriptionUploadProps> = ({
                 ? "min-h-20 sm:min-h-24"
                 : "min-h-40 sm:min-h-48"
             }`}
-            disabled={isProcessing}
+            disabled={isProcessing || isDisabled}
           />
         </div>
 
@@ -198,7 +212,10 @@ const JobDescriptionUpload: React.FC<JobDescriptionUploadProps> = ({
               variant="ghost"
               size="sm"
               onClick={handleShowUpload}
-              className={`text-text-muted hover:text-text hover:bg-bg-light transition-colors duration-200`}
+              disabled={isDisabled}
+              className={`text-text-muted hover:text-text hover:bg-bg-light transition-colors duration-200 ${
+                isDisabled ? "cursor-not-allowed opacity-50" : ""
+              }`}
             >
               <File className="w-4 h-4 mr-2" />
               or upload file

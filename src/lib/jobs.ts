@@ -83,14 +83,21 @@ export async function getUserJobs(status?: JobStatus): Promise<Job[]> {
  */
 export async function getJobById(jobId: string): Promise<Job | null> {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error('User not authenticated');
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('jobs')
       .select('*')
       .eq('id', jobId)
+      .eq('user_id', user.id)
       .single();
 
     if (error) {
-      console.error('Error fetching job:', error);
+      console.error('Error fetching job:', error, 'JobId:', jobId, 'UserId:', user.id);
       return null;
     }
 
@@ -563,6 +570,8 @@ export async function getJobOverview(jobId: string) {
   try {
     // Get job details
     const job = await getJobById(jobId);
+
+    console.log(job, "job");
     if (!job) return null;
 
     // Get ranked candidates with applications

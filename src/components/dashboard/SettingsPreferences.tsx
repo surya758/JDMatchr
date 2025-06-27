@@ -256,59 +256,6 @@ const SettingsPreferences = () => {
           </div>
         </div>
 
-        {/* Notification Settings */}
-        <div className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-6 shadow-xl">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
-              <Bell className="w-5 h-5 text-blue-400" />
-            </div>
-            <div>
-              <h2 className="font-grotesk font-semibold text-text">
-                Notifications
-              </h2>
-              <p className="text-text-muted text-sm">
-                Configure your notification preferences
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-text font-medium">
-                  Push Notifications
-                </Label>
-                <p className="text-text-muted text-sm">
-                  Receive notifications about analysis completion
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                name="notifications"
-                checked={formData.notifications}
-                onChange={handleInputChange}
-                className="w-4 h-4 rounded border-border-custom bg-bg/30 text-primary focus:ring-0"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-text font-medium">Email Reports</Label>
-                <p className="text-text-muted text-sm">
-                  Receive analysis reports via email
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                name="emailReports"
-                checked={formData.emailReports}
-                onChange={handleInputChange}
-                className="w-4 h-4 rounded border-border-custom bg-bg/30 text-primary focus:ring-0"
-              />
-            </div>
-          </div>
-        </div>
-
         {/* Security Settings */}
         <div className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-6 shadow-xl">
           <div className="flex items-center space-x-3 mb-6">
@@ -324,13 +271,6 @@ const SettingsPreferences = () => {
           </div>
 
           <div className="space-y-4">
-            <Button
-              variant="outline"
-              className="w-full border-border-custom hover:bg-bg-light justify-start"
-            >
-              Two-Factor Authentication
-            </Button>
-
             <Button
               variant="outline"
               onClick={handleDeleteAccount}
