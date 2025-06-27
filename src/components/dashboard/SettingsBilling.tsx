@@ -70,7 +70,7 @@ const SettingsBilling = () => {
     },
     {
       name: "Pro",
-      price: "$9.99",
+      price: "$24.99",
       period: "/month",
       credits: 30,
       features: [
