@@ -886,7 +886,7 @@ const ResumeUpload = ({
                 Screen More Candidates
               </Button>
               <p className="text-text-subtle text-xs mt-2">
-                Subject to rate limits for anonymous users
+                Free anonymous screening available
               </p>
             </div>
           </div>
