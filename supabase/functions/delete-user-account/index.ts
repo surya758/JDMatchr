@@ -68,37 +68,96 @@ serve(async (req) => {
 
     console.log(`🗑️ Starting account deletion for user: ${userId}`)
 
-    // Step 1: Cancel and delete all subscriptions
-    console.log('📋 Cancelling and deleting subscriptions...')
-    const { error: subscriptionError } = await supabaseAdmin
-      .from('subscriptions')
-      .delete()
-      .eq('user_id', userId)
-
-    if (subscriptionError) {
-      console.error('❌ Error deleting subscriptions:', subscriptionError)
-      throw new Error('Failed to delete subscriptions')
-    }
-
-    // Step 2: Delete user profile data
-    console.log('👤 Deleting user profile...')
-    const { error: profileError } = await supabaseAdmin
+    // Check if user exists in our users table
+    const { data: userData, error: userCheckError } = await supabaseAdmin
       .from('users')
-      .delete()
+      .select('id, email')
       .eq('id', userId)
+      .single()
 
-    if (profileError) {
-      console.error('❌ Error deleting user profile:', profileError)
-      throw new Error('Failed to delete user profile')
+    if (userCheckError && userCheckError.code !== 'PGRST116') {
+      console.error('❌ Error checking user existence:', userCheckError)
+      throw new Error('Failed to verify user account')
     }
 
-    // Step 3: Delete user from authentication (this cascades to related data)
-    console.log('🔐 Deleting user from authentication...')
+    if (userData) {
+      console.log(`📋 Found user data for: ${userData.email}`)
+    }
+
+    // Delete user from authentication - this should cascade to all related tables
+    // because users table has ON DELETE CASCADE from auth.users
+    // and all other tables cascade from users table
+    console.log('🔐 Deleting user from authentication (this will cascade to all related data)...')
+    
     const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(userId)
 
     if (deleteUserError) {
       console.error('❌ Error deleting user from auth:', deleteUserError)
-      throw new Error('Failed to delete user from authentication')
+      
+      // If auth deletion fails, let's try to clean up manually
+      console.log('🧹 Auth deletion failed, attempting manual cleanup...')
+      
+      try {
+        // Delete in order to avoid foreign key constraints
+        console.log('🧹 Cleaning up job_applications...')
+        
+        // First get the user's job IDs
+        const { data: userJobs } = await supabaseAdmin
+          .from('jobs')
+          .select('id')
+          .eq('user_id', userId)
+        
+        if (userJobs && userJobs.length > 0) {
+          const jobIds = userJobs.map(job => job.id)
+          await supabaseAdmin
+            .from('job_applications')
+            .delete()
+            .in('job_id', jobIds)
+        }
+
+        console.log('🧹 Cleaning up candidates...')
+        await supabaseAdmin
+          .from('candidates')
+          .delete()
+          .eq('user_id', userId)
+
+        console.log('🧹 Cleaning up jobs...')
+        await supabaseAdmin
+          .from('jobs')
+          .delete()
+          .eq('user_id', userId)
+
+        console.log('🧹 Cleaning up user_preferences...')
+        await supabaseAdmin
+          .from('user_preferences')
+          .delete()
+          .eq('user_id', userId)
+
+        console.log('🧹 Cleaning up subscriptions...')
+        await supabaseAdmin
+          .from('subscriptions')
+          .delete()
+          .eq('user_id', userId)
+
+        console.log('🧹 Cleaning up users table...')
+        await supabaseAdmin
+          .from('users')
+          .delete()
+          .eq('id', userId)
+
+        // Try auth deletion again
+        console.log('🔐 Retrying auth user deletion...')
+        const { error: retryDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+        
+        if (retryDeleteError) {
+          console.error('❌ Failed to delete user from auth even after cleanup:', retryDeleteError)
+          throw new Error(`Failed to delete user from authentication: ${retryDeleteError.message}`)
+        }
+        
+      } catch (cleanupError) {
+        console.error('❌ Manual cleanup failed:', cleanupError)
+        throw new Error(`Account deletion failed: ${cleanupError.message}`)
+      }
     }
 
     console.log('✅ Account deletion completed successfully')

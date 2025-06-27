@@ -571,7 +571,6 @@ export async function getJobOverview(jobId: string) {
     // Get job details
     const job = await getJobById(jobId);
 
-    console.log(job, "job");
     if (!job) return null;
 
     // Get ranked candidates with applications

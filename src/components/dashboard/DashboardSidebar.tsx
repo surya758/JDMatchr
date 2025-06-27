@@ -93,6 +93,11 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
   const settingsItems = [
     {
+      icon: User,
+      label: "Account",
+      href: "/dashboard/settings/account",
+    },
+    {
       icon: Settings,
       label: "Preferences",
       href: "/dashboard/settings/preferences",
@@ -204,7 +209,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             onClick={() => {
               if (isCollapsed) {
                 // If collapsed, navigate to settings
-                navigate("/dashboard/settings/preferences");
+                navigate("/dashboard/settings/account");
               } else {
                 // If expanded, toggle the submenu
                 setIsSettingsExpanded(!isSettingsExpanded);

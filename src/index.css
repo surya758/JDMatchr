@@ -20,6 +20,7 @@
     
     /* Border colors */
     --border: 0 0% 15%;           /* Dark border */
+    --border-custom: 0 0% 15%;    /* Dark border (alias) */
     --border-light: 0 0% 20%;     /* Lighter border */
     
     /* Primary colors */
@@ -70,6 +71,7 @@
      
      /* Border colors */
      --border: 0 0% 15%;           /* Dark border */
+     --border-custom: 0 0% 15%;    /* Dark border (alias) */
      --border-light: 0 0% 20%;     /* Lighter border */
   }
   
@@ -86,6 +88,7 @@
 
     /* Border colors */
     --border: 0 0% 85%;           /* Light border */
+    --border-custom: 0 0% 85%;    /* Light border (alias) */
     --border-light: 0 0% 80%;     /* Darker light border */
   }
 }

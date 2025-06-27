@@ -30,7 +30,7 @@ export default {
 				'text': 'hsl(var(--text))',
 				'text-muted': 'hsl(var(--text-muted))',
 				'text-subtle': 'hsl(var(--text-subtle))',
-				'border-custom': 'hsl(var(--border))',
+				'border-custom': 'hsl(var(--border-custom))',
 				'border-light': 'hsl(var(--border-light))',
 				
 				// Existing system colors

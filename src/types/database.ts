@@ -238,6 +238,38 @@ export type Database = {
           },
         ]
       }
+      user_preferences: {
+        Row: {
+          id: string
+          user_id: string
+          preferences: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          preferences?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          preferences?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
@@ -281,6 +313,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_preferences: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: Json
+      }
       process_expired_subscriptions: {
         Args: {}
         Returns: {
@@ -399,6 +437,10 @@ export type UserUpdate = TablesUpdate<'users'>
 export type Subscription = Tables<'subscriptions'>
 export type SubscriptionInsert = TablesInsert<'subscriptions'>
 export type SubscriptionUpdate = TablesUpdate<'subscriptions'>
+
+export type UserPreferences = Tables<'user_preferences'>
+export type UserPreferencesInsert = TablesInsert<'user_preferences'>
+export type UserPreferencesUpdate = TablesUpdate<'user_preferences'>
 
 // Status enums
 export type JobStatus = 'draft' | 'active' | 'closed'

@@ -1,23 +1,19 @@
-import React, { useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   Calendar,
   MapPin,
-  Building2,
   Users,
   TrendingUp,
   Download,
   FileText,
-  Star,
   Award,
   Clock,
   AlertCircle,
   Loader2,
   FileDown,
   Crown,
-  Eye,
-  EyeOff,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -30,23 +26,25 @@ import { Separator } from "../ui/separator";
 import { useJobReportDetail } from "@/hooks/useJobReports";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useToast } from "@/hooks/use-toast";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { supabase } from "@/lib/supabase";
-import { LoaderInline } from "../ui/loader";
 
 const ReportDetail = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { subscriptionStatus } = useSubscription();
+  const { preferences } = useUserPreferences();
   const [showJobDescription, setShowJobDescription] = useState(false);
   const [downloadingCandidate, setDownloadingCandidate] = useState<
     string | null
   >(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const candidatesPerPage = 5;
+  const candidatesPerPage = preferences.results_per_page;
   const [expandedCandidate, setExpandedCandidate] = useState<string | null>(
     null
   );
+  const [hasAutoExpanded, setHasAutoExpanded] = useState(false);
 
   // Extract reportId from pathname since we're not using route parameters
   const reportId = location.pathname.split("/").pop() || "";
@@ -58,15 +56,32 @@ const ReportDetail = () => {
     refetch,
   } = useJobReportDetail(reportId || "");
 
-  console.log("ReportDetail Debug:", {
-    reportId,
-    reportData,
-    isLoading,
-    error,
-    hasReportData: !!reportData,
-  });
-
   const isFreePlan = subscriptionStatus === "free";
+
+  // Auto-expand first candidate if preference is enabled
+  // This must be before any conditional returns to follow rules of hooks
+  useEffect(() => {
+    if (
+      reportData &&
+      preferences.auto_expand_candidates &&
+      reportData.candidates?.length > 0 &&
+      !hasAutoExpanded
+    ) {
+      // Get the first candidate on the current page
+      const startIndex = (currentPage - 1) * candidatesPerPage;
+      const firstCandidateOnPage = reportData.candidates[startIndex];
+      if (firstCandidateOnPage) {
+        setExpandedCandidate(firstCandidateOnPage.id);
+        setHasAutoExpanded(true);
+      }
+    }
+  }, [
+    reportData,
+    preferences.auto_expand_candidates,
+    currentPage,
+    candidatesPerPage,
+    hasAutoExpanded,
+  ]);
 
   // Check if report is within 30-day download window
   const isWithinDownloadWindow = (reportDate: string) => {
@@ -448,6 +463,8 @@ const ReportDetail = () => {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     setExpandedCandidate(null); // Reset expansion when changing pages
+    setHasAutoExpanded(false); // Reset auto-expand flag to allow auto-expansion on new page
+
     // Scroll to candidates section
     const candidatesSection = document.getElementById("candidates-section");
     if (candidatesSection) {

@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import { useLocation } from "react-router-dom";
+import { useThemeInit } from "../hooks/useThemeInit";
+import { useUserPreferences } from "../hooks/useUserPreferences";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import DashboardSidebar from "../components/dashboard/DashboardSidebar";
@@ -11,10 +13,24 @@ import Settings from "../components/dashboard/Settings";
 
 const Dashboard = () => {
   const location = useLocation();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { preferences, updatePreference, isUpdating, isLoading } =
+    useUserPreferences();
 
-  const toggleSidebar = () => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
+  // Initialize theme from user preferences
+  useThemeInit();
+
+  const toggleSidebar = async () => {
+    // Optimistic update - the UI will change immediately
+    // while the database update happens in the background
+    try {
+      await updatePreference({
+        key: "dashboard_sidebar_collapsed",
+        value: !preferences.dashboard_sidebar_collapsed,
+      });
+    } catch (error) {
+      console.error("Failed to update sidebar preference:", error);
+      // The UI will revert automatically due to React Query's error handling
+    }
   };
 
   const renderContent = () => {
@@ -51,7 +67,9 @@ const Dashboard = () => {
           {/* Sidebar */}
           <div className="flex-shrink-0">
             <DashboardSidebar
-              isCollapsed={isSidebarCollapsed}
+              isCollapsed={
+                isLoading ? false : preferences.dashboard_sidebar_collapsed
+              }
               onToggleCollapse={toggleSidebar}
             />
           </div>
