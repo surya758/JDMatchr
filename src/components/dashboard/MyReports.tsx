@@ -15,6 +15,7 @@ import {
   AlertCircle,
   Loader2,
   FileDown,
+  Crown,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -32,6 +33,7 @@ import {
 import { useJobReports, type JobReport } from "@/hooks/useJobReports";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/lib/supabase";
 import { LoaderInline } from "../ui/loader";
 
@@ -49,7 +51,20 @@ const MyReports = () => {
 
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { subscriptionStatus } = useSubscription();
   const { data: reports = [], isLoading, error, refetch } = useJobReports();
+
+  const isFreePlan = subscriptionStatus === "free";
+
+  // Check if report is within 30-day download window
+  const isWithinDownloadWindow = (reportDate: string) => {
+    const createdDate = new Date(reportDate);
+    const now = new Date();
+    const daysDiff = Math.floor(
+      (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return daysDiff <= 30;
+  };
 
   // Handle top candidate resume download
   const handleDownloadResume = async (report: JobReport) => {
@@ -464,7 +479,7 @@ const MyReports = () => {
                 <span className="font-medium text-text">
                   {filteredReports.length}
                 </span>{" "}
-                reports
+                {reports.length > 1 ? "reports" : "report"}
                 {filteredReports.length !== reports.length && (
                   <span className="text-text-subtle">
                     {" "}
@@ -651,17 +666,18 @@ const MyReports = () => {
                               <p className="font-grotesk font-medium text-text">
                                 {report.topMatch}
                               </p>
-                              {report.topCandidateFilePath && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDownloadResume(report)}
-                                  className="h-6 w-6 p-0 hover:bg-primary/10 text-primary hover:text-primary"
-                                  title={`Download ${report.topMatch}'s resume`}
-                                >
-                                  <FileDown className="w-3 h-3" />
-                                </Button>
-                              )}
+                              {report.topCandidateFilePath &&
+                                isWithinDownloadWindow(report.date) && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDownloadResume(report)}
+                                    className="h-6 w-6 p-0 hover:bg-primary/10 text-primary hover:text-primary"
+                                    title={`Download ${report.topMatch}'s resume`}
+                                  >
+                                    <FileDown className="w-3 h-3" />
+                                  </Button>
+                                )}
                             </div>
                           </div>
                           <div>
@@ -699,14 +715,39 @@ const MyReports = () => {
                           <Eye className="w-4 h-4 mr-2" />
                           View
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-border-custom hover:bg-bg-light"
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          Export
-                        </Button>
+                        {isFreePlan ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              navigate("/dashboard/settings/billing")
+                            }
+                            className="border-primary/20 text-primary hover:bg-primary/10 hover:border-primary/30"
+                          >
+                            <Crown className="w-4 h-4 mr-2" />
+                            Upgrade for Export
+                          </Button>
+                        ) : isWithinDownloadWindow(report.date) ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-border-custom hover:bg-bg-light"
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            Export
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled
+                            className="border-border-custom opacity-50 cursor-not-allowed"
+                            title="Download window expired (30 days)"
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            Expired
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
