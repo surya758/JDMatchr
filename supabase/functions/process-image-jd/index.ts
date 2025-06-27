@@ -66,7 +66,9 @@ serve(async (req) => {
     const prompt = `
 You are an expert HR assistant. Analyze this image which contains a job description and extract all relevant information into a structured format.
 
-Please carefully read all text in the image and extract the information into the following JSON structure. If certain information is not visible or available in the image, leave those fields empty or with empty arrays:
+IMPORTANT: You must return ONLY valid JSON. Do not include any markdown formatting, code blocks, or additional text.
+
+Please carefully read all text in the image and extract the information into this EXACT JSON structure:
 
 {
   "title": "Job title extracted from the image",
@@ -74,15 +76,23 @@ Please carefully read all text in the image and extract the information into the
   "location": "Location if mentioned (city, state, remote, etc.)",
   "employmentType": "Full-time, Part-time, Contract, Internship, etc.",
   "experienceLevel": "Entry, Mid, Senior, etc. or specific years mentioned",
-  "requiredSkills": ["List of technical and non-technical skills that are explicitly required"],
-  "preferredSkills": ["List of skills that are nice-to-have or preferred"],
-  "responsibilities": ["List of key job responsibilities and duties"],
-  "qualifications": ["List of educational requirements, certifications, experience requirements"],
-  "benefits": ["List of benefits, perks, compensation details if mentioned"],
-  "summary": "A concise 2-3 sentence summary of the role and what the ideal candidate should have"
+  "requiredSkills": ["Skill 1", "Skill 2", "Skill 3"],
+  "preferredSkills": ["Preferred skill 1", "Preferred skill 2"],
+  "responsibilities": ["Responsibility 1", "Responsibility 2"],
+  "qualifications": ["Qualification 1", "Qualification 2"],
+  "benefits": ["Benefit 1", "Benefit 2"],
+  "summary": "A concise 2-3 sentence summary of the role"
 }
 
-Focus on accuracy and be comprehensive. Extract as much relevant information as possible while maintaining the structure. Return only the JSON object, no additional text.
+JSON FORMATTING RULES:
+- All strings must be properly quoted with double quotes
+- All array elements must be properly quoted and comma-separated
+- No trailing commas in arrays or objects
+- No incomplete array elements
+- If information is not available, use empty string "" or empty array []
+- Ensure all brackets and braces are properly closed
+
+Return ONLY the JSON object with no additional text, formatting, or explanations.
 `;
 
     // Call Gemini API with inline image data
@@ -112,6 +122,7 @@ Focus on accuracy and be comprehensive. Extract as much relevant information as 
             topK: 32,
             topP: 1,
             maxOutputTokens: 65536,
+            responseMimeType: "application/json"
           },
         }),
       }
@@ -131,22 +142,94 @@ Focus on accuracy and be comprehensive. Extract as much relevant information as 
 
     const generatedText = geminiData.candidates[0].content.parts[0].text;
     
+    // Function to repair common JSON issues
+    const repairJson = (jsonString: string): string => {
+      let repaired = jsonString;
+      
+      // Remove markdown code blocks
+      repaired = repaired.replace(/```json|```/g, '').trim();
+      
+      // Fix incomplete array elements (like "fairness" without quotes or proper ending)
+      repaired = repaired.replace(/,\s*([a-zA-Z][^"]*)\s*\]/g, ']'); // Remove incomplete trailing elements
+      repaired = repaired.replace(/,\s*([a-zA-Z][^"]*)\s*,/g, ','); // Remove incomplete middle elements
+      
+      // Fix unquoted strings in arrays
+      repaired = repaired.replace(/:\s*\[\s*([^"\]]+)\s*\]/g, (match, content) => {
+        const items = content.split(',').map((item: string) => {
+          const trimmed = item.trim();
+          if (trimmed && !trimmed.startsWith('"')) {
+            return `"${trimmed.replace(/"/g, '\\"')}"`;
+          }
+          return trimmed;
+        }).filter((item: string) => item && item !== '""');
+        return `: [${items.join(', ')}]`;
+      });
+      
+      // Fix trailing commas
+      repaired = repaired.replace(/,\s*}/g, '}');
+      repaired = repaired.replace(/,\s*]/g, ']');
+      
+      // Fix missing quotes around object keys
+      repaired = repaired.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
+      
+      return repaired;
+    };
+    
     // Parse the JSON response from Gemini
     let formattedJD: FormattedJD;
     try {
-      // Clean up the response in case there's extra text
+      // First, try to parse the raw response
       const cleanedText = generatedText.replace(/```json|```/g, '').trim();
       formattedJD = JSON.parse(cleanedText);
     } catch (parseError) {
-      console.error('Error parsing Gemini response:', parseError);
+      console.error('Initial JSON parse failed, attempting repair...');
       console.error('Raw response:', generatedText);
-      throw new Error('Failed to parse structured response from AI');
+      
+      try {
+        // Attempt to repair and parse again
+        const repairedText = repairJson(generatedText);
+        console.log('Repaired JSON:', repairedText);
+        formattedJD = JSON.parse(repairedText);
+      } catch (repairError) {
+        console.error('JSON repair also failed:', repairError);
+        console.error('Repaired text:', repairJson(generatedText));
+        
+        // Fallback: create a basic structure with the original content
+        formattedJD = {
+          title: "Job Position",
+          company: "",
+          location: "",
+          employmentType: "",
+          experienceLevel: "",
+          requiredSkills: [],
+          preferredSkills: [],
+          responsibilities: [],
+          qualifications: [],
+          benefits: [],
+          summary: "Unable to parse image job description. Please review the original content."
+        };
+      }
     }
+
+    // Validate and sanitize the parsed object
+    const sanitizedJD: FormattedJD = {
+      title: typeof formattedJD.title === 'string' ? formattedJD.title : "Job Position",
+      company: typeof formattedJD.company === 'string' ? formattedJD.company : "",
+      location: typeof formattedJD.location === 'string' ? formattedJD.location : "",
+      employmentType: typeof formattedJD.employmentType === 'string' ? formattedJD.employmentType : "",
+      experienceLevel: typeof formattedJD.experienceLevel === 'string' ? formattedJD.experienceLevel : "",
+      requiredSkills: Array.isArray(formattedJD.requiredSkills) ? formattedJD.requiredSkills.filter(skill => typeof skill === 'string' && skill.trim()) : [],
+      preferredSkills: Array.isArray(formattedJD.preferredSkills) ? formattedJD.preferredSkills.filter(skill => typeof skill === 'string' && skill.trim()) : [],
+      responsibilities: Array.isArray(formattedJD.responsibilities) ? formattedJD.responsibilities.filter(resp => typeof resp === 'string' && resp.trim()) : [],
+      qualifications: Array.isArray(formattedJD.qualifications) ? formattedJD.qualifications.filter(qual => typeof qual === 'string' && qual.trim()) : [],
+      benefits: Array.isArray(formattedJD.benefits) ? formattedJD.benefits.filter(benefit => typeof benefit === 'string' && benefit.trim()) : [],
+      summary: typeof formattedJD.summary === 'string' ? formattedJD.summary : "Image job description processed successfully."
+    };
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        formattedJD,
+        formattedJD: sanitizedJD,
         source: 'image',
         fileName: fileName || 'unknown',
         extractedText: generatedText // Include raw response for debugging

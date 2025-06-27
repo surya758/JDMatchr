@@ -178,29 +178,53 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          cancel_at_period_end: boolean
+          cancelled_at: string | null
           created_at: string
           credits_remaining: number
+          current_period_end: string | null
+          current_period_start: string | null
           expires_at: string | null
           id: string
+          job_credits: number
+          job_credits_used: number
+          plan_name: string
           plan_type: string
+          status: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          cancel_at_period_end?: boolean
+          cancelled_at?: string | null
           created_at?: string
           credits_remaining?: number
+          current_period_end?: string | null
+          current_period_start?: string | null
           expires_at?: string | null
           id?: string
+          job_credits?: number
+          job_credits_used?: number
+          plan_name?: string
           plan_type?: string
+          status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          cancel_at_period_end?: boolean
+          cancelled_at?: string | null
           created_at?: string
           credits_remaining?: number
+          current_period_end?: string | null
+          current_period_start?: string | null
           expires_at?: string | null
           id?: string
+          job_credits?: number
+          job_credits_used?: number
+          plan_name?: string
           plan_type?: string
+          status?: string
           updated_at?: string
           user_id?: string
         }
@@ -216,22 +240,28 @@ export type Database = {
       }
       users: {
         Row: {
+          avatar_url: string | null
           created_at: string
           email: string
+          full_name: string | null
           id: string
           name: string | null
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           email: string
+          full_name?: string | null
           id: string
           name?: string | null
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           email?: string
+          full_name?: string | null
           id?: string
           name?: string | null
           updated_at?: string
@@ -363,11 +393,18 @@ export type JobApplicationInsert = TablesInsert<'job_applications'>
 export type JobApplicationUpdate = TablesUpdate<'job_applications'>
 
 export type User = Tables<'users'>
+export type UserInsert = TablesInsert<'users'>
+export type UserUpdate = TablesUpdate<'users'>
+
 export type Subscription = Tables<'subscriptions'>
+export type SubscriptionInsert = TablesInsert<'subscriptions'>
+export type SubscriptionUpdate = TablesUpdate<'subscriptions'>
 
 // Status enums
 export type JobStatus = 'draft' | 'active' | 'closed'
 export type ApplicationStatus = 'pending' | 'under_review' | 'rejected' | 'interviewed' | 'hired'
+export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'trialing'
+export type PlanName = 'free' | 'pro' | 'enterprise'
 
 export const Constants = {
   public: {

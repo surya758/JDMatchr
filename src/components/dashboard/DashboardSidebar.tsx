@@ -332,7 +332,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               shadow-2xl overflow-hidden transition-all duration-200 z-50
               ${
                 isCollapsed
-                  ? "bottom-0 right-full mr-4 w-48"
+                  ? "bottom-0 left-full ml-4 w-48"
                   : "bottom-full left-0 right-0 mb-2"
               }
               ${
@@ -342,18 +342,6 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               }
             `}
           >
-            {/* User info section - only show when collapsed */}
-            {isCollapsed && (
-              <div className="px-4 py-3 border-b border-border-custom">
-                <div className="font-grotesk font-medium text-sm text-text">
-                  {profile?.full_name || user?.email?.split("@")[0] || "User"}
-                </div>
-                <div className="font-grotesk text-xs text-text-subtle capitalize">
-                  {subscriptionStatus} plan
-                </div>
-              </div>
-            )}
-
             <button
               onClick={handleLogout}
               className="w-full flex items-center text-left transition-all duration-200 text-text-muted hover:text-red-400 hover:bg-red-500/5 rounded-b-xl m-0 border-0 p-0"

@@ -5,7 +5,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useSubscription } from "../hooks/useSubscription";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ className }: { className?: string }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, loading } = useAuth();
   const {
@@ -32,7 +32,7 @@ const Navbar = () => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-dark/80 backdrop-blur-md border-b border-border-custom">
-      <div className="max-w-7xl mx-auto">
+      <div className={`max-w-7xl mx-auto ${className || ""}`}>
         <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
           {/* Logo - Left Side */}
           <Link to="/" className="cursor-pointer">

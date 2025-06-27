@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { LoaderOverlay, LoaderInline } from "@/components/ui/loader";
 import { Upload, FileText, File } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import ResumeUpload from "./ResumeUpload";
 import {
   useJobDescriptionProcessor,
@@ -28,6 +29,7 @@ const HeroSection = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // React Query hook for processing job descriptions
   const jdProcessor = useJobDescriptionProcessor();
@@ -35,8 +37,89 @@ const HeroSection = () => {
   // Check if user is anonymous (not authenticated)
   const isAnonymous = !user;
 
+  // Helper function to format FormattedJD into readable text
+  const formatJDForDisplay = (formattedJD: FormattedJD): string => {
+    const sections = [];
+
+    // Job Title and Company
+    if (formattedJD.title) {
+      sections.push(`Job Title: ${formattedJD.title}`);
+    }
+    if (formattedJD.company) {
+      sections.push(`Company: ${formattedJD.company}`);
+    }
+    if (formattedJD.location) {
+      sections.push(`Location: ${formattedJD.location}`);
+    }
+    if (formattedJD.employmentType) {
+      sections.push(`Employment Type: ${formattedJD.employmentType}`);
+    }
+    if (formattedJD.experienceLevel) {
+      sections.push(`Experience Level: ${formattedJD.experienceLevel}`);
+    }
+
+    // Summary
+    if (formattedJD.summary) {
+      sections.push(`\nSummary:\n${formattedJD.summary}`);
+    }
+
+    // Responsibilities
+    if (
+      formattedJD.responsibilities &&
+      formattedJD.responsibilities.length > 0
+    ) {
+      sections.push(
+        `\nResponsibilities:\n${formattedJD.responsibilities
+          .map((item) => `• ${item}`)
+          .join("\n")}`
+      );
+    }
+
+    // Required Skills
+    if (formattedJD.requiredSkills && formattedJD.requiredSkills.length > 0) {
+      sections.push(
+        `\nRequired Skills:\n${formattedJD.requiredSkills
+          .map((skill) => `• ${skill}`)
+          .join("\n")}`
+      );
+    }
+
+    // Preferred Skills
+    if (formattedJD.preferredSkills && formattedJD.preferredSkills.length > 0) {
+      sections.push(
+        `\nPreferred Skills:\n${formattedJD.preferredSkills
+          .map((skill) => `• ${skill}`)
+          .join("\n")}`
+      );
+    }
+
+    // Qualifications
+    if (formattedJD.qualifications && formattedJD.qualifications.length > 0) {
+      sections.push(
+        `\nQualifications:\n${formattedJD.qualifications
+          .map((qual) => `• ${qual}`)
+          .join("\n")}`
+      );
+    }
+
+    // Benefits
+    if (formattedJD.benefits && formattedJD.benefits.length > 0) {
+      sections.push(
+        `\nBenefits:\n${formattedJD.benefits
+          .map((benefit) => `• ${benefit}`)
+          .join("\n")}`
+      );
+    }
+
+    return sections.join("\n");
+  };
+
   // Only used if user manually types in the job description
   const handleUploadResumes = () => {
+    // Redirect logged-in users to dashboard's New Analysis page
+    if (user) return navigate("/dashboard/new");
+
+    // Continue with anonymous analysis for non-logged-in users
     if (jobDescription.trim()) {
       jdProcessor.mutate(
         { type: "text", content: jobDescription },
@@ -91,6 +174,10 @@ const HeroSection = () => {
   };
 
   const handleDrop = (e: React.DragEvent) => {
+    // Redirect logged-in users to dashboard's New Analysis page
+    if (user) return navigate("/dashboard/new");
+
+    // Continue with anonymous analysis for non-logged-in users
     e.preventDefault();
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files);
@@ -147,6 +234,10 @@ const HeroSection = () => {
   };
 
   const handleFileUpload = (file: File) => {
+    // Redirect logged-in users to dashboard's New Analysis page
+    if (user) return navigate("/dashboard/new");
+
+    // Continue with anonymous analysis for non-logged-in users
     // Check if file type is supported
     const textTypes = [
       "text/plain",
@@ -179,12 +270,18 @@ const HeroSection = () => {
       { type: "file", file },
       {
         onSuccess: (data) => {
-          // For image and PDF files, set a descriptive message instead of generic "processed directly"
-          let displayContent = data.originalContent;
-          if (data.originalContent === "Image processed directly") {
-            displayContent = `Image file processed: ${data.fileName}`;
-          } else if (data.originalContent === "PDF processed directly") {
-            displayContent = `PDF file processed: ${data.fileName}`;
+          // For image and PDF files, format the structured JD data nicely
+          let displayContent;
+          if (
+            data.isImageFile ||
+            data.originalContent === "Image processed directly" ||
+            data.originalContent === "PDF processed directly"
+          ) {
+            // Format the structured job description for display
+            displayContent = formatJDForDisplay(data.formattedJD);
+          } else {
+            // For text files, use the original content
+            displayContent = data.originalContent;
           }
 
           setJobDescription(displayContent);
@@ -399,7 +496,7 @@ const HeroSection = () => {
                         ) : (
                           <>
                             <Upload className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:scale-110" />
-                            Upload Resumes
+                            {user ? "Go to Dashboard" : "Upload Resumes"}
                           </>
                         )}
                       </Button>

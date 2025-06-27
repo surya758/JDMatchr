@@ -25,6 +25,33 @@ export async function uploadResumeFile({
   folder = 'general'
 }: FileUploadOptions): Promise<FileUploadResult> {
   try {
+    // Verify user authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError) {
+      console.error('Auth error in uploadResumeFile:', authError);
+      return {
+        success: false,
+        error: `Authentication error: ${authError.message}`
+      };
+    }
+    
+    if (!user) {
+      console.error('No authenticated user found in uploadResumeFile');
+      return {
+        success: false,
+        error: 'User not authenticated'
+      };
+    }
+
+    // Verify the userId matches the authenticated user
+    if (user.id !== userId) {
+      console.error('User ID mismatch in uploadResumeFile:', { authUserId: user.id, providedUserId: userId });
+      return {
+        success: false,
+        error: 'User ID mismatch - unauthorized access'
+      };
+    }
+
     // Generate unique filename with timestamp
     const timestamp = Date.now();
     const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -34,6 +61,8 @@ export async function uploadResumeFile({
     const filePath = jobId 
       ? `${userId}/${jobId}/${fileName}`
       : `${userId}/${folder}/${fileName}`;
+
+    console.log('Uploading file to storage:', { filePath, fileSize: file.size, fileType: file.type });
 
     // Upload file to Supabase Storage
     const { data, error } = await supabase.storage
@@ -47,9 +76,11 @@ export async function uploadResumeFile({
       console.error('Storage upload error:', error);
       return {
         success: false,
-        error: error.message
+        error: `Storage error: ${error.message}`
       };
     }
+
+    console.log('File uploaded successfully:', data);
 
     // Get public URL (for private buckets, this will be a signed URL)
     const { data: urlData } = supabase.storage

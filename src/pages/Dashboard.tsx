@@ -33,14 +33,14 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-bg-dark text-text font-grotesk">
-      {/* Fixed width container that contains everything */}
-      <div className="max-w-7xl mx-auto relative border-l border-r border-border-custom flex flex-col min-h-screen">
+      {/* Expanded width container that contains everything */}
+      <div className="max-w-[1600px] mx-auto relative border-l border-r border-border-custom flex flex-col min-h-screen">
         {/* Vertical line decorations */}
         <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-text-subtle to-transparent opacity-50 z-10"></div>
         <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-text-subtle to-transparent opacity-50 z-10"></div>
 
         {/* Fixed Navbar */}
-        <Navbar />
+        <Navbar className="max-w-[1600px]" />
 
         {/* Dashboard Layout */}
         <div className="flex flex-1 min-h-0 pt-16">
@@ -54,8 +54,8 @@ const Dashboard = () => {
 
           {/* Main Content Area */}
           <main className="flex-1 overflow-auto">
-            <div className="px-6 py-8">
-              <div className="max-w-6xl mx-auto">{renderContent()}</div>
+            <div className="px-8 py-8">
+              <div className="max-w-[1400px] mx-auto">{renderContent()}</div>
             </div>
           </main>
         </div>
