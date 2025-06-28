@@ -469,7 +469,15 @@ export type UserPreferencesUpdate = TablesUpdate<'user_preferences'>
 // Status enums
 export type JobStatus = 'draft' | 'active' | 'closed'
 export type ApplicationStatus = 'pending' | 'under_review' | 'rejected' | 'interviewed' | 'hired'
-export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'past_due' | 'on_hold' | 'paused' | 'failed'
+export type SubscriptionStatus = 
+  | 'active' 
+  | 'expired' 
+  | 'cancelled'
+  | 'on_hold'
+  | 'paused'
+  | 'failed'
+  | 'pending'
+  | 'completed'
 export type PlanName = 'free' | 'pro' | 'enterprise'
 
 export const Constants = {

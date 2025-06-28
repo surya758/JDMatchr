@@ -146,6 +146,35 @@ serve(async (req) => {
     }
 
     const subscription = await subscriptionResponse.json()
+    console.log('DODO subscription created:', subscription.subscription_id)
+
+    // Step 4: Create pending subscription record in our database
+    console.log('Creating pending subscription record in database')
+    
+    const { data: pendingSubscription, error: dbError } = await supabase
+      .from('subscriptions')
+      .insert({
+        user_id: user.id,
+        payment_id: subscription.payment_id,
+        dodo_subscription_id: subscription.subscription_id,
+        dodo_customer_id: customer.customer_id,
+        dodo_product_id: productId,
+        plan_name: 'pro',
+        status: 'pending',
+        job_credits: 0, // Credits granted only when payment is confirmed
+        job_credits_used: 0,
+        amount_cents: subscription.recurring_pre_tax_amount || null,
+      })
+      .select()
+      .single()
+
+    if (dbError) {
+      console.error('Failed to create pending subscription:', dbError)
+      // Don't fail the request - webhook can handle this case
+      console.log('Continuing without database record - webhook will handle creation')
+    } else {
+      console.log('Pending subscription created:', pendingSubscription.id)
+    }
 
     // Return the subscription session data
     return new Response(
