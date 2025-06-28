@@ -325,6 +325,30 @@ export type Database = {
           processed_count: number
         }[]
       }
+      sync_dodo_subscription: {
+        Args: {
+          p_user_id: string
+          p_dodo_subscription_id: string
+          p_dodo_customer_id: string
+          p_plan_name: string
+          p_status: string
+          p_current_period_start: string
+          p_current_period_end: string
+          p_amount_cents?: number
+          p_currency?: string
+          p_billing_interval?: string
+          p_metadata?: Json
+        }
+        Returns: string
+      }
+      update_local_subscription: {
+        Args: {
+          p_user_id: string
+          p_plan_name: string
+          p_status?: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
@@ -445,7 +469,7 @@ export type UserPreferencesUpdate = TablesUpdate<'user_preferences'>
 // Status enums
 export type JobStatus = 'draft' | 'active' | 'closed'
 export type ApplicationStatus = 'pending' | 'under_review' | 'rejected' | 'interviewed' | 'hired'
-export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'trialing'
+export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'past_due' | 'on_hold' | 'paused' | 'failed'
 export type PlanName = 'free' | 'pro' | 'enterprise'
 
 export const Constants = {

@@ -40,6 +40,35 @@ export const useSubscription = () => {
         .maybeSingle()
 
       if (error) throw error
+      
+      // If no subscription found, create a free one as fallback
+      if (!data && user?.id) {
+        console.log('No subscription found for user, creating free subscription...')
+        const { error: createError } = await supabase.rpc('update_local_subscription', {
+          p_user_id: user.id,
+          p_plan_name: 'free',
+          p_status: 'active'
+        })
+        
+        if (createError) {
+          console.error('Error creating fallback subscription:', createError)
+        } else {
+          // Refetch to get the newly created subscription
+          const { data: newData, error: refetchError } = await supabase
+            .from('subscriptions')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          
+          if (!refetchError && newData) {
+            return newData
+          }
+        }
+      }
+      
       return data
     },
     enabled: !!user?.id,
@@ -148,11 +177,33 @@ export const useSubscription = () => {
   const upgradeSubscription = async (planName: 'free' | 'pro' | 'enterprise') => {
     if (!user?.id) throw new Error('No user logged in')
     
+    // For free plans, use local-only function (no payment processor)
+    if (planName === 'free') {
+      const { error } = await supabase.rpc('update_local_subscription', {
+        p_user_id: user.id,
+        p_plan_name: planName,
+        p_status: 'active'
+      })
+      
+      if (error) throw error
+      
+      // Invalidate queries to refresh the UI
+      queryClient.invalidateQueries({
+        queryKey: subscriptionKeys.detail(user.id)
+      })
+      queryClient.invalidateQueries({
+        queryKey: subscriptionKeys.history(user.id)
+      })
+      
+      return
+    }
+    
+    // For paid plans, use the regular mutation (will be synced via Dodo webhook)
     const now = new Date()
     const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
     
     // Set credits based on plan
-    const credits = planName === 'free' ? 1 : planName === 'pro' ? 30 : 999
+    const credits = planName === 'pro' ? 30 : 999
 
     return createSubscriptionMutation.mutateAsync({
       user_id: user.id,

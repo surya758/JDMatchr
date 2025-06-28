@@ -8,6 +8,9 @@ import {
   Star,
   AlertTriangle,
   RotateCcw,
+  ExternalLink,
+  PartyPopper,
+  CheckCircle,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { useUserProfile } from "../../hooks/useUserProfile";
@@ -19,8 +22,13 @@ import {
 import ConfirmationModal from "../ui/confirmation-modal";
 import { generateBillingPDF, generateBillingReport } from "../../lib/billing";
 import { useToast } from "../../hooks/use-toast";
+import { dodoPayments } from "../../lib/dodo-payments";
+import { useAuth } from "../../hooks/useAuth";
+import { LoaderInline } from "../ui/loader";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 
 const SettingsBilling = () => {
+  const { user } = useAuth();
   const { profile } = useUserProfile();
   const { toast } = useToast();
 
@@ -50,6 +58,34 @@ const SettingsBilling = () => {
   const isUpdating = isSubscriptionUpdating || isConfirmationLoading;
   const [downloadingPDF, setDownloadingPDF] = useState<string | null>(null);
   const [downloadingReport, setDownloadingReport] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Handle payment success/cancellation from URL params
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get("success");
+    const cancelled = urlParams.get("cancelled");
+
+    if (success === "true") {
+      // Show success modal instead of toast
+      setShowSuccessModal(true);
+      // Clean up URL
+      window.history.replaceState({}, "", window.location.pathname);
+      // Refresh page to fetch latest subscription data
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000); // Reload after 3 seconds to allow user to see success
+    } else if (cancelled === "true") {
+      toast({
+        title: "Payment Cancelled",
+        description: "Your payment was cancelled. You can try again anytime.",
+        variant: "default",
+      });
+      // Clean up URL
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [toast]);
 
   const plans = [
     {
@@ -109,7 +145,7 @@ const SettingsBilling = () => {
   // Get current plan tier
   const currentPlanTier = plans.find((plan) => plan.current)?.tier || 1;
 
-  const handleUpgrade = (planName: string) => {
+  const handleUpgrade = async (planName: string) => {
     if (planName === "Enterprise") {
       toast({
         title: "Enterprise Plan Coming Soon",
@@ -119,17 +155,74 @@ const SettingsBilling = () => {
       return;
     }
 
-    showConfirmation(
-      confirmationConfigs.upgradeSubscription(planName),
-      async () => {
-        const plan = planName.toLowerCase() as "free" | "pro" | "enterprise";
-        await upgradeSubscription(plan);
+    // Handle Free plan locally (no payment processor needed)
+    if (planName === "Free") {
+      showConfirmation(
+        confirmationConfigs.upgradeSubscription(planName),
+        async () => {
+          await upgradeSubscription("free");
+          toast({
+            title: "Switched to Free plan",
+            description: "You've been switched to the Free plan.",
+          });
+        }
+      );
+      return;
+    }
+
+    try {
+      // Create or get Dodo customer
+      if (!user?.email) {
         toast({
-          title: "Subscription upgraded successfully!",
-          description: `You've been upgraded to the ${planName} plan.`,
+          title: "Error",
+          description: "User email not found. Please try logging in again.",
+          variant: "destructive",
         });
+        return;
       }
-    );
+
+      // Set loading state for button
+      setIsUpgrading(true);
+
+      // Create payment session via backend
+      const paymentSession = await dodoPayments.createPaymentSession(
+        planName,
+        user.email,
+        profile?.full_name
+      );
+
+      console.log("Payment session response:", paymentSession);
+
+      // Redirect to Dodo checkout
+      if (paymentSession.checkout_url) {
+        console.log(
+          "Redirecting to checkout URL:",
+          paymentSession.checkout_url
+        );
+        window.location.href = paymentSession.checkout_url;
+      } else {
+        // No checkout URL available - this is an error
+        console.error("No checkout URL in response:", paymentSession);
+        toast({
+          title: "Payment setup failed",
+          description:
+            "Unable to create checkout session. Please try again later or contact support.",
+          variant: "destructive",
+        });
+        setIsUpgrading(false);
+        return;
+      }
+    } catch (error) {
+      console.error("Error creating Dodo checkout:", error);
+      setIsUpgrading(false);
+
+      toast({
+        title: "Payment system unavailable",
+        description:
+          "Unable to process payment at this time. Please try again later or contact support.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCancelSubscription = () => {
@@ -432,7 +525,8 @@ const SettingsBilling = () => {
                     isCurrentPlan ||
                     isUpdating ||
                     plan.comingSoon ||
-                    cannotDowngrade
+                    cannotDowngrade ||
+                    isUpgrading
                   }
                   className={`
                     w-full transition-all duration-200
@@ -447,15 +541,29 @@ const SettingsBilling = () => {
                     }
                   `}
                 >
-                  {isCurrentPlan
-                    ? "Current Plan"
-                    : plan.comingSoon
-                    ? "Coming Soon"
-                    : cannotDowngrade
-                    ? "Downgrade Not Available"
-                    : isUpdating
-                    ? "Updating..."
-                    : `Upgrade to ${plan.name}`}
+                  {isCurrentPlan ? (
+                    "Current Plan"
+                  ) : plan.comingSoon ? (
+                    "Coming Soon"
+                  ) : cannotDowngrade ? (
+                    "Downgrade Not Available"
+                  ) : isUpdating ? (
+                    "Updating..."
+                  ) : isUpgrading ? (
+                    <span className="flex items-center justify-center">
+                      <LoaderInline
+                        isLoading={true}
+                        size="sm"
+                        className="mr-2"
+                      />
+                      Setting up checkout...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center">
+                      Upgrade to {plan.name}
+                      <ExternalLink className="w-3 h-3 ml-1.5" />
+                    </span>
+                  )}
                 </Button>
               </div>
             );
@@ -618,6 +726,45 @@ const SettingsBilling = () => {
           {...confirmationConfig}
         />
       )}
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="sm:max-w-md bg-bg/95 backdrop-blur-sm border-border-custom">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-center text-center">
+              <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mb-4">
+                <PartyPopper className="w-8 h-8 text-green-400" />
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center space-y-4">
+            <h3 className="text-2xl font-grotesk font-bold text-text">
+              🎉 Welcome to Pro!
+            </h3>
+            <p className="text-text-muted">
+              Your payment was successful! You now have access to all Pro
+              features including:
+            </p>
+            <div className="space-y-2 text-sm text-text-muted">
+              <div className="flex items-center justify-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-400" />
+                <span>30 job analyses per month</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-400" />
+                <span>Up to 50 resumes per job</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-400" />
+                <span>Full breakdowns & PDF reports</span>
+              </div>
+            </div>
+            <p className="text-xs text-text-subtle">
+              Refreshing page to load your new subscription...
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
