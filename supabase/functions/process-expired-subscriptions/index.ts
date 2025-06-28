@@ -141,7 +141,6 @@ async function reactivateFreePlan(supabase: any, userId: string) {
         .from('subscriptions')
         .update({
           status: 'active',
-          job_credits: 1, // Free plan gets 1 credit
           updated_at: new Date().toISOString()
         })
         .eq('id', freeSubscription.id)

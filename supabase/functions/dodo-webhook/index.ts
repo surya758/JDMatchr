@@ -169,7 +169,6 @@ async function handleSubscriptionActive(supabase: any, eventData: any) {
   try {
     const { 
       subscription_id, 
-      customer, 
       next_billing_date,
       subscription_period_count,
       subscription_period_interval,
@@ -183,11 +182,11 @@ async function handleSubscriptionActive(supabase: any, eventData: any) {
     const jdmatchrUserId = eventData.metadata?.jdmatchr_user_id
     
     if (!jdmatchrUserId) {
-      console.error('No jdmatchr_user_id in subscription metadata')
+      console.error('No jdmatchr_user_id in subscription.active metadata')
       return
     }
     
-    console.log(`Processing subscription.active for user: ${jdmatchrUserId}`)
+    console.log(`Processing subscription.active confirmation for user: ${jdmatchrUserId}`)
     
     // Calculate natural expiry date if we have period info
     let naturalExpiryDate: Date | null = null
@@ -211,145 +210,42 @@ async function handleSubscriptionActive(supabase: any, eventData: any) {
       }
     }
     
-    // Look for pending subscription with matching dodo_subscription_id
-    const { data: pendingSubscription, error: pendingError } = await supabase
+    // Update the subscription created by payment.succeeded with additional details
+    const { error: updateError } = await supabase
       .from('subscriptions')
-      .select('*')
+      .update({
+        current_period_end: next_billing_date ? new Date(next_billing_date).toISOString() : null,
+        subscription_period_count: subscription_period_count || null,
+        subscription_period_interval: subscription_period_interval || null,
+        natural_expiry_date: naturalExpiryDate ? naturalExpiryDate.toISOString() : null,
+        cancel_at_period_end: cancel_at_next_billing_date || false,
+        billing_interval: payment_frequency_interval,
+        currency: currency,
+        dodo_product_id: product_id,
+        amount_cents: recurring_pre_tax_amount,
+        updated_at: new Date().toISOString()
+      })
       .eq('user_id', jdmatchrUserId)
       .eq('dodo_subscription_id', subscription_id)
-      .eq('status', 'pending')
-      .single()
-    
-    let targetSubscription
-    
-    if (pendingSubscription) {
-      // UPDATE pending subscription to active
-      console.log(`Activating pending subscription for user: ${jdmatchrUserId}`)
-      
-      const { data: activatedSubscription, error: updateError } = await supabase
-        .from('subscriptions')
-        .update({
-          status: 'active',
-          job_credits: 30, // Grant credits when payment is confirmed
-          current_period_start: new Date().toISOString(),
-          current_period_end: next_billing_date ? new Date(next_billing_date).toISOString() : null,
-          subscription_period_count: subscription_period_count || null,
-          subscription_period_interval: subscription_period_interval || null,
-          natural_expiry_date: naturalExpiryDate ? naturalExpiryDate.toISOString() : null,
-          cancel_at_period_end: cancel_at_next_billing_date || false,
-          billing_interval: payment_frequency_interval,
-          currency: currency,
-          updated_at: new Date().toISOString(),
-          metadata: JSON.stringify(eventData)
-        })
-        .eq('id', pendingSubscription.id)
-        .select()
-        .single()
-      
-      if (updateError) {
-        console.error('Error activating pending subscription:', updateError)
-        throw updateError
-      }
-      
-      targetSubscription = activatedSubscription
-      
-    } else {
-      // Fallback: Check for existing Pro subscription (edge case)
-      const { data: existingProSubscription, error: checkError } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', jdmatchrUserId)
-        .eq('plan_name', 'pro')
-        .eq('dodo_subscription_id', subscription_id)
-        .single()
-      
-      if (existingProSubscription) {
-        // UPDATE existing Pro subscription
-        console.log(`Updating existing Pro subscription for user: ${jdmatchrUserId}`)
-        
-        const { data: updatedSubscription, error: updateError } = await supabase
-          .from('subscriptions')
-          .update({
-            status: 'active',
-            job_credits: 30,
-            job_credits_used: 0,
-            current_period_start: new Date().toISOString(),
-            current_period_end: next_billing_date ? new Date(next_billing_date).toISOString() : null,
-            subscription_period_count: subscription_period_count || null,
-            subscription_period_interval: subscription_period_interval || null,
-            natural_expiry_date: naturalExpiryDate ? naturalExpiryDate.toISOString() : null,
-            cancel_at_period_end: cancel_at_next_billing_date || false,
-            billing_interval: payment_frequency_interval,
-            currency: currency,
-            updated_at: new Date().toISOString(),
-            metadata: JSON.stringify(eventData)
-          })
-          .eq('id', existingProSubscription.id)
-          .select()
-          .single()
-        
-        if (updateError) {
-          console.error('Error updating existing Pro subscription:', updateError)
-          throw updateError
-        }
-        
-        targetSubscription = updatedSubscription
-        
-      } else {
-        // CREATE new Pro subscription (fallback for edge cases)
-        console.log(`Creating new Pro subscription for user: ${jdmatchrUserId} (fallback)`)
-        
-        const { data: newSubscription, error: insertError } = await supabase
-          .from('subscriptions')
-          .insert({
-            user_id: jdmatchrUserId,
-            dodo_subscription_id: subscription_id,
-            dodo_customer_id: customer.customer_id,
-            dodo_product_id: product_id,
-            plan_name: 'pro',
-            status: 'active',
-            job_credits: 30,
-            job_credits_used: 0,
-            current_period_start: new Date().toISOString(),
-            current_period_end: next_billing_date ? new Date(next_billing_date).toISOString() : null,
-            subscription_period_count: subscription_period_count || null,
-            subscription_period_interval: subscription_period_interval || null,
-            natural_expiry_date: naturalExpiryDate ? naturalExpiryDate.toISOString() : null,
-            cancel_at_period_end: false,
-            amount_cents: recurring_pre_tax_amount || null,
-            billing_interval: payment_frequency_interval,
-            currency: currency,
-            metadata: JSON.stringify(eventData)
-          })
-          .select()
-          .single()
-        
-        if (insertError) {
-          console.error('Error creating new Pro subscription:', insertError)
-          throw insertError
-        }
-        
-        targetSubscription = newSubscription
-      }
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+
+    if (updateError) {
+      console.error('Error updating subscription with active details:', updateError)
+      // Don't throw - this is just supplementary data
     }
     
-    // Manage Free subscription: expire when Pro becomes active
-    await manageFreeSubscription(supabase, jdmatchrUserId, 'expired')
-    
-    console.log(`Successfully activated subscription for user: ${jdmatchrUserId}`)
-    if (naturalExpiryDate) {
-      console.log(`Natural expiry date set to: ${naturalExpiryDate.toISOString()}`)
-    }
+    console.log(`Successfully confirmed subscription.active for user: ${jdmatchrUserId}`)
   } catch (error) {
     console.error('Error in handleSubscriptionActive:', error)
-    throw error
+    // Don't throw - payment.succeeded already handled the core logic
   }
 }
 
 async function handleSubscriptionRenewed(supabase: any, eventData: any) {
   try {
-    const { subscription_id, next_billing_date, recurring_pre_tax_amount, 
-            payment_frequency_interval, currency } = eventData
+    const { subscription_id, next_billing_date, payment_frequency_interval, currency } = eventData
     const jdmatchrUserId = eventData.metadata?.jdmatchr_user_id
     
     if (!jdmatchrUserId) {
@@ -357,56 +253,32 @@ async function handleSubscriptionRenewed(supabase: any, eventData: any) {
       return
     }
 
-    console.log(`Processing subscription renewal for user: ${jdmatchrUserId}`)
+    console.log(`Processing subscription.renewed confirmation for user: ${jdmatchrUserId}`)
 
-    // 1. Mark current active Pro subscription as 'completed'
-    const { error: completeError } = await supabase
+    // Update the subscription created by payment.succeeded with renewal details
+    const { error: updateError } = await supabase
       .from('subscriptions')
       .update({
-        status: 'completed',
+        current_period_end: next_billing_date ? new Date(next_billing_date).toISOString() : null,
+        billing_interval: payment_frequency_interval,
+        currency: currency,
         updated_at: new Date().toISOString()
       })
       .eq('user_id', jdmatchrUserId)
-      .eq('plan_name', 'pro')
+      .eq('dodo_subscription_id', subscription_id)
       .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
 
-    if (completeError) {
-      console.error('Error completing previous subscription:', completeError)
-      throw completeError
+    if (updateError) {
+      console.error('Error updating subscription with renewal details:', updateError)
+      // Don't throw - this is just supplementary data
     }
 
-    // 2. CREATE new subscription record for this renewal
-    const nextBillingDate = next_billing_date ? new Date(next_billing_date) : null
-    const naturalExpiryDate = nextBillingDate ? new Date(nextBillingDate.getTime() + (30 * 24 * 60 * 60 * 1000)) : null
-
-    const { error: createError } = await supabase
-      .from('subscriptions')
-      .insert({
-        user_id: jdmatchrUserId,
-        plan_name: 'pro',
-        status: 'active',
-        job_credits: 30, // Reset to Pro plan credits
-        job_credits_used: 0,
-        dodo_subscription_id: subscription_id,
-        next_billing_date: nextBillingDate ? nextBillingDate.toISOString() : null,
-        current_period_end: nextBillingDate ? nextBillingDate.toISOString() : null,
-        amount_cents: recurring_pre_tax_amount || null,
-        billing_interval: payment_frequency_interval,
-        currency: currency,
-        cancel_at_period_end: false,
-        natural_expiry_date: naturalExpiryDate ? naturalExpiryDate.toISOString() : null,
-        metadata: JSON.stringify(eventData)
-      })
-
-    if (createError) {
-      console.error('Error creating renewal subscription:', createError)
-      throw createError
-    }
-
-    console.log(`Successfully created renewal subscription for user: ${jdmatchrUserId}`)
+    console.log(`Successfully confirmed subscription.renewed for user: ${jdmatchrUserId}`)
   } catch (error) {
     console.error('Error in handleSubscriptionRenewed:', error)
-    throw error
+    // Don't throw - payment.succeeded already handled the core logic
   }
 }
 
@@ -566,49 +438,114 @@ async function handleSubscriptionExpired(supabase: any, eventData: any) {
   }
 }
 
+// Handle payment success - create subscriptions for both new and renewal payments
 async function handlePaymentSucceeded(supabase: any, eventData: any) {
   try {
-    const { payment_id, subscription_id } = eventData
+    const { payment_id, subscription_id, customer, amount, currency } = eventData
     const jdmatchrUserId = eventData.metadata?.jdmatchr_user_id
+    const planName = eventData.metadata?.plan_name
     
-    if (!jdmatchrUserId || !payment_id) {
-      console.log('payment.succeeded: Missing required data, skipping payment_id update')
+    if (!jdmatchrUserId || !payment_id || !subscription_id) {
+      console.log('payment.succeeded: Missing required data, skipping')
       return
     }
 
     console.log(`Processing payment success for user: ${jdmatchrUserId}, payment_id: ${payment_id}`)
 
-    // Find the latest active subscription for this user/DODO subscription
-    const { data: subscription, error: findError } = await supabase
+    // Check if this is a renewal (existing subscription with same dodo_subscription_id)
+    const { data: existingSubscriptions, error: checkError } = await supabase
       .from('subscriptions')
-      .select('id')
+      .select('*')
       .eq('user_id', jdmatchrUserId)
       .eq('dodo_subscription_id', subscription_id)
-      .eq('status', 'active')
       .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
 
-    if (findError || !subscription) {
-      console.log('No active subscription found for payment_id update')
-      return
+    if (checkError) {
+      console.error('Error checking existing subscriptions:', checkError)
+      throw checkError
     }
 
-    // Update with payment_id for invoice downloads
-    const { error: updateError } = await supabase
-      .from('subscriptions')
-      .update({
-        payment_id: payment_id,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', subscription.id)
+    const isRenewal = existingSubscriptions && existingSubscriptions.length > 0
 
-    if (updateError) {
-      console.error('Error updating subscription with payment_id:', updateError)
-      throw updateError
+    if (isRenewal) {
+      console.log(`This is a renewal for user: ${jdmatchrUserId}`)
+      
+      // 1. Mark current active subscription as 'completed'
+      const currentSubscription = existingSubscriptions.find(sub => sub.status === 'active')
+      if (currentSubscription) {
+        const { error: completeError } = await supabase
+          .from('subscriptions')
+          .update({
+            status: 'completed',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', currentSubscription.id)
+
+        if (completeError) {
+          console.error('Error completing previous subscription:', completeError)
+          throw completeError
+        }
+        console.log(`Completed previous subscription: ${currentSubscription.id}`)
+      }
+
+      // 2. Create new subscription for this renewal period
+      const { error: createError } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: jdmatchrUserId,
+          payment_id: payment_id,
+          dodo_subscription_id: subscription_id,
+          dodo_customer_id: customer?.customer_id,
+          plan_name: 'pro',
+          status: 'active',
+          job_credits: 30, // Pro plan credits
+          job_credits_used: 0,
+          currency: currency,
+          billing_interval: 'monthly', // Default, will be updated by subscription webhook if different
+          current_period_start: new Date().toISOString(),
+        })
+
+      if (createError) {
+        console.error('Error creating renewal subscription:', createError)
+        throw createError
+      }
+
+      console.log(`Successfully created renewal subscription for user: ${jdmatchrUserId}`)
+
+    } else {
+      console.log(`This is a new subscription for user: ${jdmatchrUserId}`)
+      
+      // Create first subscription record
+      const { error: createError } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: jdmatchrUserId,
+          payment_id: payment_id,
+          dodo_subscription_id: subscription_id,
+          dodo_customer_id: customer?.customer_id,
+          plan_name: planName || 'pro',
+          status: 'active',
+          job_credits: planName === 'pro' ? 30 : 1,
+          job_credits_used: 0,
+          currency: currency,
+          billing_interval: 'monthly', // Default, will be updated by subscription webhook if different
+          cancel_at_period_end: false,
+          current_period_start: new Date().toISOString(),
+        })
+
+      if (createError) {
+        console.error('Error creating new subscription:', createError)
+        throw createError
+      }
+
+      // For new Pro subscriptions, expire the Free plan
+      if (planName === 'pro') {
+        await manageFreeSubscription(supabase, jdmatchrUserId, 'expired')
+      }
+
+      console.log(`Successfully created new subscription for user: ${jdmatchrUserId}`)
     }
 
-    console.log(`Successfully updated subscription with payment_id: ${payment_id}`)
   } catch (error) {
     console.error('Error in handlePaymentSucceeded:', error)
     throw error
