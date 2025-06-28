@@ -367,7 +367,7 @@ async function handleSubscriptionRenewed(supabase: any, eventData: any) {
         updated_at: new Date().toISOString()
       })
       .eq('user_id', jdmatchrUserId)
-      .eq('plan_type', 'pro')
+      .eq('plan_name', 'pro')
       .eq('status', 'active')
 
     if (completeError) {
@@ -383,12 +383,13 @@ async function handleSubscriptionRenewed(supabase: any, eventData: any) {
       .from('subscriptions')
       .insert({
         user_id: jdmatchrUserId,
-        plan_type: 'pro',
+        plan_name: 'pro',
         status: 'active',
         job_credits: 30, // Reset to Pro plan credits
         job_credits_used: 0,
         dodo_subscription_id: subscription_id,
         next_billing_date: nextBillingDate ? nextBillingDate.toISOString() : null,
+        current_period_end: nextBillingDate ? nextBillingDate.toISOString() : null,
         amount_cents: recurring_pre_tax_amount || null,
         billing_interval: payment_frequency_interval,
         currency: currency,
@@ -533,31 +534,32 @@ async function handleSubscriptionExpired(supabase: any, eventData: any) {
     const jdmatchrUserId = eventData.metadata?.jdmatchr_user_id
     
     if (!jdmatchrUserId) {
-      console.error('No jdmatchr_user_id in subscription metadata')
+      console.error('No jdmatchr_user_id found in subscription.expired metadata')
       return
     }
-    
-    console.log(`Processing subscription.expired for user: ${jdmatchrUserId}`)
-    
-    // Update subscription to expired status and reset job credits to 0
+
+    console.log(`Processing subscription expiry for user: ${jdmatchrUserId}`)
+
+    // Update subscription to expired status and set job credits to 0
     const { error } = await supabase
       .from('subscriptions')
       .update({
         status: 'expired',
-        job_credits: 0, // Reset credits to 0 on expiration
-        updated_at: new Date().toISOString()
+        job_credits: 0, // Set credits to 0 when expired
+        updated_at: new Date().toISOString(),
+        metadata: JSON.stringify(eventData)
       })
       .eq('dodo_subscription_id', subscription_id)
-    
+
     if (error) {
-      console.error('Error updating subscription to expired:', error)
+      console.error('Error updating expired subscription:', error)
       throw error
     }
-    
+
     // When Pro subscription expires, reactivate Free plan
     await reactivateFreePlan(supabase, jdmatchrUserId)
     
-    console.log(`Successfully expired subscription and reset credits for user: ${jdmatchrUserId}`)
+    console.log(`Successfully expired subscription and reactivated Free plan for user: ${jdmatchrUserId}`)
   } catch (error) {
     console.error('Error in handleSubscriptionExpired:', error)
     throw error

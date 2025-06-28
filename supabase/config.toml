@@ -318,3 +318,12 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [functions.dodo-webhook]
 verify_jwt = false
+
+[functions.process-expired-subscriptions]
+verify_jwt = false
+
+# Cron jobs configuration
+[[functions.process-expired-subscriptions.cron]]
+# Run daily at 2 AM UTC to process expired subscriptions
+schedule = "0 2 * * *"
+region = "us-east-1"
