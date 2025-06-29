@@ -159,13 +159,13 @@ const ResumeUpload = ({
     e.preventDefault();
     setIsDragging(false);
     const droppedFiles = Array.from(e.dataTransfer.files);
-    setFiles((prev) => [...prev, ...droppedFiles].slice(0, 10));
+    setFiles((prev) => [...prev, ...droppedFiles].slice(0, 25));
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
-      setFiles((prev) => [...prev, ...selectedFiles].slice(0, 10));
+      setFiles((prev) => [...prev, ...selectedFiles].slice(0, 25));
     }
   };
 
@@ -339,121 +339,19 @@ const ResumeUpload = ({
         } catch (error) {
           console.error("AI matching failed:", error);
 
-          // Create fallback ranked candidates with varied scores if AI matching fails
-          const fallbackRanked = successful.map((result, index) => {
-            // Create varied scores for better differentiation
-            const baseScore = 85 - index * 8; // Start at 85, decrease by 8 for each candidate
-            const randomVariation = Math.floor(Math.random() * 10) - 5; // ±5 variation
-            const finalScore = Math.max(
-              45,
-              Math.min(95, baseScore + randomVariation)
-            );
-
-            return {
-              candidateId:
-                result.processedResume.fileName || `candidate_${index}`,
-              candidateName:
-                result.processedResume.personalInfo.name ||
-                `Candidate ${index + 1}`,
-              matchingScore: finalScore,
-              summary: `${
-                result.processedResume.personalInfo.name || "This candidate"
-              } ${
-                finalScore >= 80
-                  ? "shows strong alignment"
-                  : finalScore >= 65
-                  ? "has relevant experience"
-                  : "has some relevant skills"
-              } for this role.`,
-              keyStrengths: result.processedResume.skills.technical.slice(0, 3),
-              potentialConcerns:
-                finalScore < 65 ? ["Limited experience match"] : [],
-              fitAnalysis: {
-                technicalFit: Math.max(40, finalScore - 5),
-                experienceFit: Math.max(40, finalScore),
-                culturalFit: Math.max(40, finalScore - 10),
-                growthPotential: Math.max(40, finalScore + 5),
-              },
-              recommendation:
-                finalScore >= 85
-                  ? ("strong_hire" as const)
-                  : finalScore >= 75
-                  ? ("hire" as const)
-                  : finalScore >= 60
-                  ? ("maybe" as const)
-                  : ("pass" as const),
-              ranking: index + 1,
-              processedResume: result.processedResume,
-            };
-          });
-
-          setRankedCandidates(fallbackRanked);
-          console.log("Using fallback ranking:", fallbackRanked);
-
           toast({
-            title: "Analysis completed with basic scoring",
-            description: `Processed ${successful.length} candidate${
-              successful.length !== 1 ? "s" : ""
-            } with fallback scoring.`,
+            title: "Analysis failed",
+            variant: "destructive",
+            description: `Something went wrong while analyzing the candidates.`,
           });
         }
       } else {
         console.warn("No formatted job description available for AI matching");
 
-        // Create fallback ranked candidates with varied scores when no job description
-        const fallbackRanked = successful.map((result, index) => {
-          const baseScore = 80 - index * 10; // Start at 80, decrease by 10 for each candidate
-          const randomVariation = Math.floor(Math.random() * 8) - 4; // ±4 variation
-          const finalScore = Math.max(
-            50,
-            Math.min(90, baseScore + randomVariation)
-          );
-
-          return {
-            candidateId:
-              result.processedResume.fileName || `candidate_${index}`,
-            candidateName:
-              result.processedResume.personalInfo.name ||
-              `Candidate ${index + 1}`,
-            matchingScore: finalScore,
-            summary: `${
-              result.processedResume.personalInfo.name || "This candidate"
-            } ${
-              finalScore >= 75
-                ? "has strong experience and skills"
-                : finalScore >= 60
-                ? "has relevant experience and skills"
-                : "has some relevant skills"
-            }.`,
-            keyStrengths: result.processedResume.skills.technical.slice(0, 3),
-            potentialConcerns:
-              finalScore < 65 ? ["Limited information available"] : [],
-            fitAnalysis: {
-              technicalFit: Math.max(45, finalScore - 5),
-              experienceFit: Math.max(45, finalScore),
-              culturalFit: Math.max(45, finalScore - 10),
-              growthPotential: Math.max(45, finalScore + 5),
-            },
-            recommendation:
-              finalScore >= 80
-                ? ("strong_hire" as const)
-                : finalScore >= 70
-                ? ("hire" as const)
-                : finalScore >= 55
-                ? ("maybe" as const)
-                : ("pass" as const),
-            ranking: index + 1,
-            processedResume: result.processedResume,
-          };
-        });
-
-        setRankedCandidates(fallbackRanked);
-
         toast({
-          title: "Analysis completed",
-          description: `Processed ${successful.length} candidate${
-            successful.length !== 1 ? "s" : ""
-          } with basic scoring.`,
+          title: "Analysis failed",
+          variant: "destructive",
+          description: `Something went wrong while analyzing the candidates.`,
         });
       }
 
@@ -581,7 +479,7 @@ const ResumeUpload = ({
             {/* Mobile candidate counter */}
             <div className="flex justify-center mb-3 sm:hidden">
               <span className="bg-bg-light/50 backdrop-blur-sm text-primary px-3 py-1.5 rounded-full text-xs font-medium border border-border-custom">
-                {files.length}/10 candidates
+                {files.length}/25 candidates
               </span>
             </div>
 
@@ -595,7 +493,7 @@ const ResumeUpload = ({
                   Upload Resumes
                 </h3>
                 <span className="bg-bg-light/50 backdrop-blur-sm text-primary px-3 py-1 rounded-full text-xs font-medium border border-border-custom">
-                  {files.length}/10 candidates
+                  {files.length}/25 candidates
                 </span>
               </div>
               <Button
@@ -653,7 +551,7 @@ const ResumeUpload = ({
               <p className="font-grotesk text-xs text-text-subtle">
                 {processingFiles.size > 0
                   ? "Upload disabled while processing"
-                  : "PDF, TXT, DOCX, JPG, PNG, GIF, TIFF, BMP, WEBP (Max 10 files)"}
+                  : "PDF, TXT, DOCX, JPG, PNG, GIF, TIFF, BMP, WEBP (Max 25 files)"}
               </p>
               <input
                 ref={fileInputRef}
@@ -681,7 +579,7 @@ const ResumeUpload = ({
                         Uploaded Files
                       </h4>
                       <p className="font-grotesk text-xs text-text-muted">
-                        {files.length} out of 10 resumes uploaded
+                        {files.length} out of 25 resumes uploaded
                       </p>
                     </div>
                   </div>

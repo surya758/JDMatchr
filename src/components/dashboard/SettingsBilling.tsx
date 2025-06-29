@@ -41,8 +41,6 @@ const SettingsBilling = () => {
     isSubscriptionCancelled,
     subscriptionExpiresAt,
     isUpdating: isSubscriptionUpdating,
-    billingHistory,
-    isHistoryLoading,
     jobCreditsRemaining,
   } = useSubscription();
 
@@ -55,11 +53,14 @@ const SettingsBilling = () => {
     confirmAction,
   } = useConfirmation();
 
+  console.log("subscription", subscription);
+
   const isUpdating = isSubscriptionUpdating || isConfirmationLoading;
   const [downloadingPDF, setDownloadingPDF] = useState<string | null>(null);
   const [downloadingReport, setDownloadingReport] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Handle payment success/cancellation from URL params
   React.useEffect(() => {
@@ -72,10 +73,6 @@ const SettingsBilling = () => {
       setShowSuccessModal(true);
       // Clean up URL
       window.history.replaceState({}, "", window.location.pathname);
-      // Refresh page to fetch latest subscription data
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000); // Reload after 3 seconds to allow user to see success
     } else if (cancelled === "true") {
       toast({
         title: "Payment Cancelled",
@@ -106,14 +103,13 @@ const SettingsBilling = () => {
     },
     {
       name: "Pro",
-      price: "$24.99",
+      price: "$14.99",
       period: "/month",
       credits: 30,
       features: [
         "30 jobs per month",
         "Up to 50 resumes per job",
         "Full breakdowns",
-        "PDF reports",
         "Priority support",
       ],
       current: subscriptionStatus === "pro",
@@ -226,14 +222,34 @@ const SettingsBilling = () => {
   };
 
   const handleCancelSubscription = () => {
+    if (!subscription) return;
+
     showConfirmation(confirmationConfigs.cancelSubscription(), async () => {
-      await cancelSubscription();
-      toast({
-        title: "Subscription cancelled",
-        description:
-          "You'll keep access until your current billing period ends.",
-        variant: "default",
-      });
+      try {
+        setIsCancelling(true);
+        await cancelSubscription();
+        // Refresh page to fetch latest subscription data
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000); // Reload after 3 seconds to allow user to see success
+        toast({
+          title: "Subscription Cancelled",
+          description:
+            "Your subscription has been cancelled and will remain active until the end of your current billing period.",
+        });
+      } catch (error) {
+        console.error("Cancellation error:", error);
+        toast({
+          title: "Cancellation Failed",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Failed to cancel subscription. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsCancelling(false);
+      }
     });
   };
 
@@ -400,7 +416,7 @@ const SettingsBilling = () => {
               Next Billing
             </h3>
             <p className="text-text-muted">
-              {subscription?.current_period_end
+              {subscriptionStatus === "pro"
                 ? new Date(subscription.current_period_end).toLocaleDateString()
                 : "No billing"}
             </p>
@@ -435,11 +451,15 @@ const SettingsBilling = () => {
               </div>
               <Button
                 onClick={handleCancelSubscription}
-                disabled={isUpdating}
+                disabled={isUpdating || isCancelling}
                 variant="outline"
                 className="border-red-500/20 text-red-400 hover:bg-red-500/10 hover:border-red-500/30"
               >
-                {isUpdating ? "Cancelling..." : "Cancel Plan"}
+                {isUpdating
+                  ? "Cancelling..."
+                  : isCancelling
+                  ? "Cancelling..."
+                  : "Cancel Plan"}
               </Button>
             </div>
           </div>
@@ -556,7 +576,6 @@ const SettingsBilling = () => {
                         size="sm"
                         className="mr-2"
                       />
-                      Setting up checkout...
                     </span>
                   ) : (
                     <span className="flex items-center justify-center">
@@ -572,7 +591,7 @@ const SettingsBilling = () => {
       </div>
 
       {/* Billing History */}
-      <div className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-6 shadow-xl">
+      {/* <div className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-6 shadow-xl">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
@@ -714,7 +733,7 @@ const SettingsBilling = () => {
             })}
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Confirmation Modal */}
       {confirmationConfig && (
@@ -759,9 +778,6 @@ const SettingsBilling = () => {
                 <span>Full breakdowns & PDF reports</span>
               </div>
             </div>
-            <p className="text-xs text-text-subtle">
-              Refreshing page to load your new subscription...
-            </p>
           </div>
         </DialogContent>
       </Dialog>

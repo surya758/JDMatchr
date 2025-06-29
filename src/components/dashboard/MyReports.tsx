@@ -666,7 +666,7 @@ const MyReports = () => {
                               <p className="font-grotesk font-medium text-text">
                                 {report.topMatch}
                               </p>
-                              {report.topCandidateFilePath &&
+                              {/* {report.topCandidateFilePath &&
                                 isWithinDownloadWindow(report.date) && (
                                   <Button
                                     variant="ghost"
@@ -677,7 +677,17 @@ const MyReports = () => {
                                   >
                                     <FileDown className="w-3 h-3" />
                                   </Button>
-                                )}
+                                )} */}
+
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDownloadResume(report)}
+                                className="h-6 w-6 p-0 hover:bg-primary/10 text-primary hover:text-primary"
+                                title={`Download ${report.topMatch}'s resume`}
+                              >
+                                <FileDown className="w-3 h-3" />
+                              </Button>
                             </div>
                           </div>
                           <div>
@@ -715,39 +725,6 @@ const MyReports = () => {
                           <Eye className="w-4 h-4 mr-2" />
                           View
                         </Button>
-                        {isFreePlan ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              navigate("/dashboard/settings/billing")
-                            }
-                            className="border-primary/20 text-primary hover:bg-primary/10 hover:border-primary/30"
-                          >
-                            <Crown className="w-4 h-4 mr-2" />
-                            Upgrade for Export
-                          </Button>
-                        ) : isWithinDownloadWindow(report.date) ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-border-custom hover:bg-bg-light"
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            Export
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled
-                            className="border-border-custom opacity-50 cursor-not-allowed"
-                            title="Download window expired (30 days)"
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            Expired
-                          </Button>
-                        )}
                       </div>
                     </div>
                   </div>

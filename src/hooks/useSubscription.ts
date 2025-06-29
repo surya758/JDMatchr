@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from './useAuth'
 import { Database } from '../types/database'
+import { cancelSubscription as cancelDodoSubscription, reactivateSubscription as reactivateDodoSubscription } from '../lib/dodo-payments'
 
 type Subscription = Database['public']['Tables']['subscriptions']['Row']
 type SubscriptionUpdate = Database['public']['Tables']['subscriptions']['Update']
@@ -15,7 +16,7 @@ const subscriptionKeys = {
   history: (userId: string) => [...subscriptionKeys.all, 'history', userId] as const,
 }
 
-export const useSubscription = () => {
+export function useSubscription() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
 
@@ -26,53 +27,26 @@ export const useSubscription = () => {
     error,
     refetch,
   } = useQuery({
-    queryKey: subscriptionKeys.detail(user?.id || ''),
-    queryFn: async (): Promise<Subscription | null> => {
-      if (!user?.id) return null
+    queryKey: ['subscription', user?.id],
+    queryFn: async () => {
+      if (!user) return null
 
       const { data, error } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .eq('status', 'active')
+        .neq('status', 'expired')
         .order('created_at', { ascending: false })
         .limit(1)
-        .maybeSingle()
+        .single()
 
-      if (error) throw error
-      
-      // If no subscription found, create a free one as fallback
-      if (!data && user?.id) {
-        console.log('No subscription found for user, creating free subscription...')
-        const { error: createError } = await supabase.rpc('update_local_subscription', {
-          p_user_id: user.id,
-          p_plan_name: 'free',
-          p_status: 'active'
-        })
-        
-        if (createError) {
-          console.error('Error creating fallback subscription:', createError)
-        } else {
-          // Refetch to get the newly created subscription
-          const { data: newData, error: refetchError } = await supabase
-            .from('subscriptions')
-            .select('*')
-            .eq('user_id', user.id)
-            .eq('status', 'active')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle()
-          
-          if (!refetchError && newData) {
-            return newData
-          }
-        }
+      if (error && error.code !== 'PGRST116') {
+        throw error
       }
-      
+
       return data
     },
-    enabled: !!user?.id,
-    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    enabled: !!user,
   })
 
   // Fetch billing history (all subscriptions)
@@ -217,24 +191,50 @@ export const useSubscription = () => {
     })
   }
 
-  // Cancel subscription (set to cancel at period end)
-  const cancelSubscription = async () => {
-    if (!subscription) throw new Error('No active subscription')
+  // Cancel subscription (via DODO API)
+  const cancelSubscription = async (): Promise<boolean> => {
+    if (!subscription) {
+      throw new Error('No active subscription found')
+    }
 
-    return updateSubscriptionMutation.mutateAsync({
-      cancel_at_period_end: true,
-      cancelled_at: new Date().toISOString(),
-    })
+    try {
+      // Cancel subscription via DODO API
+      const result = await cancelDodoSubscription()
+      
+      if (result.success) {
+        // Refresh subscription data to reflect the cancellation
+        await refetch()
+        return true
+      } else {
+        throw new Error('Failed to cancel subscription')
+      }
+    } catch (err) {
+      console.error('Error cancelling subscription:', err)
+      throw new Error(err instanceof Error ? err.message : 'Failed to cancel subscription')
+    }
   }
 
-  // Reactivate subscription (remove cancellation)
-  const reactivateSubscription = async () => {
-    if (!subscription) throw new Error('No active subscription')
+  // Reactivate subscription (via DODO API)
+  const reactivateSubscription = async (): Promise<boolean> => {
+    if (!subscription || !subscription.cancel_at_period_end) {
+      throw new Error('No cancelled subscription found')
+    }
 
-    return updateSubscriptionMutation.mutateAsync({
-      cancel_at_period_end: false,
-      cancelled_at: null,
-    })
+    try {
+      // Reactivate subscription via DODO API
+      const result = await reactivateDodoSubscription()
+      
+      if (result.success) {
+        // Refresh subscription data to reflect the reactivation
+        await refetch()
+        return true
+      } else {
+        throw new Error('Failed to reactivate subscription')
+      }
+    } catch (err) {
+      console.error('Error reactivating subscription:', err)
+      throw new Error(err instanceof Error ? err.message : 'Failed to reactivate subscription')
+    }
   }
 
   // Check if subscription is cancelled but still active
@@ -311,26 +311,19 @@ export const useSubscription = () => {
   }
 
   return {
-    // Data
     subscription,
     isLoading,
     error,
+    refetch,
+    cancelSubscription,
     billingHistory,
     isHistoryLoading,
     historyError,
-    
-    // Actions
-    refetch,
     upgradeSubscription,
-    cancelSubscription,
     reactivateSubscription,
     useJobCredit,
-    
-    // Mutation states
     isUpdating: updateSubscriptionMutation.isPending || createSubscriptionMutation.isPending || useJobCreditMutation.isPending,
     updateError: updateSubscriptionMutation.error || createSubscriptionMutation.error || useJobCreditMutation.error,
-    
-    // Convenience getters
     subscriptionStatus,
     isSubscriptionCancelled,
     subscriptionExpiresAt,

@@ -213,11 +213,11 @@ const JobDescriptionUpload: React.FC<JobDescriptionUploadProps> = ({
               size="sm"
               onClick={handleShowUpload}
               disabled={isDisabled}
-              className={`text-text-muted hover:text-text hover:bg-bg-light transition-colors duration-200 ${
+              className={`text-text-muted hover:text-text hover:bg-bg-light/50 border border-border-custom transition-all duration-200 rounded-xl text-xs ${
                 isDisabled ? "cursor-not-allowed opacity-50" : ""
               }`}
             >
-              <File className="w-4 h-4 mr-2" />
+              <File className="w-3 h-3 mr-1" />
               or upload file
             </Button>
           </div>

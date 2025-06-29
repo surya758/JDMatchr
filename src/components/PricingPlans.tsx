@@ -38,12 +38,10 @@ const PricingPlans = () => {
         { text: "1 job per month", included: true, icon: Check },
         { text: "Upload up to 3 resumes per job", included: true, icon: Check },
         {
-          text: "Basic scoring only (no breakdowns)",
-          included: true,
-          icon: Check,
+          text: "Full breakdowns (only basic)",
+          included: false,
+          icon: X,
         },
-        { text: "No saved history", included: false, icon: X },
-        { text: "No PDF reports", included: false, icon: X },
       ],
       cta: "Get Started Free",
       popular: false,
@@ -53,7 +51,7 @@ const PricingPlans = () => {
     {
       name: "Pro Plan",
       planKey: "pro",
-      price: "$24.99",
+      price: "$14.99",
       period: "/mo",
       description: "Ideal for HRs hiring regularly.",
       features: [
@@ -64,8 +62,6 @@ const PricingPlans = () => {
           included: true,
           icon: Check,
         },
-        { text: "Export PDF reports", included: true, icon: Check },
-        { text: "Resume history for 30 days", included: true, icon: Check },
         { text: "Priority support", included: true, icon: Check },
       ],
       cta: "Start Pro Trial",

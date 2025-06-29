@@ -147,6 +147,35 @@ serve(async (req) => {
 
     const subscription = await subscriptionResponse.json()
     console.log('DODO subscription created:', subscription.subscription_id)
+    console.log('DODO customer:', customer)
+
+    // Create Pro subscription record in database with pending status
+    const { data: newSubscription, error: createError } = await supabase
+      .from('subscriptions')
+      .insert({
+        user_id: user.id,
+        dodo_subscription_id: subscription.subscription_id,
+        dodo_customer_id: customer.customer_id,
+        plan_name: 'pro',
+        status: 'pending',
+        job_credits: 30,
+        job_credits_used: 0,
+        billing_interval: 'monthly',
+        cancel_at_period_end: false,
+        current_period_start: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (createError) {
+      console.error('Error creating subscription record:', createError)
+      return new Response(
+        JSON.stringify({ error: 'Failed to create subscription record' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log('Created pending subscription:', newSubscription)
 
     // Return the subscription session data
     return new Response(

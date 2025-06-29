@@ -18,6 +18,7 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
+  Star,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -473,6 +474,7 @@ const ReportDetail = () => {
   };
 
   const toggleCandidateExpansion = (candidateId: string) => {
+    if (isFreePlan) return;
     setExpandedCandidate(
       expandedCandidate === candidateId ? null : candidateId
     );
@@ -499,32 +501,14 @@ const ReportDetail = () => {
         </div>
 
         <div className="flex items-center space-x-3">
-          {isFreePlan ? (
+          {isFreePlan && (
             <Button
               onClick={() => navigate("/dashboard/settings/billing")}
               className="border-primary/20 text-primary hover:bg-primary/10 hover:border-primary/30"
               variant="outline"
             >
               <Crown className="w-4 h-4 mr-2" />
-              Upgrade for Export
-            </Button>
-          ) : isWithinWindow ? (
-            <Button
-              variant="outline"
-              className="border-border-custom hover:bg-bg-light"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export Report
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              disabled
-              className="border-border-custom opacity-50 cursor-not-allowed"
-              title="Download window expired (30 days)"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Expired
+              Upgrade to Pro
             </Button>
           )}
         </div>
@@ -872,17 +856,19 @@ const ReportDetail = () => {
                               </Button>
                             )}
 
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 hover:bg-bg-light/50 text-text-muted"
-                          >
-                            {isExpanded ? (
-                              <ChevronUp className="w-4 h-4" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4" />
-                            )}
-                          </Button>
+                          {!isFreePlan && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 hover:bg-bg-light/50 text-text-muted"
+                            >
+                              {isExpanded ? (
+                                <ChevronUp className="w-4 h-4" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4" />
+                              )}
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>

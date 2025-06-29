@@ -197,13 +197,8 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
       return;
     }
 
-    showConfirmation(
-      confirmationConfigs.startAnalysis(uploadedResumes.length),
-      async () => {
-        setIsAnalyzing(true);
-        await startAnalysis();
-      }
-    );
+    setIsAnalyzing(true);
+    startAnalysis();
   };
 
   const handleCancelAnalysis = () => {

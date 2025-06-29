@@ -39,7 +39,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({
     if (!isDisabled) {
       onDragStateChange(false);
       const droppedFiles = Array.from(e.dataTransfer.files);
-      const newResumes = [...uploadedResumes, ...droppedFiles].slice(0, 20);
+      const newResumes = [...uploadedResumes, ...droppedFiles].slice(0, 50);
       onFileUpload(newResumes);
     }
   };
@@ -47,7 +47,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!isDisabled) {
       const files = Array.from(event.target.files || []);
-      const newResumes = [...uploadedResumes, ...files].slice(0, 20);
+      const newResumes = [...uploadedResumes, ...files].slice(0, 50);
       onFileUpload(newResumes);
     }
   };
@@ -115,7 +115,7 @@ const ResumeUpload: React.FC<ResumeUploadProps> = ({
               : "Drag and drop files here, or click to browse"}
           </p>
           <p className="text-text-subtle text-xs">
-            Supports PDF, DOCX, TXT, JPG, PNG, WEBP files (max 20 files)
+            Supports PDF, DOCX, TXT, JPG, PNG, WEBP files (max 50 files)
           </p>
         </label>
       </div>
