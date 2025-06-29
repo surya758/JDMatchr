@@ -9,11 +9,5 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "vite",
-  "outputDirectory": "dist",
-  "build": {
-    "env": {
-      "ROLLUP_SKIP_PLATFORM_SPECIFIC_BINARIES": "true",
-      "VITE_PLUGIN_REACT_SWC": "false"
-    }
-  }
+  "outputDirectory": "dist"
 }
