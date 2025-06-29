@@ -65,6 +65,13 @@ const NewAnalysis = () => {
     uploadedResumes.length > 0 &&
     !jobProcessor.isPending;
 
+  console.log(
+    "jobCreditsRemaining",
+    jobCreditsRemaining,
+    "canUseService",
+    canUseService
+  );
+
   const formatJDForDisplay = (formattedJD: FormattedJD): string => {
     return `**${formattedJD.title || "Job Title"}**
 ${formattedJD.company ? `at ${formattedJD.company}` : ""}

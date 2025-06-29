@@ -36,7 +36,11 @@ const PricingPlans = () => {
       description: "Perfect for trying out the tool.",
       features: [
         { text: "1 job per month", included: true, icon: Check },
-        { text: "Upload up to 3 resumes per job", included: true, icon: Check },
+        {
+          text: "Upload up to 25 resumes per job",
+          included: true,
+          icon: Check,
+        },
         {
           text: "Full breakdowns (only basic)",
           included: false,

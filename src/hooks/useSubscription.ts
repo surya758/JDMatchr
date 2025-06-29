@@ -310,6 +310,7 @@ export function useSubscription() {
     return useJobCreditMutation.mutateAsync()
   }
 
+
   return {
     subscription,
     isLoading,
@@ -332,6 +333,6 @@ export function useSubscription() {
     jobCredits: subscription?.job_credits || 0,
     jobCreditsUsed: subscription?.job_credits_used || 0,
     jobCreditsRemaining: (subscription?.job_credits || 0) - (subscription?.job_credits_used || 0),
-    canUseService: ((subscription?.job_credits || 0) - (subscription?.job_credits_used || 0)) > 0 || subscriptionStatus !== 'free',
+    canUseService: ((subscription?.job_credits || 0) - (subscription?.job_credits_used || 0)) > 0,
   }
 } 

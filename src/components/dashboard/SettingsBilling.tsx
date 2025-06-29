@@ -92,7 +92,7 @@ const SettingsBilling = () => {
       credits: 1,
       features: [
         "1 job per month",
-        "Up to 3 resumes per job",
+        "Up to 25 resumes per job",
         "Basic scoring only",
       ],
       current: subscriptionStatus === "free",
