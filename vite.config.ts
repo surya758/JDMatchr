@@ -10,7 +10,9 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [
-    react(),
+    react({
+      plugins: [["@swc/plugin-emotion", {}]]
+    }),
     mode === 'development' &&
     componentTagger(),
   ].filter(Boolean),
@@ -19,4 +21,9 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    target: 'esnext',
+    minify: 'esbuild',
+    sourcemap: false
+  }
 }));
