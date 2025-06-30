@@ -248,7 +248,7 @@ Return ONLY the JSON response, no additional text.`
       matchingResults = matchingResults
         .filter(result => result && typeof result.matchingScore === 'number')
         .sort((a, b) => b.matchingScore - a.matchingScore)
-
+      
       // Add default values for any candidates that weren't processed
       const processedIds = new Set(matchingResults.map(r => r.candidateId))
       const unprocessedCandidates = candidates.filter(c => !processedIds.has(c.id))

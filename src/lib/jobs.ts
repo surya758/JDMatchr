@@ -432,12 +432,12 @@ export async function updateJobApplicationsWithMatchingResults(
       });
 
       // Add update with either matching result or default values
-      updates.push({
-        applicationId: application.id,
+        updates.push({
+          applicationId: application.id,
         matchingScore: matchingResult ? matchingResult.matchingScore : 0,
         ranking: matchingResult ? matchingResult.ranking : 999, // Default ranking for unmatched files
-        status: 'under_review' as const
-      });
+          status: 'under_review' as const
+        });
     }
 
     // Batch update all applications

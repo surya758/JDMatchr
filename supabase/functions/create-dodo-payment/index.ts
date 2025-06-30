@@ -85,31 +85,31 @@ serve(async (req) => {
     } else {
       // Create new customer
       console.log('Creating new DODO customer for:', userEmail)
-      
-      const customerResponse: Response = await fetch(`${baseUrl}/customers`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${dodoApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: userEmail,
-          name: userName || userEmail.split('@')[0],
-          metadata: {
-            jdmatchr_user_id: user.id,
-            source: 'jdmatchr_app'
-          }
-        })
+    
+    const customerResponse: Response = await fetch(`${baseUrl}/customers`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${dodoApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: userEmail,
+        name: userName || userEmail.split('@')[0],
+        metadata: {
+          jdmatchr_user_id: user.id,
+          source: 'jdmatchr_app'
+        }
       })
+    })
 
-      if (!customerResponse.ok) {
-        const errorText = await customerResponse.text()
-        console.error('DODO customer creation failed:', errorText)
-        throw new Error(`Failed to create customer: ${customerResponse.status}`)
-      }
+    if (!customerResponse.ok) {
+      const errorText = await customerResponse.text()
+      console.error('DODO customer creation failed:', errorText)
+      throw new Error(`Failed to create customer: ${customerResponse.status}`)
+    }
 
       customer = await customerResponse.json()
-      console.log('DODO customer created:', customer.customer_id)
+    console.log('DODO customer created:', customer.customer_id)
     }
 
     // Step 2: Map plan to DODO product ID

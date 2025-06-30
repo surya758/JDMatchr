@@ -166,19 +166,19 @@ serve(async (req) => {
 
     // For active subscriptions with valid DODO subscription ID, cancel via DODO API
     if (subscription.dodo_subscription_id && subscription.status === 'active') {
-      const dodoBearerToken = Deno.env.get('DODO_API_KEY')
-      const baseUrl = 'https://test.dodopayments.com'
-      
-      const response = await fetch(`${baseUrl}/subscriptions/${subscription.dodo_subscription_id}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${dodoBearerToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          cancel_at_next_billing_date: true,
-        }),
-      })
+    const dodoBearerToken = Deno.env.get('DODO_API_KEY')
+    const baseUrl = 'https://test.dodopayments.com'
+    
+    const response = await fetch(`${baseUrl}/subscriptions/${subscription.dodo_subscription_id}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${dodoBearerToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        cancel_at_next_billing_date: true,
+      }),
+    })
 
       if (!response.ok) {
         const errorText = await response.text()

@@ -1,21 +1,15 @@
 import React, { useState, useEffect } from "react";
 import {
   Search,
-  Filter,
-  Download,
   Eye,
   Calendar,
   Users,
   ChevronDown,
   X,
   SlidersHorizontal,
-  TrendingUp,
-  Clock,
-  CheckCircle,
   AlertCircle,
   Loader2,
   FileDown,
-  Crown,
   Grid,
   List,
 } from "lucide-react";
@@ -26,7 +20,6 @@ import { Switch } from "../ui/switch";
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -35,10 +28,8 @@ import {
 import { useJobReports, type JobReport } from "@/hooks/useJobReports";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { useSubscription } from "@/hooks/useSubscription";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { supabase } from "@/lib/supabase";
-import { LoaderInline } from "../ui/loader";
 
 const MyReports = () => {
   const { preferences, updatePreference } = useUserPreferences();

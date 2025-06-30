@@ -35,7 +35,8 @@ const AnalyzingMode: React.FC<AnalyzingModeProps> = ({
             Grab a coffee ☕ while we analyze your candidates
           </p>
           <p className="text-text-subtle">
-            This may take a few minutes depending on the number of resumes
+            This may take a few minutes depending on the number of resumes.
+            Please do not refresh the page.
           </p>
         </div>
 
