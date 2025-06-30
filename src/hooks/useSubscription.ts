@@ -47,8 +47,6 @@ export function useSubscription() {
     enabled: !!user,
   })
 
-  console.log("subscriptions", subscriptions?.find(sub => sub.plan_name === 'free' && sub.status === 'active'))
-
   // Separate pro and free subscriptions
   // Get latest pro subscription (prioritize active, then others by creation date)
   const proSubscription = subscriptions
@@ -65,8 +63,6 @@ export function useSubscription() {
   
   // Main subscription is pro if exists, otherwise free
   const subscription =  freeSubscription  || proSubscription
-
-  console.log("freeSubscription", freeSubscription)
 
   // Fetch billing history (all subscriptions)
   const {
@@ -265,9 +261,6 @@ export function useSubscription() {
   // Payment issue detection for Pro subscriptions
   const hasPaymentIssue = proSubscription && (proSubscription.status === 'on_hold' || proSubscription.status === 'failed')
   const paymentIssueType = hasPaymentIssue ? proSubscription.status : null
-
-  console.log("hasPaymentIssue", hasPaymentIssue)
-
 
   // Client-side check for expired subscriptions (backup to Edge Function)
   useEffect(() => {

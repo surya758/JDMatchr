@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   Filter,
@@ -16,6 +16,8 @@ import {
   Loader2,
   FileDown,
   Crown,
+  Grid,
+  List,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -34,10 +36,12 @@ import { useJobReports, type JobReport } from "@/hooks/useJobReports";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { supabase } from "@/lib/supabase";
 import { LoaderInline } from "../ui/loader";
 
 const MyReports = () => {
+  const { preferences, updatePreference } = useUserPreferences();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [dateRange, setDateRange] = useState("all");
@@ -47,23 +51,24 @@ const MyReports = () => {
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [viewMode, setViewMode] = useState<"list" | "grid">(
+    preferences.default_analysis_view
+  );
+  const itemsPerPage = preferences.results_per_page;
 
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { subscriptionStatus } = useSubscription();
   const { data: reports = [], isLoading, error, refetch } = useJobReports();
 
-  const isFreePlan = subscriptionStatus === "free";
+  // Update viewMode when preferences change
+  useEffect(() => {
+    setViewMode(preferences.default_analysis_view);
+  }, [preferences.default_analysis_view]);
 
-  // Check if report is within 30-day download window
-  const isWithinDownloadWindow = (reportDate: string) => {
-    const createdDate = new Date(reportDate);
-    const now = new Date();
-    const daysDiff = Math.floor(
-      (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    return daysDiff <= 30;
+  // Handle view mode change
+  const handleViewModeChange = async (mode: "list" | "grid") => {
+    setViewMode(mode);
+    await updatePreference({ key: "default_analysis_view", value: mode });
   };
 
   // Handle top candidate resume download
@@ -267,35 +272,31 @@ const MyReports = () => {
     return count;
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <CheckCircle className="w-4 h-4 text-green-400" />;
-      case "processing":
-        return <Clock className="w-4 h-4 text-blue-400" />;
-      case "failed":
-        return <AlertCircle className="w-4 h-4 text-red-400" />;
-      default:
-        return null;
-    }
-  };
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-text mb-2">My Reports</h1>
-          <p className="text-text-muted">
-            View and manage your resume analysis reports and results.
-          </p>
-        </div>
-        <div className="flex items-center space-x-3">
+        <h2 className="text-2xl font-bold text-text">My Reports</h2>
+        <div className="flex items-center gap-2">
           <Button
-            onClick={() => navigate("/dashboard/new")}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            variant="outline"
+            size="icon"
+            onClick={() => handleViewModeChange("list")}
+            className={
+              viewMode === "list" ? "bg-primary text-primary-foreground" : ""
+            }
           >
-            New Analysis
+            <List className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => handleViewModeChange("grid")}
+            className={
+              viewMode === "grid" ? "bg-primary text-primary-foreground" : ""
+            }
+          >
+            <Grid className="w-4 h-4" />
           </Button>
         </div>
       </div>
@@ -583,225 +584,148 @@ const MyReports = () => {
             )}
           </div>
 
-          {/* Reports List */}
-          {filteredReports.length === 0 ? (
-            <div className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-12 shadow-xl text-center">
-              <Users className="w-16 h-16 text-text-subtle mx-auto mb-4" />
-              <h3 className="font-grotesk font-semibold text-text mb-2">
-                {searchTerm || filterStatus !== "all"
-                  ? "No reports found"
-                  : "No reports yet"}
-              </h3>
-              <p className="text-text-muted mb-6">
-                {searchTerm || filterStatus !== "all"
-                  ? "Try adjusting your search or filter criteria."
-                  : "Start your first analysis to see reports here."}
-              </p>
-              {!searchTerm && filterStatus === "all" && (
-                <Button
-                  onClick={() => navigate("/dashboard/new")}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+          {/* Reports List/Grid */}
+          <div
+            className={
+              viewMode === "grid"
+                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                : "space-y-4"
+            }
+          >
+            {paginatedReports.map((report) => (
+              <div
+                key={report.id}
+                className={`
+                  bg-bg/50 backdrop-blur-sm border border-border-custom rounded-xl p-4
+                  transition-all duration-200
+                  ${
+                    viewMode === "grid"
+                      ? "flex flex-col"
+                      : "flex items-center justify-between"
+                  }
+                `}
+              >
+                {/* Report Content */}
+                <div
+                  className={`${
+                    viewMode === "grid"
+                      ? "space-y-4"
+                      : "flex items-center gap-6 flex-1"
+                  }`}
                 >
-                  Start New Analysis
-                </Button>
-              )}
-            </div>
-          ) : (
-            <>
-              {/* Paginated Reports */}
-              <div className="space-y-4">
-                {paginatedReports.map((report) => (
+                  {/* Job Info */}
                   <div
-                    key={report.id}
-                    className="bg-bg/50 backdrop-blur-sm border border-border-custom rounded-2xl p-6 shadow-xl"
+                    className={`flex-1 min-w-0 ${
+                      viewMode === "grid" ? "mb-4" : ""
+                    }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-4 mb-4">
-                          <div>
-                            <h3 className="font-grotesk font-semibold text-text text-lg">
-                              {report.jobTitle}
-                              {report.company && (
-                                <span className="text-text-muted font-normal text-base ml-2">
-                                  at {report.company}
-                                </span>
-                              )}
-                            </h3>
-                            <div className="flex items-center space-x-4 text-sm text-text-muted">
-                              <div className="flex items-center space-x-1">
-                                <Calendar className="w-4 h-4" />
-                                <span>
-                                  {new Date(report.date).toLocaleDateString(
-                                    "en-US",
-                                    {
-                                      year: "numeric",
-                                      month: "short",
-                                      day: "numeric",
-                                    }
-                                  )}
-                                </span>
-                              </div>
-                              <div className="flex items-center space-x-1">
-                                <Users className="w-4 h-4" />
-                                <span>
-                                  {report.candidatesAnalyzed} candidates
-                                </span>
-                              </div>
-                              <div className="flex items-center space-x-1">
-                                {getStatusIcon(report.status)}
-                                <span className="capitalize">
-                                  {report.status}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                    <h3 className="font-semibold text-text truncate">
+                      {report.jobTitle}
+                    </h3>
+                    <p className="text-sm text-text-muted">{report.company}</p>
+                  </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-text-muted text-sm mb-1">
-                              Top Match
-                            </p>
-                            <div className="flex items-center space-x-2">
-                              <p className="font-grotesk font-medium text-text">
-                                {report.topMatch}
-                              </p>
-                              {/* {report.topCandidateFilePath &&
-                                isWithinDownloadWindow(report.date) && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleDownloadResume(report)}
-                                    className="h-6 w-6 p-0 hover:bg-primary/10 text-primary hover:text-primary"
-                                    title={`Download ${report.topMatch}'s resume`}
-                                  >
-                                    <FileDown className="w-3 h-3" />
-                                  </Button>
-                                )} */}
-
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDownloadResume(report)}
-                                className="h-6 w-6 p-0 hover:bg-primary/10 text-primary hover:text-primary"
-                                title={`Download ${report.topMatch}'s resume`}
-                              >
-                                <FileDown className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-text-muted text-sm mb-1">
-                              Match Score
-                            </p>
-                            <div className="flex items-center space-x-2">
-                              <div
-                                className={`px-3 py-1 rounded-lg ${getScoreBgColor(
-                                  report.matchScore
-                                )}`}
-                              >
-                                <span
-                                  className={`font-grotesk font-semibold ${getScoreColor(
-                                    report.matchScore
-                                  )}`}
-                                >
-                                  {report.matchScore}%
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-2 ml-6">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            navigate(`/dashboard/reports/${report.id}`)
-                          }
-                          className="border-border-custom hover:bg-bg-light"
-                        >
-                          <Eye className="w-4 h-4 mr-2" />
-                          View
-                        </Button>
-                      </div>
+                  {/* Stats */}
+                  <div
+                    className={`flex gap-4 ${
+                      viewMode === "grid" ? "justify-between" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-text-muted" />
+                      <span className="text-sm text-text-muted">
+                        {report.candidatesAnalyzed} candidates
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-text-muted" />
+                      <span className="text-sm text-text-muted">
+                        {new Date(report.date).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
-                ))}
-              </div>
 
-              {/* Pagination Controls */}
-              {totalPages > 1 && (
-                <div className="flex justify-center">
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          onClick={() =>
-                            setCurrentPage(Math.max(1, currentPage - 1))
-                          }
-                          className={
-                            currentPage === 1
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer hover:bg-bg-light"
-                          }
-                        />
-                      </PaginationItem>
-
-                      {/* Page Numbers */}
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                        (page) => {
-                          // Show first page, last page, current page, and pages around current page
-                          if (
-                            page === 1 ||
-                            page === totalPages ||
-                            (page >= currentPage - 1 && page <= currentPage + 1)
-                          ) {
-                            return (
-                              <PaginationItem key={page}>
-                                <PaginationLink
-                                  onClick={() => setCurrentPage(page)}
-                                  isActive={currentPage === page}
-                                  className="cursor-pointer hover:bg-bg-light"
-                                >
-                                  {page}
-                                </PaginationLink>
-                              </PaginationItem>
-                            );
-                          } else if (
-                            page === currentPage - 2 ||
-                            page === currentPage + 2
-                          ) {
-                            return (
-                              <PaginationItem key={page}>
-                                <PaginationEllipsis />
-                              </PaginationItem>
-                            );
-                          }
-                          return null;
+                  {/* Score and Actions */}
+                  <div
+                    className={`flex items-center gap-2 ${
+                      viewMode === "grid" ? "mt-4 justify-end" : ""
+                    }`}
+                  >
+                    <div
+                      className={`
+                        px-2 py-1 rounded-lg text-sm font-medium
+                        ${getScoreBgColor(report.matchScore)}
+                        ${getScoreColor(report.matchScore)}
+                      `}
+                    >
+                      {report.matchScore}% Match
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          navigate(`/dashboard/reports/${report.id}`)
                         }
+                        className="hover:bg-bg-light/50"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      {report.topCandidateFilePath && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDownloadResume(report)}
+                          className="hover:bg-bg-light/50"
+                        >
+                          <FileDown className="w-4 h-4" />
+                        </Button>
                       )}
-
-                      <PaginationItem>
-                        <PaginationNext
-                          onClick={() =>
-                            setCurrentPage(
-                              Math.min(totalPages, currentPage + 1)
-                            )
-                          }
-                          className={
-                            currentPage === totalPages
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer hover:bg-bg-light"
-                          }
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </>
+              </div>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className={
+                      currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                    }
+                  />
+                </PaginationItem>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(page)}
+                        isActive={currentPage === page}
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                )}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
+                    className={
+                      currentPage === totalPages
+                        ? "pointer-events-none opacity-50"
+                        : ""
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           )}
         </>
       )}

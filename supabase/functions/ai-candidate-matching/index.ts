@@ -248,26 +248,49 @@ Return ONLY the JSON response, no additional text.`
       matchingResults = matchingResults
         .filter(result => result && typeof result.matchingScore === 'number')
         .sort((a, b) => b.matchingScore - a.matchingScore)
+
+      // Add default values for any candidates that weren't processed
+      const processedIds = new Set(matchingResults.map(r => r.candidateId))
+      const unprocessedCandidates = candidates.filter(c => !processedIds.has(c.id))
+      
+      // Add default values for unprocessed candidates
+      unprocessedCandidates.forEach(candidate => {
+        matchingResults.push({
+          candidateId: candidate.id,
+          candidateName: candidate.name,
+          matchingScore: 0, // Default score for invalid files
+          summary: `Unable to process ${candidate.fileName || 'file'} - invalid or unsupported format.`,
+          keyStrengths: [],
+          potentialConcerns: ['File could not be processed'],
+          fitAnalysis: {
+            technicalFit: 0,
+            experienceFit: 0,
+            culturalFit: 0,
+            growthPotential: 0
+          },
+          recommendation: 'pass'
+        })
+      })
       
     } catch (parseError) {
       console.error('JSON parsing error:', parseError)
       console.error('Raw response:', responseText)
       
-      // Fallback response if parsing fails
-      matchingResults = candidates.map((candidate, index) => ({
+      // Fallback response with default values for all candidates
+      matchingResults = candidates.map(candidate => ({
         candidateId: candidate.id,
         candidateName: candidate.name,
-        matchingScore: 70,
-        summary: `${candidate.name} has relevant experience for this ${job.title} role.`,
-        keyStrengths: candidate.profile.skills.technical?.slice(0, 3) || ['Experience'],
-        potentialConcerns: [],
+        matchingScore: 0, // Default score for invalid files
+        summary: `Unable to process ${candidate.fileName || 'file'} - invalid or unsupported format.`,
+        keyStrengths: [],
+        potentialConcerns: ['File could not be processed'],
         fitAnalysis: {
-          technicalFit: 70,
-          experienceFit: 70,
-          culturalFit: 70,
-          growthPotential: 75
+          technicalFit: 0,
+          experienceFit: 0,
+          culturalFit: 0,
+          growthPotential: 0
         },
-        recommendation: 'maybe' as const
+        recommendation: 'pass'
       }))
     }
 

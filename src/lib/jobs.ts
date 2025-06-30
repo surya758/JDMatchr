@@ -431,19 +431,13 @@ export async function updateJobApplicationsWithMatchingResults(
                candidate.file_name.includes(result.candidateId);
       });
 
-      if (matchingResult) {
-        updates.push({
-          applicationId: application.id,
-          matchingScore: matchingResult.matchingScore,
-          ranking: matchingResult.ranking,
-          status: 'under_review' as const
-        });
-      }
-    }
-
-    if (updates.length === 0) {
-      console.error('No matching results found for applications');
-      return false;
+      // Add update with either matching result or default values
+      updates.push({
+        applicationId: application.id,
+        matchingScore: matchingResult ? matchingResult.matchingScore : 0,
+        ranking: matchingResult ? matchingResult.ranking : 999, // Default ranking for unmatched files
+        status: 'under_review' as const
+      });
     }
 
     // Batch update all applications
@@ -684,6 +678,7 @@ export async function getUserJobReports() {
       } else if (completedApplications.length < candidatesAnalyzed) {
         status = 'processing';
       }
+
 
       return {
         id: job.id,

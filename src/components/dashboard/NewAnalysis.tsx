@@ -68,13 +68,6 @@ const NewAnalysis = () => {
     uploadedResumes.length > 0 &&
     !jobProcessor.isPending;
 
-  console.log(
-    "jobCreditsRemaining",
-    jobCreditsRemaining,
-    "canUseService",
-    canUseService
-  );
-
   const formatJDForDisplay = (formattedJD: FormattedJD): string => {
     return `**${formattedJD.title || "Job Title"}**
 ${formattedJD.company ? `at ${formattedJD.company}` : ""}
@@ -262,113 +255,117 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
         return;
       }
 
-      // Step 1: Process job description
-      let formattedJD;
-      if (contentSource === "file") {
-        setProcessingStatus("Using processed job description...");
-        const jdResult = await jobProcessor.mutateAsync({
-          type: "text",
-          content: jobDescription,
-        });
-        formattedJD = jdResult.formattedJD;
-      } else {
-        setProcessingStatus("Processing job description...");
-        const jdResult = await jobProcessor.mutateAsync({
-          type: "text",
-          content: jobDescription,
-        });
-        formattedJD = jdResult.formattedJD;
-      }
+      // Step 1: Process job description and create job record in parallel
+      setProcessingStatus("Processing job description and initializing...");
+      const [formattedJD, job] = await Promise.all([
+        // Process job description
+        (async () => {
+          const jdResult = await jobProcessor.mutateAsync({
+            type: "text",
+            content: jobDescription,
+          });
+          return jdResult.formattedJD;
+        })(),
+        // Create job record
+        (async () => {
+          const jobData = {
+            title: "New Job Analysis", // Will be updated after JD processing
+            status: "active",
+            raw_description: jobDescription,
+          };
+          const newJob = await createJob(jobData);
+          if (!newJob) throw new Error("Failed to create job");
+          setCurrentJobId(newJob.id);
+          return newJob;
+        })(),
+      ]);
 
       if (cancelRef.current) {
-        console.log("Analysis cancelled after job description processing");
+        if (job) {
+          await updateJob(job.id, {
+            status: "cancelled",
+            updated_at: new Date().toISOString(),
+          });
+        }
+        console.log("Analysis cancelled after initialization");
         return;
       }
 
-      // Step 2: Create job in database
-      setProcessingStatus("Creating job record...");
-      const job = await createJob({
+      // Update job with formatted JD details
+      await updateJob(job.id, {
         title: formattedJD.title || "New Job Analysis",
         company: formattedJD.company || "",
         location: formattedJD.location || "",
         employment_type: formattedJD.employmentType || "",
         experience_level: formattedJD.experienceLevel || "",
-        raw_description: jobDescription,
         formatted_jd: formattedJD as any,
-        status: "active",
       });
 
-      if (!job) {
-        throw new Error("Failed to create job");
-      }
-
-      setCurrentJobId(job.id);
-
-      if (cancelRef.current) {
-        // Mark job as cancelled if we're stopping here
-        await updateJob(job.id, {
-          status: "cancelled",
-          updated_at: new Date().toISOString(),
-        });
-        console.log("Analysis cancelled after job creation");
-        return;
-      }
-
-      // Step 3: Process resumes
+      // Step 2: Process resumes in parallel batches
       setProcessingStatus(
         `Processing ${uploadedResumes.length} resume${
           uploadedResumes.length !== 1 ? "s" : ""
         }...`
       );
+
+      // Process resumes in parallel with a batch size limit
+      const BATCH_SIZE = 10; // Process 10 resumes at a time to avoid overwhelming the system
       const processedResumes = [];
 
-      for (let i = 0; i < uploadedResumes.length; i++) {
+      for (let i = 0; i < uploadedResumes.length; i += BATCH_SIZE) {
         if (cancelRef.current) {
           console.log("Analysis cancelled during resume processing");
+          await updateJob(job.id, {
+            status: "cancelled",
+            updated_at: new Date().toISOString(),
+          });
           return;
         }
 
-        const file = uploadedResumes[i];
-        setProcessingStatus(
-          `Processing resume ${i + 1} of ${uploadedResumes.length}: ${
-            file.name
-          }`
+        const batch = uploadedResumes.slice(i, i + BATCH_SIZE);
+        setProcessingStatus(`Processing batch...`);
+
+        const batchResults = await Promise.allSettled(
+          batch.map(async (file) => {
+            try {
+              // Process and upload in parallel
+              const [resumeResult, uploadResult] = await Promise.all([
+                resumeProcessor.mutateAsync({ file }),
+                uploadResumeFile({
+                  file,
+                  userId: job.user_id,
+                  jobId: job.id,
+                }),
+              ]);
+
+              if (!resumeResult.success || !uploadResult.success) {
+                throw new Error(`Failed to process or upload ${file.name}`);
+              }
+
+              return {
+                fileName: file.name,
+                fileType: file.type,
+                fileUrl: uploadResult.fileUrl,
+                filePath: uploadResult.filePath,
+                fileSize: file.size,
+                processedResume: resumeResult.processedResume,
+              };
+            } catch (error) {
+              console.error(`Failed to process ${file.name}:`, error);
+              return null;
+            }
+          })
         );
 
-        try {
-          const resumeResult = await resumeProcessor.mutateAsync({
-            file: file,
-          });
+        // Filter successful results from this batch
+        const successfulBatchResults = batchResults
+          .filter(
+            (result): result is PromiseFulfilledResult<any> =>
+              result.status === "fulfilled" && result.value !== null
+          )
+          .map((result) => result.value);
 
-          if (resumeResult.success) {
-            const uploadResult = await uploadResumeFile({
-              file: file,
-              userId: job.user_id,
-              jobId: job.id,
-            });
-
-            if (!uploadResult.success) {
-              console.error(
-                `Storage upload failed for ${file.name}:`,
-                uploadResult.error
-              );
-              throw new Error(
-                `Failed to upload ${file.name} to storage: ${uploadResult.error}`
-              );
-            }
-
-            processedResumes.push({
-              fileName: file.name,
-              fileType: file.type,
-              fileUrl: uploadResult.fileUrl,
-              filePath: uploadResult.filePath,
-              fileSize: file.size,
-              processedResume: resumeResult.processedResume,
-            });
-          }
-        } catch (error) {
-          console.error(`Failed to process ${file.name}:`, error);
-        }
+        processedResumes.push(...successfulBatchResults);
       }
 
       if (processedResumes.length === 0) {
@@ -384,7 +381,7 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
         return;
       }
 
-      // Step 4: Create candidates and applications in database
+      // Step 3: Create candidates and applications in database (batch operation)
       setProcessingStatus("Saving candidates to database...");
       const { candidates, applications } = await createCandidatesFromResumes(
         job.id,
@@ -400,7 +397,7 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
         return;
       }
 
-      // Step 5: Run AI matching
+      // Step 4: Run AI matching (already processes in batch)
       setProcessingStatus("Running AI candidate matching...");
       const candidateProfiles = processedResumes.map((r) => r.processedResume);
       const rankedCandidates = await matchCandidatesWithAI(
@@ -417,7 +414,7 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
         return;
       }
 
-      // Step 6: Save AI matching results to database
+      // Step 5: Save AI matching results to database (batch operation)
       setProcessingStatus("Saving matching results...");
       const matchingUpdateSuccess =
         await updateJobApplicationsWithMatchingResults(
@@ -446,13 +443,9 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
         return;
       }
 
-      // Step 7: Mark job as completed
-      setProcessingStatus("Finalizing job status...");
-      await markJobAsCompleted(job.id);
-
-      // Step 8: Use credit
+      // Step 6: Finalize job
       setProcessingStatus("Finalizing analysis...");
-      await useJobCredit();
+      await Promise.all([markJobAsCompleted(job.id), useJobCredit()]);
 
       setProcessingStatus("Analysis completed successfully!");
 
@@ -499,10 +492,10 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
         description:
           error instanceof Error
             ? error.message
-            : "An unexpected error occurred.",
+            : "An unexpected error occurred",
         variant: "destructive",
       });
-    } finally {
+
       setIsAnalyzing(false);
       setProcessingStatus("");
     }
