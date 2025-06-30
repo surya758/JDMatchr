@@ -26,6 +26,7 @@ import { dodoPayments } from "../../lib/dodo-payments";
 import { useAuth } from "../../hooks/useAuth";
 import { LoaderInline } from "../ui/loader";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 const SettingsBilling = () => {
   const { user } = useAuth();
@@ -57,6 +58,8 @@ const SettingsBilling = () => {
     hideConfirmation,
     confirmAction,
   } = useConfirmation();
+
+  const { trackSubscriptionEvent } = useAnalytics();
 
   const isUpdating = isSubscriptionUpdating || isConfirmationLoading;
   const [downloadingPDF, setDownloadingPDF] = useState<string | null>(null);
@@ -195,6 +198,12 @@ const SettingsBilling = () => {
       // Set loading state for button
       setIsUpgrading(true);
 
+      // Track subscription event
+      trackSubscriptionEvent("upgraded", {
+        planName: planName,
+        amount: 14.99,
+      });
+
       // Create payment session via backend
       const paymentSession = await dodoPayments.createPaymentSession(
         planName,
@@ -242,6 +251,9 @@ const SettingsBilling = () => {
     showConfirmation(confirmationConfigs.cancelSubscription(), async () => {
       try {
         setIsCancelling(true);
+        // Track subscription event
+        trackSubscriptionEvent("cancelled");
+
         await cancelSubscription();
         // Refresh page to fetch latest subscription data
         setTimeout(() => {
@@ -277,6 +289,8 @@ const SettingsBilling = () => {
           title: "Subscription reactivated",
           description: "Your subscription has been successfully reactivated.",
         });
+        // Track subscription event
+        trackSubscriptionEvent("reactivated");
       } catch (error) {
         console.error("Reactivation error:", error);
         toast({

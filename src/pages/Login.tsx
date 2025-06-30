@@ -8,6 +8,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useNavigate, Link } from "react-router-dom";
 import Footer from "../components/Footer";
 import LottieBackground from "../components/LottieBackground";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 // Import the Lottie animation data
 import animationData from "../assets/animations/bg.json";
@@ -16,6 +17,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { signIn, signInWithGoogle, resetPassword, user, loading } = useAuth();
   const { toast } = useToast();
+  const { EVENTS, trackAuthEvent } = useAnalytics();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -64,6 +66,9 @@ const Login = () => {
       const { error } = await signIn(formData.email, formData.password);
 
       if (error) setError(error.message);
+      trackAuthEvent("login", {
+        method: "email",
+      });
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
     }
@@ -77,6 +82,9 @@ const Login = () => {
       if (error) {
         setError(error.message);
       }
+      trackAuthEvent("login", {
+        method: "google",
+      });
     } catch (err) {
       setError("Failed to sign in with Google. Please try again.");
     }

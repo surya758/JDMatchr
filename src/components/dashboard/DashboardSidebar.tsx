@@ -18,6 +18,7 @@ import { useUserProfile } from "../../hooks/useUserProfile";
 import { useSubscription } from "../../hooks/useSubscription";
 import { useConfirmation } from "../../hooks/useConfirmation";
 import ConfirmationModal from "../ui/confirmation-modal";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 interface DashboardSidebarProps {
   isCollapsed: boolean;
@@ -47,7 +48,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   } = useConfirmation();
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-
+  const { trackAuthEvent } = useAnalytics();
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -135,6 +136,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       async () => {
         setTheme("dark");
         await signOut();
+        trackAuthEvent("logout");
         navigate("/");
       }
     );

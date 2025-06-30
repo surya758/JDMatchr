@@ -29,6 +29,7 @@ export const ANALYTICS_EVENTS = {
   // Subscription events
   SUBSCRIPTION_UPGRADED: 'subscription_upgraded',
   SUBSCRIPTION_CANCELLED: 'subscription_cancelled',
+  SUBSCRIPTION_REACTIVATED: 'subscription_reactivated',
   
   // Contact events
   CONTACT_FORM_SUBMITTED: 'contact_form_submitted',
@@ -114,12 +115,29 @@ export const useAnalytics = () => {
     track(eventMap[eventType], properties);
   };
 
+  const trackSubscriptionEvent = (
+    eventType: 'upgraded' | 'cancelled' | 'reactivated',
+    properties?: {
+      planName?: string;
+      amount?: number;
+    }
+  ) => {
+    const eventMap = {
+      upgraded: ANALYTICS_EVENTS.SUBSCRIPTION_UPGRADED,
+      cancelled: ANALYTICS_EVENTS.SUBSCRIPTION_CANCELLED,
+      reactivated: ANALYTICS_EVENTS.SUBSCRIPTION_REACTIVATED,
+    };
+
+    track(eventMap[eventType], properties);
+  };
+
   return {
     track,
     trackPageView,
     trackAnalysisEvent,
     trackFileUpload,
     trackAuthEvent,
+    trackSubscriptionEvent,
     EVENTS: ANALYTICS_EVENTS,
   };
 }; 

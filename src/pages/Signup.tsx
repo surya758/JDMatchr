@@ -8,6 +8,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/use-toast";
 import Footer from "../components/Footer";
 import LottieBackground from "../components/LottieBackground";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 // Import the Lottie animation data
 import animationData from "../assets/animations/bg.json";
@@ -26,6 +27,7 @@ const Signup = () => {
   const { signUp, signInWithGoogle, user, loading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { EVENTS, trackAuthEvent } = useAnalytics();
 
   useEffect(() => {
     if (!loading && user) {
@@ -87,6 +89,9 @@ const Signup = () => {
           title: "Account created successfully!",
           description: "Please check your email to verify your account.",
         });
+        trackAuthEvent("signup", {
+          method: "email",
+        });
         navigate("/login");
       }
     } catch (error) {
@@ -108,6 +113,9 @@ const Signup = () => {
           title: "Google signup failed",
           description: error.message,
           variant: "destructive",
+        });
+        trackAuthEvent("signup", {
+          method: "google",
         });
       }
     } catch (error) {
