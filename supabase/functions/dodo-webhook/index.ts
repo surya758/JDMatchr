@@ -103,6 +103,15 @@ serve(async (req) => {
 
     console.log(`🔔 Received Dodo webhook: ${eventType}`)
 
+    // Add delays for subscription events to ensure payment.succeeded processes first
+    if (eventType === 'subscription.active') {
+      console.log('Adding 0.7s delay for subscription.active event')
+      await new Promise(resolve => setTimeout(resolve, 700))
+    } else if (eventType === 'subscription.renewed') {
+      console.log('Adding 1.5s delay for subscription.renewed event')
+      await new Promise(resolve => setTimeout(resolve, 1500))
+    }
+
     // Handle different webhook events
     switch (eventType) {
       case 'subscription.active':
@@ -165,9 +174,111 @@ serve(async (req) => {
   }
 })
 
-// Handle payment success - update subscription with payment_id
+// Handle payment success - create or update subscription based on metadata
 async function handlePaymentSucceeded(supabase: any, eventData: any) {
-  console.log('Payment succeeded:', eventData)
+  try {
+    const { subscription_id, customer, metadata } = eventData
+    console.log('Processing payment.succeeded:', { subscription_id, customer_id: customer?.customer_id, metadata })
+
+    if (!customer?.customer_id) {
+      console.log('payment.succeeded: Missing customer_id, skipping')
+      return
+    }
+
+    // Case 1: Retry Payment
+    if (metadata?.retry_tag === 'true') {
+      console.log('Processing retry payment with original subscription:', metadata.original_subscription_id)
+      
+      // Mark old subscription as replaced
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({
+          status: 'replaced',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', metadata.original_subscription_id)
+
+      if (updateError) {
+        console.error('Error marking old subscription as replaced:', updateError)
+        // Continue anyway as this is not critical
+      }
+
+      // Create new pending subscription
+      const { error: createError } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: metadata.jdmatchr_user_id,
+          dodo_subscription_id: subscription_id,
+          dodo_customer_id: customer.customer_id,
+          plan_name: 'pro',
+          status: 'pending',
+          job_credits: 30,
+          job_credits_used: 0,
+          billing_interval: 'monthly',
+          cancel_at_period_end: false,
+          current_period_start: new Date().toISOString(),
+          metadata: JSON.stringify(metadata)
+        })
+
+      if (createError) {
+        console.error('Error creating retry subscription:', createError)
+        throw createError
+      }
+
+      console.log('Successfully created retry subscription pending activation')
+      return
+    }
+
+    // Case 2: New Subscription
+    if (metadata?.retry_tag !== 'true') {
+      // Check for existing subscription
+      const { data: existingSub, error: checkError } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('dodo_customer_id', customer.customer_id)
+        .order('created_at', { ascending: false })
+        .single()
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('Error checking existing subscription:', checkError)
+        throw checkError
+      }
+
+      if (!existingSub) {
+        console.log('Creating new pending subscription for customer:', customer.customer_id)
+        
+        // Create new pending subscription
+        const { error: createError } = await supabase
+          .from('subscriptions')
+          .insert({
+            user_id: metadata.jdmatchr_user_id,
+            dodo_subscription_id: subscription_id,
+            dodo_customer_id: customer.customer_id,
+            plan_name: 'pro',
+            status: 'pending',
+            job_credits: 30,
+            job_credits_used: 0,
+            billing_interval: 'monthly',
+            cancel_at_period_end: false,
+            current_period_start: new Date().toISOString(),
+            metadata: JSON.stringify(metadata)
+          })
+
+        if (createError) {
+          console.error('Error creating new subscription:', createError)
+          throw createError
+        }
+
+        console.log('Successfully created new subscription pending activation')
+      } else {
+        console.log('Existing subscription found, no action needed for payment.succeeded')
+      }
+    }
+
+  } catch (error) {
+    console.error('Error in handlePaymentSucceeded:', error)
+    throw error
+  }
 }
 
 // Handle subscription activation - activate pending subscription and manage free plan
@@ -182,18 +293,36 @@ async function handleSubscriptionActive(supabase: any, eventData: any) {
 
     console.log(`Processing subscription activation for customer: ${customer.customer_id}`)
 
-    // Update the pending subscription to active using dodo_customer_id
+    // Find pending subscription by dodo_subscription_id
+    const { data: pendingSub, error: findError } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('dodo_subscription_id', subscription_id)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+      .single()
+
+    if (findError) {
+      console.error('Error finding pending subscription:', findError)
+      throw findError
+    }
+
+    if (!pendingSub) {
+      console.log(`No pending subscription found for subscription_id: ${subscription_id}`)
+      return
+    }
+
+    // Update the pending subscription to active
     const { data: updatedSub, error: updateError } = await supabase
       .from('subscriptions')
       .update({
         status: 'active',
-        dodo_subscription_id: subscription_id, // Update with the subscription_id from webhook
         billing_interval: billing_interval || 'monthly',
         current_period_end: next_billing_date,
         cancel_at_period_end: false,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
-      .eq('dodo_customer_id', customer.customer_id)
+      .eq('id', pendingSub.id)
       .select('user_id')
       .single()
 
@@ -202,14 +331,7 @@ async function handleSubscriptionActive(supabase: any, eventData: any) {
       throw updateError
     }
 
-    console.log('updatedSub', updatedSub)
-
-    if (!updatedSub) {
-      console.log(`No pending Pro subscription found for customer: ${customer.customer_id}`)
-      return
-    }
-
-    console.log(`Successfully activated subscription for user: ${updatedSub.user_id}`)
+    console.log('Successfully activated subscription:', updatedSub)
 
     // Expire the Free plan when Pro becomes active
     await manageFreeSubscription(supabase, updatedSub.user_id, 'expired')
@@ -244,7 +366,7 @@ async function handleSubscriptionRenewed(supabase: any, eventData: any) {
         cancel_at_period_end: false,
         updated_at: new Date().toISOString()
       })
-      .eq('dodo_customer_id', customer.customer_id)
+      .eq('dodo_subscription_id', subscription_id)
       .select('user_id')
       .single()
 
@@ -288,7 +410,7 @@ async function handleSubscriptionOnHold(supabase: any, eventData: any) {
         status: 'on_hold',
         updated_at: new Date().toISOString()
       })
-      .eq('dodo_customer_id', customer.customer_id)
+      .eq('dodo_subscription_id', subscription_id)
 
     if (updateError) {
       console.error('Error updating subscription to on hold:', updateError)
@@ -321,7 +443,7 @@ async function handleSubscriptionPaused(supabase: any, eventData: any) {
         status: 'paused',
         updated_at: new Date().toISOString()
       })
-      .eq('dodo_customer_id', customer.customer_id)
+      .eq('dodo_subscription_id', subscription_id)
 
     if (updateError) {
       console.error('Error pausing subscription:', updateError)
@@ -355,7 +477,7 @@ async function handleSubscriptionCancelled(supabase: any, eventData: any) {
         cancel_at_period_end: cancel_at_next_billing_date || true,
         updated_at: new Date().toISOString()
       })
-      .eq('dodo_customer_id', customer.customer_id)
+      .eq('dodo_subscription_id', subscription_id)
 
     if (updateError) {
       console.error('Error cancelling subscription:', updateError)
@@ -388,7 +510,7 @@ async function handleSubscriptionFailed(supabase: any, eventData: any) {
         status: 'failed',
         updated_at: new Date().toISOString()
       })
-      .eq('dodo_customer_id', customer.customer_id)
+      .eq('dodo_subscription_id', subscription_id)
 
     if (updateError) {
       console.error('Error marking subscription as failed:', updateError)
@@ -423,7 +545,7 @@ async function handleSubscriptionExpired(supabase: any, eventData: any) {
         job_credits: 0,
         updated_at: new Date().toISOString()
       })
-      .eq('dodo_customer_id', customer.customer_id)
+      .eq('dodo_subscription_id', subscription_id)
       .select('user_id')
       .single()
 

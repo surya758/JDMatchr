@@ -467,7 +467,7 @@ export type UserPreferencesInsert = TablesInsert<'user_preferences'>
 export type UserPreferencesUpdate = TablesUpdate<'user_preferences'>
 
 // Status enums
-export type JobStatus = 'draft' | 'active' | 'closed'
+export type JobStatus = 'draft' | 'active' | 'closed' | 'cancelled' | 'failed'
 export type ApplicationStatus = 'pending' | 'under_review' | 'rejected' | 'interviewed' | 'hired'
 export type SubscriptionStatus = 
   | 'active' 
@@ -478,6 +478,7 @@ export type SubscriptionStatus =
   | 'failed'
   | 'pending'
   | 'completed'
+  | 'replaced'
 export type PlanName = 'free' | 'pro' | 'enterprise'
 
 export const Constants = {

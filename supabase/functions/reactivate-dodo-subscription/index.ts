@@ -44,6 +44,7 @@ serve(async (req) => {
       .eq('user_id', user.id)
       .eq('plan_name', 'pro')
       .eq('status', 'cancelled')
+      .order('created_at', { ascending: false })
       .eq('cancel_at_period_end', true)
       .single()
 
@@ -85,7 +86,7 @@ serve(async (req) => {
         cancel_at_period_end: false,
         updated_at: new Date().toISOString()
       })
-      .eq('dodo_customer_id', subscription.dodo_customer_id)
+      .eq('dodo_subscription_id', subscription.dodo_subscription_id)
 
     if (!response.ok) {
       const errorText = await response.text()

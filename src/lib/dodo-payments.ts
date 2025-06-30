@@ -80,6 +80,19 @@ export async function reactivateSubscription(): Promise<{ success: boolean; mess
   return data
 }
 
+export async function retryPaymentSession(userEmail: string, userName?: string): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('retry-dodo-payment', {
+    body: { userEmail, userName }
+  })
+
+  if (error) {
+    console.error('Error creating retry payment session:', error)
+    throw new Error(error.message || 'Failed to create retry payment session')
+  }
+
+  return data
+}
+
 /**
  * Legacy method - now calls createPaymentSession
  * @deprecated Use createPaymentSession instead
@@ -165,6 +178,7 @@ export const dodoPayments = {
   createPaymentSession,
   cancelSubscription,
   reactivateSubscription,
+  retryPaymentSession,
   createCustomer,
   createPayment,
   getSubscription,

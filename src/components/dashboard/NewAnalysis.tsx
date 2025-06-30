@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { AlertCircle, Zap, ArrowRight, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +18,7 @@ import {
   createCandidatesFromResumes,
   updateJobApplicationsWithMatchingResults,
   markJobAsCompleted,
+  updateJob,
 } from "../../lib/jobs";
 import { matchCandidatesWithAI } from "../../lib/ai-matching";
 import { FormattedJD } from "@/hooks/useJobDescriptionProcessor";
@@ -40,12 +41,14 @@ const NewAnalysis = () => {
     null
   );
   const [isImageFile, setIsImageFile] = useState<boolean>(false);
+  const [isCancelled, setIsCancelled] = useState(false);
+  const cancelRef = useRef(false);
 
   // Hooks
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { jobCreditsRemaining, canUseService, useJobCredit } =
+  const { jobCreditsRemaining, canUseService, useJobCredit, hasPaymentIssue } =
     useSubscription();
   const jobProcessor = useJobDescriptionProcessor();
   const resumeProcessor = useResumeProcessor();
@@ -218,7 +221,23 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
         cancelText: "Continue Analysis",
         variant: "destructive" as const,
       },
-      () => {
+      async () => {
+        // Set cancellation flags
+        setIsCancelled(true);
+        cancelRef.current = true;
+
+        // If we have a current job, mark it as cancelled
+        if (currentJobId) {
+          try {
+            await updateJob(currentJobId, {
+              status: "cancelled",
+              updated_at: new Date().toISOString(),
+            });
+          } catch (error) {
+            console.error("Failed to update job status:", error);
+          }
+        }
+
         setIsAnalyzing(false);
         setProcessingStatus("");
         setCurrentJobId(null);
@@ -231,9 +250,18 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
   };
 
   const startAnalysis = async () => {
+    // Reset cancellation flags
+    setIsCancelled(false);
+    cancelRef.current = false;
     setProcessingStatus("Starting analysis...");
 
     try {
+      // Check for cancellation before each major step
+      if (cancelRef.current) {
+        console.log("Analysis cancelled before job description processing");
+        return;
+      }
+
       // Step 1: Process job description
       let formattedJD;
       if (contentSource === "file") {
@@ -250,6 +278,11 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
           content: jobDescription,
         });
         formattedJD = jdResult.formattedJD;
+      }
+
+      if (cancelRef.current) {
+        console.log("Analysis cancelled after job description processing");
+        return;
       }
 
       // Step 2: Create job in database
@@ -271,6 +304,16 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
 
       setCurrentJobId(job.id);
 
+      if (cancelRef.current) {
+        // Mark job as cancelled if we're stopping here
+        await updateJob(job.id, {
+          status: "cancelled",
+          updated_at: new Date().toISOString(),
+        });
+        console.log("Analysis cancelled after job creation");
+        return;
+      }
+
       // Step 3: Process resumes
       setProcessingStatus(
         `Processing ${uploadedResumes.length} resume${
@@ -280,6 +323,11 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
       const processedResumes = [];
 
       for (let i = 0; i < uploadedResumes.length; i++) {
+        if (cancelRef.current) {
+          console.log("Analysis cancelled during resume processing");
+          return;
+        }
+
         const file = uploadedResumes[i];
         setProcessingStatus(
           `Processing resume ${i + 1} of ${uploadedResumes.length}: ${
@@ -327,12 +375,30 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
         throw new Error("No resumes could be processed successfully");
       }
 
+      if (cancelRef.current) {
+        await updateJob(job.id, {
+          status: "cancelled",
+          updated_at: new Date().toISOString(),
+        });
+        console.log("Analysis cancelled after resume processing");
+        return;
+      }
+
       // Step 4: Create candidates and applications in database
       setProcessingStatus("Saving candidates to database...");
       const { candidates, applications } = await createCandidatesFromResumes(
         job.id,
         processedResumes
       );
+
+      if (cancelRef.current) {
+        await updateJob(job.id, {
+          status: "cancelled",
+          updated_at: new Date().toISOString(),
+        });
+        console.log("Analysis cancelled after candidate creation");
+        return;
+      }
 
       // Step 5: Run AI matching
       setProcessingStatus("Running AI candidate matching...");
@@ -341,6 +407,15 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
         formattedJD,
         candidateProfiles
       );
+
+      if (cancelRef.current) {
+        await updateJob(job.id, {
+          status: "cancelled",
+          updated_at: new Date().toISOString(),
+        });
+        console.log("Analysis cancelled after AI matching");
+        return;
+      }
 
       // Step 6: Save AI matching results to database
       setProcessingStatus("Saving matching results...");
@@ -360,6 +435,15 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
         console.warn(
           "Failed to update some matching results, but continuing..."
         );
+      }
+
+      if (cancelRef.current) {
+        await updateJob(job.id, {
+          status: "cancelled",
+          updated_at: new Date().toISOString(),
+        });
+        console.log("Analysis cancelled after saving matching results");
+        return;
       }
 
       // Step 7: Mark job as completed
@@ -397,6 +481,19 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
       console.log("Ranked results:", rankedCandidates.length);
     } catch (error) {
       console.error("Analysis failed:", error);
+
+      // If we have a current job, mark it as failed
+      if (currentJobId) {
+        try {
+          await updateJob(currentJobId, {
+            status: "failed",
+            updated_at: new Date().toISOString(),
+          });
+        } catch (updateError) {
+          console.error("Failed to update job status:", updateError);
+        }
+      }
+
       toast({
         title: "Analysis Failed",
         description:
@@ -453,18 +550,19 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
       </div>
 
       {/* Credits Warning */}
-      {!canUseService && (
+      {(!canUseService || hasPaymentIssue) && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <AlertCircle className="w-6 h-6 text-red-400" />
               <div>
                 <h3 className="font-grotesk font-semibold text-red-400 mb-1">
-                  Insufficient Credits
+                  {hasPaymentIssue ? "Payment Issue" : "Insufficient Credits"}
                 </h3>
                 <p className="text-red-300 text-sm">
-                  You need at least 1 credit to perform analysis. Please upgrade
-                  your plan.
+                  {hasPaymentIssue
+                    ? "There is an issue with your payment. Please contact support if needed."
+                    : "You need at least 1 credit to perform analysis. Please upgrade your plan."}
                 </p>
               </div>
             </div>
@@ -473,7 +571,7 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
               className="bg-primary hover:bg-primary/90 text-primary-foreground ml-4"
             >
               <Zap className="w-6 h-6 mr-1" />
-              Upgrade Plan
+              {hasPaymentIssue ? "Go to Billing" : "Upgrade Plan"}
             </Button>
           </div>
         </div>
@@ -482,11 +580,11 @@ ${formattedJD.responsibilities.map((resp) => `• ${resp}`).join("\n")}`
       {/* Main Form */}
       <div
         className={`grid grid-cols-1 lg:grid-cols-2 gap-8 relative ${
-          !canUseService ? "opacity-50" : ""
+          !canUseService || hasPaymentIssue ? "opacity-50" : ""
         }`}
       >
         {/* Disabled overlay when no credits */}
-        {!canUseService && (
+        {(!canUseService || hasPaymentIssue) && (
           <div className="absolute inset-0 bg-transparent z-10 cursor-not-allowed" />
         )}
 

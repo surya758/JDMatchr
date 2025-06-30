@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CreditCard,
   Download,
@@ -46,6 +46,7 @@ const SettingsBilling = () => {
     jobCreditsRemaining,
     hasPaymentIssue,
     paymentIssueType,
+    refetch,
   } = useSubscription();
 
   const {
@@ -57,27 +58,35 @@ const SettingsBilling = () => {
     confirmAction,
   } = useConfirmation();
 
-  console.log("hasPaymentIssue", hasPaymentIssue);
-  console.log("subscription", subscription);
-
   const isUpdating = isSubscriptionUpdating || isConfirmationLoading;
   const [downloadingPDF, setDownloadingPDF] = useState<string | null>(null);
   const [downloadingReport, setDownloadingReport] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showRetrySuccessModal, setShowRetrySuccessModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [isReactivating, setIsReactivating] = useState(false);
+  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
 
   // Handle payment success/cancellation from URL params
-  React.useEffect(() => {
+  useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const success = urlParams.get("success");
+    const retry = urlParams.get("retry");
     const cancelled = urlParams.get("cancelled");
 
     if (success === "true") {
-      // Show success modal instead of toast
-      setShowSuccessModal(true);
+      if (retry === "true") {
+        // Show retry success modal for payment retry
+        setShowRetrySuccessModal(true);
+      } else {
+        // Show regular success modal for new subscription
+        setShowSuccessModal(true);
+      }
       // Clean up URL
+      setTimeout(() => {
+        refetch();
+      }, 2000);
       window.history.replaceState({}, "", window.location.pathname);
     } else if (cancelled === "true") {
       toast({
@@ -459,35 +468,34 @@ const SettingsBilling = () => {
                     : "Your subscription payment has failed. Please update your payment method or retry the payment to restore your Pro access."}
                 </p>
                 <Button
-                  onClick={() => {
-                    // Redirect to payment management or retry payment
+                  onClick={async () => {
+                    // Retry payment for failed/on-hold subscription
                     if (user?.email) {
-                      dodoPayments
-                        .createPaymentSession(
-                          "pro",
+                      try {
+                        setIsRetryingPayment(true);
+                        const session = await dodoPayments.retryPaymentSession(
                           user.email,
                           profile?.full_name
-                        )
-                        .then((session) => {
-                          if (session.checkout_url) {
-                            window.location.href = session.checkout_url;
-                          }
-                        })
-                        .catch((error) => {
-                          console.error(
-                            "Error creating payment session:",
-                            error
-                          );
-                          toast({
-                            title: "Payment Update Failed",
-                            description:
-                              "Unable to open payment portal. Please try again later.",
-                            variant: "destructive",
-                          });
+                        );
+                        if (session.checkout_url) {
+                          window.location.href = session.checkout_url;
+                        }
+                      } catch (error) {
+                        console.error(
+                          "Error creating retry payment session:",
+                          error
+                        );
+                        toast({
+                          title: "Payment Update Failed",
+                          description:
+                            "Unable to open payment portal. Please try again later.",
+                          variant: "destructive",
                         });
+                        setIsRetryingPayment(false);
+                      }
                     }
                   }}
-                  disabled={isUpdating}
+                  disabled={isUpdating || isRetryingPayment}
                   size="sm"
                   className={`text-black ${
                     paymentIssueType === "on_hold"
@@ -495,8 +503,12 @@ const SettingsBilling = () => {
                       : "bg-red-500 hover:bg-red-600"
                   }`}
                 >
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  {isUpdating
+                  {isRetryingPayment ? (
+                    <LoaderInline isLoading={true} size="sm" className="mr-2" />
+                  ) : (
+                    <CreditCard className="w-4 h-4 mr-2" />
+                  )}
+                  {isRetryingPayment
                     ? "Processing..."
                     : paymentIssueType === "on_hold"
                     ? "Update Payment Method"
@@ -883,6 +895,45 @@ const SettingsBilling = () => {
             <p className="text-text-muted">
               Your payment was successful! You now have access to all Pro
               features including:
+            </p>
+            <div className="space-y-2 text-sm text-text-muted">
+              <div className="flex items-center justify-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-400" />
+                <span>30 job analyses per month</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-400" />
+                <span>Up to 50 resumes per job</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2">
+                <CheckCircle className="w-4 h-4 text-green-400" />
+                <span>Full breakdowns & PDF reports</span>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Retry Success Modal */}
+      <Dialog
+        open={showRetrySuccessModal}
+        onOpenChange={setShowRetrySuccessModal}
+      >
+        <DialogContent className="sm:max-w-md bg-bg/95 backdrop-blur-sm border-border-custom">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-center text-center">
+              <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mb-4">
+                <CheckCircle className="w-8 h-8 text-green-400" />
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center space-y-4">
+            <h3 className="text-2xl font-grotesk font-bold text-text">
+              ✅ Payment Successful!
+            </h3>
+            <p className="text-text-muted">
+              Your payment issue has been resolved! Your Pro subscription is now
+              active and you can continue using all Pro features:
             </p>
             <div className="space-y-2 text-sm text-text-muted">
               <div className="flex items-center justify-center space-x-2">

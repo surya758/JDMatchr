@@ -6,9 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Import DODO Payments (you'll need to add this as an npm module or use HTTP requests)
-// For now, we'll use direct HTTP requests to DODO API
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -39,17 +36,40 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { planName, userEmail, userName } = await req.json()
+    const { userEmail, userName } = await req.json()
 
-    if (!planName || !userEmail) {
+    if (!userEmail) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: planName, userEmail' }),
+        JSON.stringify({ error: 'Missing required field: userEmail' }),
         { 
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
+
+    // Find the user's failed or on_hold pro subscription
+    const { data: failedSubscription, error: subError } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('plan_name', 'pro')
+      .in('status', ['failed', 'on_hold'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (subError || !failedSubscription) {
+      return new Response(
+        JSON.stringify({ error: 'No failed or on-hold subscription found' }),
+        { 
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    console.log('Found failed/on-hold subscription:', failedSubscription.id, 'Status:', failedSubscription.status)
 
     // Get DODO API credentials from environment
     const dodoApiKey = Deno.env.get('DODO_API_KEY')
@@ -68,24 +88,12 @@ serve(async (req) => {
     
     let customer
     
-    // Check if user has any existing subscription with a dodo_customer_id
-    const { data: existingSubscription, error: existingError } = await supabase
-      .from('subscriptions')
-      .select('dodo_customer_id')
-      .eq('user_id', user.id)
-      .not('dodo_customer_id', 'is', null)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
-
-    if (existingSubscription?.dodo_customer_id && !existingError) {
-      // Reuse existing customer
-      console.log('Reusing existing DODO customer:', existingSubscription.dodo_customer_id)
-      customer = { customer_id: existingSubscription.dodo_customer_id }
+    // Try to reuse existing customer if we have dodo_customer_id
+    if (failedSubscription.dodo_customer_id) {
+      console.log('Reusing existing DODO customer:', failedSubscription.dodo_customer_id)
+      customer = { customer_id: failedSubscription.dodo_customer_id }
     } else {
       // Create new customer
-      console.log('Creating new DODO customer for:', userEmail)
-      
       const customerResponse: Response = await fetch(`${baseUrl}/customers`, {
         method: 'POST',
         headers: {
@@ -97,7 +105,8 @@ serve(async (req) => {
           name: userName || userEmail.split('@')[0],
           metadata: {
             jdmatchr_user_id: user.id,
-            source: 'jdmatchr_app'
+            source: 'jdmatchr_retry_payment',
+            original_subscription_id: failedSubscription.id
           }
         })
       })
@@ -112,24 +121,20 @@ serve(async (req) => {
       console.log('DODO customer created:', customer.customer_id)
     }
 
-    // Step 2: Map plan to DODO product ID
-    const productMapping: Record<string, string> = {
-      'Pro': Deno.env.get('DODO_PRODUCT_PRO_MONTHLY') || 'prod_pro_monthly',
-    }
-
-    const productId = productMapping[planName]
+    // Step 2: Get product ID for Pro plan
+    const productId = Deno.env.get('DODO_PRODUCT_PRO_MONTHLY')
     if (!productId) {
       return new Response(
-        JSON.stringify({ error: `Product not found for plan: ${planName}` }),
+        JSON.stringify({ error: 'Pro product configuration not found' }),
         { 
-          status: 400,
+          status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
     }
 
-    // Step 3: Create subscription
-    console.log('Creating DODO subscription for product:', productId)
+    // Step 3: Create new subscription for retry
+    console.log('Creating DODO subscription for retry, product:', productId)
     
     const subscriptionResponse = await fetch(`${baseUrl}/subscriptions`, {
       method: 'POST',
@@ -151,11 +156,14 @@ serve(async (req) => {
         product_id: productId,
         quantity: 1,
         payment_link: true,
-        return_url: `${req.headers.get('origin')}/dashboard/settings/billing?success=true`,
+        return_url: `${req.headers.get('origin')}/dashboard/settings/billing?success=true&retry=true`,
         metadata: {
           jdmatchr_user_id: user.id,
-          plan_name: planName,
-          source: 'jdmatchr_app'
+          plan_name: 'pro',
+          source: 'jdmatchr_retry_payment',
+          retry_tag: 'true',
+          original_subscription_id: failedSubscription.id,
+          retry_for_status: failedSubscription.status
         }
       })
     })
@@ -163,14 +171,13 @@ serve(async (req) => {
     if (!subscriptionResponse.ok) {
       const errorText = await subscriptionResponse.text()
       console.error('DODO subscription creation failed:', errorText)
-      throw new Error(`Failed to create subscription: ${subscriptionResponse.status}`)
+      throw new Error(`Failed to create retry subscription: ${subscriptionResponse.status}`)
     }
 
     const subscription = await subscriptionResponse.json()
-    console.log('DODO subscription created:', subscription.subscription_id)
-    console.log('DODO customer:', customer)
+    console.log('DODO retry subscription created:', subscription.subscription_id)
 
-    // Return the subscription session data without creating subscription record
+    // Return the subscription session data
     return new Response(
       JSON.stringify({
         success: true,
@@ -178,7 +185,9 @@ serve(async (req) => {
         payment_id: subscription.payment_id,
         subscription_id: subscription.subscription_id,
         checkout_url: subscription.payment_link,
-        client_secret: subscription.client_secret
+        client_secret: subscription.client_secret,
+        original_subscription_id: failedSubscription.id,
+        retry: true
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -186,11 +195,11 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('❌ Error creating DODO payment:', error)
+    console.error('❌ Error creating DODO retry payment:', error)
     
     return new Response(
       JSON.stringify({ 
-        error: 'Failed to create payment session',
+        error: 'Failed to create retry payment session',
         message: error.message 
       }),
       { 

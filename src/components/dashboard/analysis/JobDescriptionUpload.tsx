@@ -20,7 +20,6 @@ const JobDescriptionUpload: React.FC<JobDescriptionUploadProps> = ({
   onJobDescriptionChange,
   onFileUpload,
   isProcessing,
-  contentSource,
   isDragging,
   onDragStateChange,
   isDisabled = false,
@@ -107,6 +106,7 @@ const JobDescriptionUpload: React.FC<JobDescriptionUploadProps> = ({
         isLoading={isProcessing}
         text="Processing job description file..."
         size="md"
+        className="rounded-2xl"
       />
 
       <div className="flex items-center space-x-3 mb-6">
