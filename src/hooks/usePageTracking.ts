@@ -14,7 +14,7 @@ export const usePageTracking = () => {
     // Get page title from document or generate from pathname
     const getPageTitle = (pathname: string): string => {
       // Try to get actual page title first
-      if (document.title && document.title !== 'JDMatchr') {
+      if (document.title && document.title !== 'jdmatchr') {
         return document.title;
       }
 
