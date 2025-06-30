@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Check,
   X,
@@ -6,15 +5,11 @@ import {
   Puzzle,
   Image,
   Zap,
-  FileText,
-  Package,
   Shield,
   Brain,
   Briefcase,
   Coins,
-  Users,
   Bot,
-  LineChart,
 } from "lucide-react";
 
 const ComparisonSection = () => {
