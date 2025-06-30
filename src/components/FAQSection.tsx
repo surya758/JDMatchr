@@ -8,12 +8,12 @@ const FAQSection = () => {
     {
       question: "What exactly does this tool do?",
       answer:
-        "We analyze multiple resumes against a job description you provide. Within seconds, you'll receive a ranked list of candidates with skill matches and fit scores.",
+        "We analyze multiple resumes against a job description you provide. Within minutes, you'll receive a ranked list of candidates with skill matches and fit scores.",
     },
     {
       question: "What file formats are supported?",
       answer:
-        "You can upload resumes in PDF, JPG, PNG, and other image formats. The job description can be pasted directly into the text area.",
+        "You can upload resumes in PDF, JPG, PNG, DOCX, and other image formats. The job description can be pasted directly into the text area.",
     },
     {
       question: "Is this tool accurate?",
@@ -28,7 +28,7 @@ const FAQSection = () => {
     {
       question: "What are the usage limits?",
       answer:
-        "Free users can analyze 1 job per month. Pro plan users get 30 jobs per month with advanced features like PDF reports and detailed breakdowns.",
+        "Free users can analyze 1 job per month. Pro plan users get 30 jobs per month with detailed breakdowns.",
     },
     {
       question: "Who is this tool for?",
