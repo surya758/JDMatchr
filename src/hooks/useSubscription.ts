@@ -20,14 +20,14 @@ export function useSubscription() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
 
-  // Fetch current subscription
+  // Fetch all active subscriptions (both pro and free)
   const {
-    data: subscription,
+    data: subscriptions,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ['subscription', user?.id],
+    queryKey: ['subscriptions', user?.id],
     queryFn: async () => {
       if (!user) return null
 
@@ -37,17 +37,36 @@ export function useSubscription() {
         .eq('user_id', user.id)
         .neq('status', 'expired')
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         throw error
       }
 
-      return data
+      return data || []
     },
     enabled: !!user,
   })
+
+  console.log("subscriptions", subscriptions?.find(sub => sub.plan_name === 'free' && sub.status === 'active'))
+
+  // Separate pro and free subscriptions
+  // Get latest pro subscription (prioritize active, then others by creation date)
+  const proSubscription = subscriptions
+    ?.filter(sub => sub.plan_name === 'pro')
+    .sort((a, b) => {
+      // Active subscriptions first
+      if (a.status === 'active' && b.status !== 'active') return -1
+      if (b.status === 'active' && a.status !== 'active') return 1
+      // Then by creation date (newest first)
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })[0] || null
+  
+  const freeSubscription = subscriptions?.find(sub => sub.plan_name === 'free' && sub.status === 'active') || null 
+  
+  // Main subscription is pro if exists, otherwise free
+  const subscription =  freeSubscription  || proSubscription
+
+  console.log("freeSubscription", freeSubscription)
 
   // Fetch billing history (all subscriptions)
   const {
@@ -91,12 +110,10 @@ export function useSubscription() {
       return data
     },
     onSuccess: (updatedSubscription) => {
-      // Update the cache with new data
-      queryClient.setQueryData(
-        subscriptionKeys.detail(user?.id || ''),
-        updatedSubscription
-      )
-      // Refetch billing history to show updated subscription status
+      // Invalidate queries to refresh all subscription data
+      queryClient.invalidateQueries({
+        queryKey: ['subscriptions', user?.id]
+      })
       queryClient.invalidateQueries({
         queryKey: subscriptionKeys.history(user?.id || '')
       })
@@ -135,12 +152,10 @@ export function useSubscription() {
       return data
     },
     onSuccess: (newSubscription) => {
-      // Update the cache with new data
-      queryClient.setQueryData(
-        subscriptionKeys.detail(user?.id || ''),
-        newSubscription
-      )
-      // Refetch billing history to show the new subscription
+      // Invalidate queries to refresh all subscription data
+      queryClient.invalidateQueries({
+        queryKey: ['subscriptions', user?.id]
+      })
       queryClient.invalidateQueries({
         queryKey: subscriptionKeys.history(user?.id || '')
       })
@@ -163,7 +178,7 @@ export function useSubscription() {
       
       // Invalidate queries to refresh the UI
       queryClient.invalidateQueries({
-        queryKey: subscriptionKeys.detail(user.id)
+        queryKey: ['subscriptions', user.id]
       })
       queryClient.invalidateQueries({
         queryKey: subscriptionKeys.history(user.id)
@@ -247,6 +262,12 @@ export function useSubscription() {
     ? new Date(subscription.current_period_end) < new Date()
     : false
 
+  // Payment issue detection for Pro subscriptions
+  const hasPaymentIssue = proSubscription && (proSubscription.status === 'on_hold' || proSubscription.status === 'failed')
+  const paymentIssueType = hasPaymentIssue ? proSubscription.status : null
+
+  console.log("hasPaymentIssue", hasPaymentIssue)
+
 
   // Client-side check for expired subscriptions (backup to Edge Function)
   useEffect(() => {
@@ -295,10 +316,9 @@ export function useSubscription() {
       return data
     },
     onSuccess: (updatedSubscription) => {
-      queryClient.setQueryData(
-        subscriptionKeys.detail(user?.id || ''),
-        updatedSubscription
-      )
+      queryClient.invalidateQueries({
+        queryKey: ['subscriptions', user?.id]
+      })
     },
   })
 
@@ -313,6 +333,8 @@ export function useSubscription() {
 
   return {
     subscription,
+    proSubscription,
+    freeSubscription,
     isLoading,
     error,
     refetch,
@@ -329,7 +351,9 @@ export function useSubscription() {
     isSubscriptionCancelled,
     subscriptionExpiresAt,
     isExpired,
-    canUpgrade: !isSubscriptionCancelled && !isExpired,
+    hasPaymentIssue,
+    paymentIssueType,
+    canUpgrade: !isSubscriptionCancelled && !isExpired && !hasPaymentIssue,
     jobCredits: subscription?.job_credits || 0,
     jobCreditsUsed: subscription?.job_credits_used || 0,
     jobCreditsRemaining: (subscription?.job_credits || 0) - (subscription?.job_credits_used || 0),

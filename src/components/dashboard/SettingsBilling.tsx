@@ -34,6 +34,8 @@ const SettingsBilling = () => {
 
   const {
     subscription,
+    proSubscription,
+    freeSubscription,
     subscriptionStatus,
     upgradeSubscription,
     cancelSubscription,
@@ -42,6 +44,8 @@ const SettingsBilling = () => {
     subscriptionExpiresAt,
     isUpdating: isSubscriptionUpdating,
     jobCreditsRemaining,
+    hasPaymentIssue,
+    paymentIssueType,
   } = useSubscription();
 
   const {
@@ -53,6 +57,7 @@ const SettingsBilling = () => {
     confirmAction,
   } = useConfirmation();
 
+  console.log("hasPaymentIssue", hasPaymentIssue);
   console.log("subscription", subscription);
 
   const isUpdating = isSubscriptionUpdating || isConfirmationLoading;
@@ -61,6 +66,7 @@ const SettingsBilling = () => {
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isReactivating, setIsReactivating] = useState(false);
 
   // Handle payment success/cancellation from URL params
   React.useEffect(() => {
@@ -255,11 +261,26 @@ const SettingsBilling = () => {
 
   const handleReactivateSubscription = () => {
     showConfirmation(confirmationConfigs.reactivateSubscription(), async () => {
-      await reactivateSubscription();
-      toast({
-        title: "Subscription reactivated",
-        description: "Your subscription has been successfully reactivated.",
-      });
+      try {
+        setIsReactivating(true);
+        await reactivateSubscription();
+        toast({
+          title: "Subscription reactivated",
+          description: "Your subscription has been successfully reactivated.",
+        });
+      } catch (error) {
+        console.error("Reactivation error:", error);
+        toast({
+          title: "Reactivation Failed",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Failed to reactivate subscription. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsReactivating(false);
+      }
     });
   };
 
@@ -385,12 +406,101 @@ const SettingsBilling = () => {
                 </p>
                 <Button
                   onClick={handleReactivateSubscription}
-                  disabled={isUpdating}
+                  disabled={isUpdating || isReactivating}
                   size="sm"
                   className="bg-yellow-500 hover:bg-yellow-600 text-black"
                 >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  {isUpdating ? "Reactivating..." : "Reactivate Subscription"}
+                  {isReactivating ? (
+                    <LoaderInline isLoading={true} size="sm" className="mr-2" />
+                  ) : (
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                  )}
+                  {isReactivating
+                    ? "Reactivating..."
+                    : "Reactivate Subscription"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Payment Issue Notice */}
+        {hasPaymentIssue && proSubscription && (
+          <div
+            className={`mb-6 p-4 rounded-xl ${
+              paymentIssueType === "on_hold"
+                ? "bg-orange-500/10 border border-orange-500/20"
+                : "bg-red-500/10 border border-red-500/20"
+            }`}
+          >
+            <div className="flex items-start space-x-3">
+              <AlertTriangle
+                className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
+                  paymentIssueType === "on_hold"
+                    ? "text-orange-400"
+                    : "text-red-400"
+                }`}
+              />
+              <div className="flex-1">
+                <h3
+                  className={`font-grotesk font-semibold mb-1 ${
+                    paymentIssueType === "on_hold"
+                      ? "text-orange-400"
+                      : "text-red-400"
+                  }`}
+                >
+                  {paymentIssueType === "on_hold"
+                    ? "Payment On Hold"
+                    : "Payment Failed"}
+                </h3>
+                <p className="text-text-muted text-sm mb-3">
+                  {paymentIssueType === "on_hold"
+                    ? "Your subscription payment is on hold. Please update your payment method to continue enjoying Pro features."
+                    : "Your subscription payment has failed. Please update your payment method or retry the payment to restore your Pro access."}
+                </p>
+                <Button
+                  onClick={() => {
+                    // Redirect to payment management or retry payment
+                    if (user?.email) {
+                      dodoPayments
+                        .createPaymentSession(
+                          "pro",
+                          user.email,
+                          profile?.full_name
+                        )
+                        .then((session) => {
+                          if (session.checkout_url) {
+                            window.location.href = session.checkout_url;
+                          }
+                        })
+                        .catch((error) => {
+                          console.error(
+                            "Error creating payment session:",
+                            error
+                          );
+                          toast({
+                            title: "Payment Update Failed",
+                            description:
+                              "Unable to open payment portal. Please try again later.",
+                            variant: "destructive",
+                          });
+                        });
+                    }
+                  }}
+                  disabled={isUpdating}
+                  size="sm"
+                  className={`text-black ${
+                    paymentIssueType === "on_hold"
+                      ? "bg-orange-500 hover:bg-orange-600"
+                      : "bg-red-500 hover:bg-red-600"
+                  }`}
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  {isUpdating
+                    ? "Processing..."
+                    : paymentIssueType === "on_hold"
+                    ? "Update Payment Method"
+                    : "Retry Payment"}
                 </Button>
               </div>
             </div>
@@ -426,12 +536,22 @@ const SettingsBilling = () => {
             <h3 className="font-grotesk font-medium text-text mb-2">Status</h3>
             <span
               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                isSubscriptionCancelled
+                hasPaymentIssue
+                  ? paymentIssueType === "on_hold"
+                    ? "bg-orange-500/10 text-orange-400"
+                    : "bg-red-500/10 text-red-400"
+                  : isSubscriptionCancelled
                   ? "bg-yellow-500/10 text-yellow-400"
                   : "bg-green-500/10 text-green-400"
               }`}
             >
-              {isSubscriptionCancelled ? "Cancelled" : "Active"}
+              {hasPaymentIssue
+                ? paymentIssueType === "on_hold"
+                  ? "Payment On Hold"
+                  : "Payment Failed"
+                : isSubscriptionCancelled
+                ? "Cancelled"
+                : "Active"}
             </span>
           </div>
         </div>

@@ -75,9 +75,17 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         cancel_at_next_billing_date: false,
-        status: 'active'
       }),
     })
+
+    const { error: updateError } = await supabase
+      .from('subscriptions')
+      .update({
+        status: 'active',
+        cancel_at_period_end: false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('dodo_customer_id', subscription.dodo_customer_id)
 
     if (!response.ok) {
       const errorText = await response.text()
