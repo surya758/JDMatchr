@@ -59,9 +59,9 @@ serve(async (req) => {
       throw new Error('DODO API key not configured')
     }
 
-    const baseUrl = dodoEnvironment === 'live_mode' 
-      ? 'https://api.dodopayments.com'
-      : 'https://test.dodopayments.com'
+    const baseUrl = dodoEnvironment === 'test_mode' 
+      ? 'https://test.dodopayments.com'
+      : 'https://live.dodopayments.com'
 
     // Step 1: Create or get DODO customer (reuse existing if available)
     console.log('Creating/getting DODO customer for:', userEmail)

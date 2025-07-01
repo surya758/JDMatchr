@@ -167,8 +167,11 @@ serve(async (req) => {
     // For active subscriptions with valid DODO subscription ID, cancel via DODO API
     if (subscription.dodo_subscription_id && subscription.status === 'active') {
     const dodoBearerToken = Deno.env.get('DODO_API_KEY')
-    const baseUrl = 'https://test.dodopayments.com'
-    
+    const dodoEnvironment = Deno.env.get('DODO_ENVIRONMENT') || 'test_mode'
+    const baseUrl = dodoEnvironment === 'test_mode' 
+      ? 'https://test.dodopayments.com'
+      : 'https://live.dodopayments.com'
+
     const response = await fetch(`${baseUrl}/subscriptions/${subscription.dodo_subscription_id}`, {
       method: 'PATCH',
       headers: {

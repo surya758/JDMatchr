@@ -66,8 +66,11 @@ serve(async (req) => {
 
     // Reactivate subscription via DODO API
     const dodoBearerToken = Deno.env.get('DODO_API_KEY')
-    const baseUrl = 'https://test.dodopayments.com'
-    
+    const dodoEnvironment = Deno.env.get('DODO_ENVIRONMENT') || 'test_mode'
+    const baseUrl = dodoEnvironment === 'test_mode' 
+      ? 'https://test.dodopayments.com'
+      : 'https://live.dodopayments.com'
+
     const response = await fetch(`${baseUrl}/subscriptions/${subscription.dodo_subscription_id}`, {
       method: 'PATCH',
       headers: {
