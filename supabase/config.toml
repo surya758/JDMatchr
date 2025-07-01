@@ -322,6 +322,15 @@ verify_jwt = false
 [functions.process-expired-subscriptions]
 verify_jwt = false
 
+[functions.refresh-free-subscription-credits]
+verify_jwt = false
+
 # Note: Cron jobs need to be configured in the Supabase Dashboard
-# Schedule: Run daily at 2 AM UTC to process expired subscriptions
-# Function: process-expired-subscriptions
+# 
+# Existing cron jobs:
+# 1. Schedule: Run daily at 2 AM UTC to process expired subscriptions
+#    Function: process-expired-subscriptions
+#
+# 2. Schedule: Run monthly on the 1st at 1 AM UTC to refresh free subscription credits
+#    Function: refresh-free-subscription-credits
+#    Cron expression: 0 1 1 * *
