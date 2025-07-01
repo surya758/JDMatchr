@@ -271,40 +271,63 @@ const ResumeUpload = ({
       onAnalyzing?.(true);
     }
 
-    console.log("Processing resumes...", { files, jobDescription });
+    // Process resumes in parallel batches of 10 (same as NewAnalysis pattern)
+    const BATCH_SIZE = 10;
+    const allSuccessfulResults: ProcessResumeResponse[] = [];
 
-    // Process all files with cancellation support
-    const results = await Promise.allSettled(
-      files.map(async (file) => {
-        // Check if cancelled before processing each file
-        if (cancelProcessingRef.current) {
-          throw new Error("Processing cancelled");
-        }
-        return await processResumeFile(file);
-      })
-    );
+    for (let i = 0; i < files.length; i += BATCH_SIZE) {
+      // Check if cancelled before processing each batch
+      if (cancelProcessingRef.current) {
+        toast({
+          title: "Processing cancelled",
+          description: "Resume processing was cancelled by user.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    // If cancelled, don't update results
-    if (cancelProcessingRef.current) {
-      toast({
-        title: "Processing cancelled",
-        description: "Resume processing was cancelled by user.",
-        variant: "destructive",
-      });
-      return;
+      const batch = files.slice(i, i + BATCH_SIZE);
+
+      // Process batch in parallel using Promise.allSettled
+      const batchResults = await Promise.allSettled(
+        batch.map(async (file) => {
+          // Check if cancelled before processing each file
+          if (cancelProcessingRef.current) {
+            throw new Error("Processing cancelled");
+          }
+
+          const result = await processResumeFile(file);
+
+          return result;
+        })
+      );
+
+      // If cancelled during batch processing, break out
+      if (cancelProcessingRef.current) {
+        toast({
+          title: "Processing cancelled",
+          description: "Resume processing was cancelled by user.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Filter successful results from this batch
+      const successfulBatchResults = batchResults
+        .filter(
+          (
+            result
+          ): result is PromiseFulfilledResult<ProcessResumeResponse | null> =>
+            result.status === "fulfilled" && result.value !== null
+        )
+        .map((result) => result.value as ProcessResumeResponse);
+
+      allSuccessfulResults.push(...successfulBatchResults);
     }
 
-    // Filter successful results
-    const successful = results
-      .filter(
-        (
-          result
-        ): result is PromiseFulfilledResult<ProcessResumeResponse | null> =>
-          result.status === "fulfilled" && result.value !== null
-      )
-      .map((result) => result.value as ProcessResumeResponse);
-
-    setProcessedResumes(successful);
+    // Set all processed results at once
+    setProcessedResumes(allSuccessfulResults);
+    const successful = allSuccessfulResults;
 
     if (successful.length > 0) {
       // Check if cancelled before AI matching
@@ -315,7 +338,6 @@ const ResumeUpload = ({
       // Call AI matching after resume processing
       if (formattedJD) {
         try {
-          console.log("Starting AI candidate matching...");
           const candidateProfiles = successful.map((r) => r.processedResume);
           const ranked = await matchCandidatesWithAI(
             formattedJD,
@@ -328,13 +350,12 @@ const ResumeUpload = ({
           }
 
           setRankedCandidates(ranked);
-          console.log("AI matching completed:", ranked);
 
           toast({
             title: "Analysis completed",
             description: `Successfully analyzed ${successful.length} candidate${
               successful.length !== 1 ? "s" : ""
-            } and ranked them by fit.`,
+            }.`,
           });
         } catch (error) {
           console.error("AI matching failed:", error);
@@ -363,9 +384,6 @@ const ResumeUpload = ({
         setHasAnalyzed(true);
         onShowingResults?.(true);
       }
-
-      // Log processed data for testing
-      console.log("Processed resumes:", successful);
     }
   };
 
@@ -401,7 +419,7 @@ const ResumeUpload = ({
                 </h3>
                 <p className="text-text-muted max-w-md">
                   Our AI is carefully evaluating each candidate against your job
-                  requirements. This may take a few moments.
+                  requirements. This may take a couple of minutes.
                 </p>
               </div>
             </div>
@@ -543,14 +561,16 @@ const ResumeUpload = ({
               </div>
               <p className="font-grotesk text-sm text-text-muted mb-1">
                 {processingFiles.size > 0
-                  ? "Processing resumes..."
+                  ? `Processing ${processingFiles.size} resume${
+                      processingFiles.size !== 1 ? "s" : ""
+                    } in parallel...`
                   : isDragging
                   ? "Drop resumes here"
                   : "Drop resumes or click to browse"}
               </p>
               <p className="font-grotesk text-xs text-text-subtle">
                 {processingFiles.size > 0
-                  ? "Upload disabled while processing"
+                  ? "Files are being processed simultaneously for faster results"
                   : "PDF, TXT, DOCX, JPG, PNG, GIF, TIFF, BMP, WEBP (Max 25 files)"}
               </p>
               <input
