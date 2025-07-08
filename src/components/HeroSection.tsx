@@ -323,10 +323,6 @@ const HeroSection = () => {
               Paste the JD. Upload resumes.{" "}
               <span className="text-primary">Get scores.</span> That's it.
             </h1>
-            <p className="font-grotesk text-base sm:text-lg md:text-xl text-text-muted max-w-3xl mx-auto leading-relaxed px-4">
-              A minimal AI tool for HRs to instantly rank candidates against any
-              job requirement. No onboarding. No manual scoring. Just results.
-            </p>
           </div>
         )}
 
@@ -520,35 +516,6 @@ const HeroSection = () => {
             )}
           </div>
         </div>
-
-        {!showingResults && !isAnalyzing && (
-          <div className="flex flex-col sm:flex-row justify-center items-center mt-8 sm:mt-12 lg:mt-16 space-y-4 sm:space-y-0 sm:space-x-8 lg:space-x-12 opacity-70 px-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-              <span className="font-grotesk text-xs sm:text-sm text-text-subtle">
-                PDF Support
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div
-                className="w-2 h-2 bg-primary rounded-full animate-pulse"
-                style={{ animationDelay: "0.5s" }}
-              ></div>
-              <span className="font-grotesk text-xs sm:text-sm text-text-subtle">
-                Image Support
-              </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div
-                className="w-2 h-2 bg-primary rounded-full animate-pulse"
-                style={{ animationDelay: "1s" }}
-              ></div>
-              <span className="font-grotesk text-xs sm:text-sm text-text-subtle">
-                Instant Results
-              </span>
-            </div>
-          </div>
-        )}
       </div>
     </section>
   );
