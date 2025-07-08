@@ -26,7 +26,7 @@ const Footer = () => {
           {/* Right: Social + Legal + Copyright */}
           <div className="flex items-center space-x-4">
             {/* Social Media */}
-            <div className="flex items-center space-x-2">
+            {/* <div className="flex items-center space-x-2">
               <a
                 href="https://linkedin.com/in/yourprofile"
                 target="_blank"
@@ -45,7 +45,7 @@ const Footer = () => {
               >
                 <Twitter className="w-3 h-3 text-text-muted group-hover:text-primary transition-colors duration-200" />
               </a>
-            </div>
+            </div> */}
 
             {/* Legal Links + Copyright */}
             <div className="flex items-center gap-2 text-xs">
@@ -90,7 +90,7 @@ const Footer = () => {
           </div>
 
           {/* Social Media */}
-          <div className="flex justify-center items-center space-x-3">
+          {/* <div className="flex justify-center items-center space-x-3">
             <a
               href="https://linkedin.com/in/yourprofile"
               target="_blank"
@@ -109,7 +109,7 @@ const Footer = () => {
             >
               <Twitter className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors duration-200" />
             </a>
-          </div>
+          </div> */}
 
           {/* Legal Links + Copyright */}
           <div className="border-t border-border-custom/50 pt-4">
