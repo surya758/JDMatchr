@@ -42,9 +42,9 @@ const PricingPlans = () => {
           icon: Check,
         },
         {
-          text: "Full breakdowns (only basic)",
-          included: false,
-          icon: X,
+          text: "Full breakdowns",
+          included: true,
+          icon: Check,
         },
       ],
       cta: "Get Started Free",

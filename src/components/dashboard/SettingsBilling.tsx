@@ -111,7 +111,7 @@ const SettingsBilling = () => {
       features: [
         "10 jobs per month",
         "Up to 25 resumes per job",
-        "Basic scoring only",
+        "Full breakdowns",
       ],
       current: subscriptionStatus === "free",
       icon: Star,

@@ -28,7 +28,7 @@ const FAQSection = () => {
     {
       question: "What are the usage limits?",
       answer:
-        "Free users can analyze 1 job per month. Pro plan users get 30 jobs per month with detailed breakdowns.",
+        "Free users can analyze 10 jobs per month. Pro plan users get 100 jobs per month with detailed breakdowns.",
     },
     {
       question: "Who is this tool for?",

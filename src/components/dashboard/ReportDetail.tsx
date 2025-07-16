@@ -474,7 +474,6 @@ const ReportDetail = () => {
   };
 
   const toggleCandidateExpansion = (candidateId: string) => {
-    if (isFreePlan) return;
     setExpandedCandidate(
       expandedCandidate === candidateId ? null : candidateId
     );
@@ -856,19 +855,17 @@ const ReportDetail = () => {
                               </Button>
                             )}
 
-                          {!isFreePlan && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 hover:bg-bg-light/50 text-text-muted"
-                            >
-                              {isExpanded ? (
-                                <ChevronUp className="w-4 h-4" />
-                              ) : (
-                                <ChevronDown className="w-4 h-4" />
-                              )}
-                            </Button>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 hover:bg-bg-light/50 text-text-muted"
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="w-4 h-4" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4" />
+                            )}
+                          </Button>
                         </div>
                       </div>
                     </div>
