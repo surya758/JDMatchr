@@ -27,7 +27,7 @@ BEGIN
         'active',
         NOW(),
         NOW() + INTERVAL '1 month',
-        1,  -- Free plan gets 1 credit
+        10,  -- Free plan gets 10 credits
         0   -- No credits used initially
     );
     

@@ -159,7 +159,7 @@ async function reactivateFreePlan(supabase: any, userId: string) {
           user_id: userId,
           plan_name: 'free',
           status: 'active',
-          job_credits: 1, // Free plan gets 1 credit
+          job_credits: 10, // Free plan gets 10 credits
           job_credits_used: 0,
           amount_cents: 0,
           currency: 'USD',
