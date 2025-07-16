@@ -188,7 +188,7 @@ export function useSubscription() {
     const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
     
     // Set credits based on plan
-    const credits = planName === 'pro' ? 30 : 999
+    const credits = planName === 'pro' ? 100 : 999
 
     return createSubscriptionMutation.mutateAsync({
       user_id: user.id,

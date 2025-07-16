@@ -107,9 +107,9 @@ const SettingsBilling = () => {
       name: "Free",
       price: "$0",
       period: "/month",
-      credits: 1,
+      credits: 10,
       features: [
-        "1 job per month",
+        "10 jobs per month",
         "Up to 25 resumes per job",
         "Basic scoring only",
       ],
@@ -123,9 +123,9 @@ const SettingsBilling = () => {
       name: "Pro",
       price: "$14.99",
       period: "/month",
-      credits: 30,
+      credits: 100,
       features: [
-        "30 jobs per month",
+        "100 jobs per month",
         "Up to 50 resumes per job",
         "Full breakdowns",
         "Priority support",
@@ -540,9 +540,9 @@ const SettingsBilling = () => {
             </h3>
             <p className="text-2xl font-bold text-primary">
               {subscriptionStatus === "free"
-                ? "1"
+                ? "10"
                 : subscriptionStatus === "pro"
-                ? "30"
+                ? "100"
                 : "∞"}
             </p>
           </div>
@@ -913,7 +913,7 @@ const SettingsBilling = () => {
             <div className="space-y-2 text-sm text-text-muted">
               <div className="flex items-center justify-center space-x-2">
                 <CheckCircle className="w-4 h-4 text-green-400" />
-                <span>30 job analyses per month</span>
+                <span>100 job analyses per month</span>
               </div>
               <div className="flex items-center justify-center space-x-2">
                 <CheckCircle className="w-4 h-4 text-green-400" />
@@ -952,7 +952,7 @@ const SettingsBilling = () => {
             <div className="space-y-2 text-sm text-text-muted">
               <div className="flex items-center justify-center space-x-2">
                 <CheckCircle className="w-4 h-4 text-green-400" />
-                <span>30 job analyses per month</span>
+                <span>100 job analyses per month</span>
               </div>
               <div className="flex items-center justify-center space-x-2">
                 <CheckCircle className="w-4 h-4 text-green-400" />

@@ -48,7 +48,7 @@ async function activateFreePlan(supabase: any, userId: string) {
           user_id: userId,
           plan_name: 'free',
           status: 'active',
-          job_credits: 1,
+          job_credits: 10,
           job_credits_used: 0,
           current_period_start: new Date().toISOString(),
           current_period_end: null, // Free plan doesn't expire

@@ -212,7 +212,7 @@ async function handlePaymentSucceeded(supabase: any, eventData: any) {
           dodo_customer_id: customer.customer_id,
           plan_name: 'pro',
           status: 'pending',
-          job_credits: 30,
+          job_credits: 100,
           job_credits_used: 0,
           billing_interval: 'monthly',
           cancel_at_period_end: false,
@@ -256,7 +256,7 @@ async function handlePaymentSucceeded(supabase: any, eventData: any) {
             dodo_customer_id: customer.customer_id,
             plan_name: 'pro',
             status: 'pending',
-            job_credits: 30,
+            job_credits: 100,
             job_credits_used: 0,
             billing_interval: 'monthly',
             cancel_at_period_end: false,
@@ -358,7 +358,7 @@ async function handleSubscriptionRenewed(supabase: any, eventData: any) {
     const { data: updatedSub, error: updateError } = await supabase
       .from('subscriptions')
       .update({
-        job_credits: 30, // Reset Pro plan credits
+        job_credits: 100, // Reset Pro plan credits
         job_credits_used: 0,
         dodo_subscription_id: subscription_id,
         current_period_start: new Date().toISOString(),
@@ -612,7 +612,7 @@ async function manageFreeSubscription(supabase: any, userId: string, targetStatu
           user_id: userId,
           plan_name: 'free',
           status: 'active',
-          job_credits: 1,
+          job_credits: 10,
           job_credits_used: 0,
           current_period_start: new Date().toISOString(),
           current_period_end: null, // Free plan doesn't expire

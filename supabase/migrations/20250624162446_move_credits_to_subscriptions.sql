@@ -12,8 +12,8 @@ ADD COLUMN job_credits_used INTEGER NOT NULL DEFAULT 0;
 -- Update existing subscriptions with appropriate credit amounts based on plan
 UPDATE public.subscriptions 
 SET job_credits = CASE 
-  WHEN plan_name = 'free' THEN 1
-  WHEN plan_name = 'pro' THEN 30
+  WHEN plan_name = 'free' THEN 10
+  WHEN plan_name = 'pro' THEN 100
   WHEN plan_name = 'enterprise' THEN 999
   ELSE 1
 END;
@@ -22,8 +22,8 @@ END;
 UPDATE public.subscriptions 
 SET job_credits_used = GREATEST(0, 
   CASE 
-    WHEN plan_name = 'free' THEN 1 - COALESCE((SELECT job_credits FROM public.users WHERE id = subscriptions.user_id), 1)
-    WHEN plan_name = 'pro' THEN 30 - COALESCE((SELECT job_credits FROM public.users WHERE id = subscriptions.user_id), 30)
+    WHEN plan_name = 'free' THEN 10 - COALESCE((SELECT job_credits FROM public.users WHERE id = subscriptions.user_id), 10)
+    WHEN plan_name = 'pro' THEN 100 - COALESCE((SELECT job_credits FROM public.users WHERE id = subscriptions.user_id), 100)
     WHEN plan_name = 'enterprise' THEN 999 - COALESCE((SELECT job_credits FROM public.users WHERE id = subscriptions.user_id), 999)
     ELSE 0
   END
@@ -66,7 +66,7 @@ BEGIN
     NOW() as current_period_start,
     NOW() + INTERVAL '1 month' as current_period_end,
     FALSE as cancel_at_period_end,
-    1 as job_credits,
+    10 as job_credits,
     0 as job_credits_used
   FROM public.subscriptions s
   WHERE 

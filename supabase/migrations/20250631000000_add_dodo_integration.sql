@@ -56,10 +56,10 @@ DECLARE
 BEGIN
   -- Determine credit amount based on plan
   credit_amount := CASE 
-    WHEN p_plan_name = 'free' THEN 1
-    WHEN p_plan_name = 'pro' THEN 30
+    WHEN p_plan_name = 'free' THEN 10
+    WHEN p_plan_name = 'pro' THEN 100
     WHEN p_plan_name = 'enterprise' THEN 999
-    ELSE 1
+    ELSE 10
   END;
 
   -- Insert or update subscription
@@ -133,10 +133,10 @@ DECLARE
 BEGIN
   -- Determine credit amount based on plan
   credit_amount := CASE 
-    WHEN p_plan_name = 'free' THEN 1
-    WHEN p_plan_name = 'pro' THEN 30
+    WHEN p_plan_name = 'free' THEN 10
+    WHEN p_plan_name = 'pro' THEN 100
     WHEN p_plan_name = 'enterprise' THEN 999
-    ELSE 1
+    ELSE 10
   END;
 
   -- Insert or update subscription (local only, no Dodo fields)

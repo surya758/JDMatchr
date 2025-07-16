@@ -120,7 +120,7 @@ Following DODO's [webhook events specification](https://docs.dodopayments.com/de
 ### **Subscription Events**
 
 - ✅ **subscription.active**: **Smart Pro subscription handling** - UPDATEs existing Pro subscription if found, otherwise CREATEs new Pro subscription, expires other active subscriptions, maintains audit trail
-- ✅ **subscription.renewed**: Resets job credits (30) and updates billing period
+- ✅ **subscription.renewed**: Resets job credits (100) and updates billing period
 - ✅ **subscription.on_hold**: Logs event only (no DB changes as requested)
 - ✅ **subscription.paused**: Sets subscription to paused status
 - ✅ **subscription.cancelled**: Sets cancelled status, **reactivates Free plan automatically**
@@ -137,9 +137,9 @@ Following DODO's [webhook events specification](https://docs.dodopayments.com/de
 
 ### **Business Logic**
 
-- **New User**: Gets Free plan (1 credit) automatically on signup
-- **Upgrade to Pro**: Smart handling - UPDATEs existing Pro subscription if found, otherwise CREATEs new Pro subscription (30 credits), expires other active subscriptions
-- **Pro Renewal**: Job credits reset to 30 for new billing period
+- **New User**: Gets Free plan (10 credits) automatically on signup
+- **Upgrade to Pro**: Smart handling - UPDATEs existing Pro subscription if found, otherwise CREATEs new Pro subscription (100 credits), expires other active subscriptions
+- **Pro Renewal**: Job credits reset to 100 for new billing period
 - **Pro Cancellation**: Pro subscription cancelled, user reverts to Free plan automatically
 - **Pro Expiration**: Pro subscription expires, user reverts to Free plan automatically
 - **Failed Payments**: Subscription marked as failed, user retains access until expiration
@@ -156,10 +156,10 @@ Our implementation tracks both billing cycles and subscription periods:
 
 **Complete Subscription Lifecycle:**
 
-1. **New User**: Gets Free plan (1 credit) automatically
-2. **Upgrade to Pro**: Pro subscription created (30 credits), Free plan expired
-3. **Monthly Renewals**: Pro subscription renews, credits reset to 30
-4. **Pro Cancellation/Expiry**: Pro subscription ends, Free plan reactivated (1 credit)
+1. **New User**: Gets Free plan (10 credits) automatically
+2. **Upgrade to Pro**: Pro subscription created (100 credits), Free plan expired
+3. **Monthly Renewals**: Pro subscription renews, credits reset to 100
+4. **Pro Cancellation/Expiry**: Pro subscription ends, Free plan reactivated (10 credits)
 5. **Always Active**: User always has exactly one active subscription
 
 **Database Fields:**

@@ -35,7 +35,7 @@ const PricingPlans = () => {
       period: "",
       description: "Perfect for trying out the tool.",
       features: [
-        { text: "1 job per month", included: true, icon: Check },
+        { text: "10 jobs per month", included: true, icon: Check },
         {
           text: "Upload up to 25 resumes per job",
           included: true,
@@ -59,7 +59,7 @@ const PricingPlans = () => {
       period: "/mo",
       description: "Ideal for HRs hiring regularly.",
       features: [
-        { text: "30 jobs per month", included: true, icon: Check },
+        { text: "100 jobs per month", included: true, icon: Check },
         { text: "Up to 50 resumes per job", included: true, icon: Check },
         {
           text: "Full breakdowns (skills matched/missing)",
