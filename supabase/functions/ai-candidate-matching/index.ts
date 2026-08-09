@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai@0.21.0"
+import { generateText, MODEL_MAIN } from "../_shared/vertex.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -73,10 +73,6 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    // Initialize Gemini
-    const genAI = new GoogleGenerativeAI(Deno.env.get('GEMINI_API_KEY')!)
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" })
 
     // Create the AI prompt for candidate matching
     const prompt = `You are an expert HR professional and recruitment specialist. Your task is to analyze candidates against a job requirement and provide intelligent matching scores and insights.
@@ -223,8 +219,16 @@ Be thorough but concise. Focus on practical insights that help HR make informed 
 Return ONLY the JSON response, no additional text.`
 
     // Get AI analysis
-    const result = await model.generateContent(prompt)
-    const responseText = result.response.text()
+    const responseText = await generateText({
+      model: MODEL_MAIN,
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        // Every candidate gets a full analysis block, so the response scales
+        // with the size of the shortlist — and on a 3.x model the thinking
+        // tokens come out of this same budget.
+        maxOutputTokens: 65536,
+      },
+    })
     
     console.log('AI Response:', responseText)
 
