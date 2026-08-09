@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 .env.local
+
+# oh-my-claudecode operational artifacts
+.omc/
