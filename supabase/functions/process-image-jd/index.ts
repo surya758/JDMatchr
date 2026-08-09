@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { generateText, vertexProject, MODEL_LITE } from "../_shared/vertex.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -56,11 +57,8 @@ serve(async (req) => {
       );
     }
 
-    // Get Gemini API key from environment
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY not configured');
-    }
+    // Fail fast on a missing service account, before decoding the image.
+    vertexProject();
 
     // Prepare the prompt for job description extraction
     const prompt = `
@@ -96,51 +94,29 @@ Return ONLY the JSON object with no additional text, formatting, or explanations
 `;
 
     // Call Gemini API with inline image data
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              {
-                inline_data: {
-                  mime_type: mimeType,
-                  data: imageData
-                }
-              },
-              {
-                text: prompt
-              }
-            ]
-          }],
-          generationConfig: {
-            temperature: 0.1,
-            topK: 32,
-            topP: 1,
-            maxOutputTokens: 65536,
-            responseMimeType: "application/json"
+    const generatedText = await generateText({
+      model: MODEL_LITE,
+      contents: [{
+        parts: [
+          {
+            inline_data: {
+              mime_type: mimeType,
+              data: imageData
+            }
           },
-        }),
-      }
-    );
-
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text();
-      console.error('Gemini API error:', errorText);
-      throw new Error(`Gemini API error: ${geminiResponse.status}`);
-    }
-
-    const geminiData = await geminiResponse.json();
-    
-    if (!geminiData.candidates || geminiData.candidates.length === 0) {
-      throw new Error('No response from Gemini API');
-    }
-
-    const generatedText = geminiData.candidates[0].content.parts[0].text;
+          {
+            text: prompt
+          }
+        ]
+      }],
+      generationConfig: {
+        temperature: 0.1,
+        topK: 32,
+        topP: 1,
+        maxOutputTokens: 65536,
+        responseMimeType: "application/json"
+      },
+    });
     
     // Function to repair common JSON issues
     const repairJson = (jsonString: string): string => {
