@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { generateText, vertexProject, MODEL_MAIN } from "../_shared/vertex.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -148,11 +149,8 @@ serve(async (req) => {
       throw new Error('No content could be extracted from the DOCX file');
     }
 
-    // Get Gemini API key from environment
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY not configured');
-    }
+    // Fail fast on a missing service account, before building the prompt.
+    vertexProject();
 
     // Comprehensive resume analysis prompt
     const prompt = `
@@ -255,47 +253,25 @@ Focus on:
 Be analytical and thorough. Return only the JSON object, no additional text.
 `;
 
-    // Call Gemini API
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [
+    // Call Vertex AI
+    const generatedText = await generateText({
+      model: MODEL_MAIN,
+      contents: [
+        {
+          parts: [
             {
-              parts: [
-                {
-                  text: prompt
-                }
-              ]
+              text: prompt
             }
-          ],
-          generationConfig: {
-            temperature: 0.1,
-            topK: 32,
-            topP: 1,
-            maxOutputTokens: 65536,
-          },
-        }),
-      }
-    );
-
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text();
-      console.error('Gemini API error:', errorText);
-      throw new Error(`Gemini API error: ${geminiResponse.status}`);
-    }
-
-    const geminiData = await geminiResponse.json();
-    
-    if (!geminiData.candidates || geminiData.candidates.length === 0) {
-      throw new Error('No response from Gemini API');
-    }
-
-    const generatedText = geminiData.candidates[0].content.parts[0].text;
+          ]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.1,
+        topK: 32,
+        topP: 1,
+        maxOutputTokens: 65536,
+      },
+    });
     
     // Parse the JSON response from Gemini
     let processedResume: ProcessedResume;
