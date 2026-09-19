@@ -44,11 +44,11 @@ flowchart TD
 
 | Function | Input | Model |
 | --- | --- | --- |
-| `process-resume-text` | plain text | `gemini-3.6-flash` |
-| `process-resume-pdf` | PDF (inline) | `gemini-3.6-flash` |
-| `process-resume-image` | image (inline) | `gemini-3.6-flash` |
-| `process-resume-docx` | DOCX | `gemini-3.6-flash` |
-| `ai-candidate-matching` | job + candidate profiles | `gemini-3.6-flash` |
+| `process-resume-text` | plain text | `gemini-3.8-flash` |
+| `process-resume-pdf` | PDF (inline) | `gemini-3.8-flash` |
+| `process-resume-image` | image (inline) | `gemini-3.8-flash` |
+| `process-resume-docx` | DOCX | `gemini-3.8-flash` |
+| `ai-candidate-matching` | job + candidate profiles | `gemini-3.8-flash` |
 | `format-job-description` | plain text | `gemini-3.5-flash-lite` |
 | `process-pdf-jd` | PDF (inline) | `gemini-3.5-flash-lite` |
 | `process-image-jd` | image (inline) | `gemini-3.5-flash-lite` |
@@ -71,7 +71,7 @@ So `_shared/vertex.ts` implements the OAuth2 flow directly. It signs a JWT asser
 
 Two things worth knowing if you touch this:
 
-- **`GCP_LOCATION` defaults to `global`.** `gemini-3.6-flash` and `gemini-3.5-flash-lite` are not served in `us-central1` — they 404 there.
+- **`GCP_LOCATION` defaults to `global`.** `gemini-3.8-flash` and `gemini-3.5-flash-lite` are not served in `us-central1` — they 404 there.
 - **Vertex requires an explicit `role` on every `contents` entry.** The Gemini Developer API defaulted it silently; Vertex returns `400 Please use a valid role: user, model`. The shared client defaults it to `user`, so call sites don't have to.
 
 ---

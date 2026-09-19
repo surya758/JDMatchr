@@ -25,7 +25,7 @@ const SCOPE = 'https://www.googleapis.com/auth/cloud-platform'
  * MODEL_LITE  job-description reformatting and extraction: structured, lower
  *             stakes, and cheap for a user to re-run.
  */
-export const MODEL_MAIN = 'gemini-3.6-flash'
+export const MODEL_MAIN = 'gemini-3.8-flash'
 export const MODEL_LITE = 'gemini-3.5-flash-lite'
 
 // Refresh this far before the token actually expires, so a request that starts
@@ -84,7 +84,7 @@ export function vertexProject(): string {
 
 /**
  * Defaults to "global" because that is where the models this app runs on are
- * actually served: gemini-3.6-flash and gemini-3.5-flash-lite both 404 in
+ * actually served: gemini-3.8-flash and gemini-3.5-flash-lite both 404 in
  * us-central1. Override only if a newer region starts carrying them.
  */
 export function vertexLocation(): string {
