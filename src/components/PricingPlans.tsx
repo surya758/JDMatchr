@@ -216,9 +216,6 @@ const PricingPlans = () => {
               Pricing Plans
             </span>
           </div>
-          <h2 className="font-grotesk text-3xl md:text-4xl font-bold text-text mb-4">
-            Simple, Honest
-          </h2>
           <p className="font-grotesk text-lg text-text-muted max-w-2xl mx-auto">
             Choose the plan that fits your hiring needs. No hidden fees, no
             surprises.
